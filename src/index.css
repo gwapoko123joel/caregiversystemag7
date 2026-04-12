@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #2D0A4E;
+  --color-brand-dark: #1A052E;
+  --color-brand-neon-green: #39FF14;
+  --color-brand-accent-green: #00F5FF;
+  
+  --color-navy-dark: #0F172A;
+  --color-purple-glow: rgba(139, 92, 246, 0.5);
+
+  --background-image-hero-gradient: radial-gradient(circle at top right, #3B0764, #1E1B4B);
+
+  --animate-orbit: orbit linear infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes orbit {
+    0% { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
+  }
+}
+
+@layer base {
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    min-height: 100svh;
+    width: 100%;
+    @apply bg-brand-dark text-white antialiased;
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-smoothing: grayscale;
+}
+
+#root {
+  display: block;
+  max-width: none;
+  text-align: left;
+  border: none;
+}
+
+a { color: inherit; }
+button { font-family: inherit; }
+
+/* Custom GFX Utilities */
+.text-neon-green {
+  color: #39FF14;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+}
+
+.bg-neon-green {
+  background-color: #39FF14;
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+/* Orbit Animation Path - Dotted */
+.orbit-path {
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: scale(0.98) translateY(10px); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0px); }
+}
+
+.page-transition {
+  animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
