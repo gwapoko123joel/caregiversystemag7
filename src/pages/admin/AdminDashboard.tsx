@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
-import { ShieldCheck, RefreshCw } from 'lucide-react'
+import { ShieldCheck, RefreshCw, Heart, Sun, Moon } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import BottomNav from '../../components/BottomNav'
+import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
 import type { Profile, ActivityLog } from '../../lib/supabaseClient'
@@ -34,6 +36,7 @@ export interface AdminDashboardContextType {
 
 function AdminLayout() {
   const { user, profile } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
   // State
@@ -98,27 +101,44 @@ function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white">
+    <div className="flex min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
       <Sidebar />
       <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
 
-        {/* Topbar */}
-        <header className="relative z-10 px-8 py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
-          <div>
-            <h1 className="text-2xl font-black tracking-tight uppercase text-text-main transition-colors">{title}</h1>
-            <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
+        {/* Header */}
+        <header className="relative z-10 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
+          <div className="flex items-center gap-4">
+            {/* Mobile Logo */}
+            <div className="md:hidden flex items-center gap-2">
+              <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg">
+                <Heart size={16} className="text-white fill-white" />
+              </div>
+            </div>
+            
+            <div>
+              <h1 className="text-lg md:text-2xl font-black tracking-tight uppercase text-text-main transition-colors leading-tight">{title}</h1>
+              <p className="hidden md:block text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* Mobile Theme Toggle */}
+            <button 
+              onClick={toggleTheme}
+              className="md:hidden p-2.5 rounded-xl bg-card border border-card-border text-sidebar-text-muted transition-all active:scale-90"
+            >
+              {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
             <button
               onClick={() => { loadUsers(); loadLogs(); loadSystemData(); }}
-              className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
+              className="px-4 md:px-6 py-2.5 md:py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
             >
-              <RefreshCw size={14} className="text-sky-500" /> Sync Node
+              <RefreshCw size={14} className="text-sky-500" /> <span className="hidden sm:inline">Sync Node</span>
             </button>
-            <div className="p-[2px] bg-gradient-to-tr from-sky-400 to-sky-600 rounded-full shadow-[0_0_15px_rgba(0,186,255,0.3)]">
+            <div className="hidden sm:block p-[2px] bg-gradient-to-tr from-sky-400 to-sky-600 rounded-full shadow-[0_0_15px_rgba(0,186,255,0.3)]">
               <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center">
                 <ShieldCheck size={16} className="text-sky-400" />
               </div>
@@ -127,10 +147,11 @@ function AdminLayout() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 p-8 relative z-10 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
           <Outlet context={contextValue} />
         </div>
       </main>
+      <BottomNav />
     </div>
   )
 }

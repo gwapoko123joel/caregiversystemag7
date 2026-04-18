@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
-  Activity, VolumeX, Volume2, Monitor
+  Activity, VolumeX, Volume2, Monitor, Heart, Sun, Moon
 } from 'lucide-react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
+import BottomNav from '../../components/BottomNav'
+import { useTheme } from '../../contexts/ThemeContext'
 import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
@@ -55,6 +57,7 @@ export interface Patient {
 export default function PractitionerDashboard() {
   useAuth()
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
   const [patients, setPatients] = useState<Patient[]>([])
   const [alerts, setAlerts] = useState<AlertItem[]>([])
   const [alertCount, setAlertCount] = useState(0)
@@ -187,30 +190,48 @@ export default function PractitionerDashboard() {
         />
       )}
       
-      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white">
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
         <Sidebar alertCount={alertCount} />
 
         <main className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-700 ${alertCount > 0 ? 'ring-4 ring-sky-500/50 shadow-[inset_0_0_100px_rgba(0,186,255,0.2)] animate-pulse-slow' : ''}`}>
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
           
-          <header className={`relative z-50 px-8 py-6 flex items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight uppercase italic flex items-center gap-3 text-text-main transition-colors">
-                 <Monitor size={24} className="text-sky-500" /> {getHeaderTitle()}
-              </h1>
-              <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
-            </div>
+          <header className={`relative z-50 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
             <div className="flex items-center gap-4">
-              <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
+               {/* Mobile Logo */}
+               <div className="md:hidden flex items-center gap-2">
+                 <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg">
+                   <Heart size={16} className="text-white fill-white" />
+                 </div>
+               </div>
+
+               <div>
+                 <h1 className="text-lg md:text-2xl font-black tracking-tight uppercase italic flex items-center gap-2 md:gap-3 text-text-main transition-colors leading-tight">
+                    <Monitor size={20} className="text-sky-500 hidden sm:block" /> {getHeaderTitle()}
+                 </h1>
+                 <p className="hidden md:block text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
+               </div>
+            </div>
+
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Mobile Theme Toggle */}
+              <button 
+                onClick={toggleTheme}
+                className="md:hidden p-2.5 rounded-xl bg-card border border-card-border text-sidebar-text-muted transition-all active:scale-90"
+              >
+                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+
+              <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-2.5 md:p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
                 {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
               </button>
-              <button onClick={loadData} className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
-                <Activity size={16} className="text-sky-500" /> Sync Network
+              <button onClick={loadData} className="px-4 md:px-6 py-2.5 md:py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
+                <Activity size={16} className="text-sky-500" /> <span className="hidden sm:inline">Sync Network</span>
               </button>
             </div>
           </header>
 
-          <div className="flex-1 p-8 relative z-10 overflow-y-auto">
+          <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
             <Routes>
               <Route path="/" element={
                 <PractitionerOverview 
@@ -247,6 +268,7 @@ export default function PractitionerDashboard() {
             </Routes>
           </div>
         </main>
+        <BottomNav />
       </div>
     </>
   )

@@ -54,7 +54,7 @@ const LandingPage: React.FC = () => {
             className="p-3 rounded-2xl bg-card text-sidebar-text-muted hover:text-text-main transition-all border border-card-border shadow-sm dark:shadow-none hover:shadow-md mr-2"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
           <button className="px-6 py-2.5 text-xs font-black uppercase tracking-widest border border-card-border rounded-full bg-card hover:bg-card/80 transition-colors text-sidebar-text-muted hover:text-text-main">
             Contact Support
@@ -68,9 +68,61 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <button className="lg:hidden text-text-main" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-3 lg:hidden">
+          <button 
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-card text-sidebar-text-muted transition-all border border-card-border"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button className="text-text-main p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden bg-primary/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-300">
+             <div className="flex flex-col h-full p-8">
+                <div className="flex items-center justify-between mb-12">
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg">
+                         <Heart size={20} className="text-white fill-white" />
+                      </div>
+                      <span className="font-black uppercase tracking-tight text-text-main">BantayanCare</span>
+                   </div>
+                   <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-card border border-card-border rounded-xl">
+                      <X size={20} />
+                   </button>
+                </div>
+
+                <div className="space-y-6">
+                   {[
+                     'Caregiver Support',
+                     'Patient Records',
+                     'Medical Consults',
+                     'Emergency Resources'
+                   ].map((item) => (
+                     <button key={item} className="w-full text-left text-lg font-black uppercase tracking-widest text-sidebar-text-muted hover:text-sky-500 transition-colors py-2 border-b border-card-border/50">
+                        {item}
+                     </button>
+                   ))}
+                </div>
+
+                <div className="mt-auto space-y-4">
+                   <button 
+                     onClick={() => navigate('/login')}
+                     className="w-full py-5 bg-sky-500 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-500/20 active:scale-95 transition-all text-sm"
+                   >
+                     Access Dashboard
+                   </button>
+                   <button className="w-full py-5 bg-card border border-card-border text-text-main font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all text-sm">
+                     Contact Support
+                   </button>
+                </div>
+             </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero Content ── */}
@@ -86,12 +138,12 @@ const LandingPage: React.FC = () => {
             Barangay Bantayan Deployment
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-8 text-text-main transition-colors">
-            Streamlining <span className="text-sky-500">Care Coordination.</span> Supporting Barangay Bantayan.
+          <h1 className="text-4xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-6 md:mb-8 text-text-main transition-colors">
+            Streamlining <span className="text-sky-500">Care Coordination.</span>
           </h1>
           
-          <p className="text-xl text-sidebar-text-muted font-medium leading-relaxed mb-12 max-w-lg transition-colors">
-            An automated caregiver reporting and on-time patient monitoring platform, designed for Dumaguete City.
+          <p className="text-lg md:text-xl text-sidebar-text-muted font-medium leading-relaxed mb-10 md:mb-12 max-w-lg transition-colors">
+            Automated caregiver reporting and real-time monitoring for Barangay Bantayan.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -210,14 +262,14 @@ const LandingPage: React.FC = () => {
       <footer className="relative z-10 px-6 md:px-12 pb-12 border-t border-card-border pt-12 transition-colors">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
            {[
-             { label: 'Patient Fleet', value: '1,240+' },
-             { label: 'Caregivers Authorised', value: '86' },
-             { label: 'Real-time Vitals/Sec', value: '3,100' },
-             { label: 'Average Emergency Response', value: '< 4m' }
+             { label: 'Network', value: '1,240+' },
+             { label: 'Authorized', value: '86' },
+             { label: 'Telemetry', value: '3.1k/s' },
+             { label: 'Response', value: '< 4m' }
            ].map(stat => (
-             <div key={stat.label}>
-                <div className="text-sidebar-text-muted text-[10px] font-black uppercase tracking-widest mb-2 transition-colors">{stat.label}</div>
-                <div className="text-2xl font-black text-text-main transition-colors">{stat.value}</div>
+             <div key={stat.label} className="p-4 bg-card/50 border border-card-border rounded-2xl">
+                <div className="text-sidebar-text-muted text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-1 transition-colors">{stat.label}</div>
+                <div className="text-lg md:text-2xl font-black text-text-main transition-colors">{stat.value}</div>
              </div>
            ))}
         </div>

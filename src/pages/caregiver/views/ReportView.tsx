@@ -56,14 +56,14 @@ export default function ReportView({
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-700 slide-in-from-bottom-4">
-      <div className="bg-card border border-card-border rounded-[40px] p-8 lg:p-12 relative overflow-hidden shadow-sm dark:shadow-none transition-colors">
-        <div className="flex items-center gap-3 mb-10 transition-colors">
-          <div className="w-10 h-10 bg-sky-500/10 rounded-xl flex items-center justify-center">
+      <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 lg:p-12 relative overflow-hidden shadow-sm dark:shadow-none transition-colors">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 md:mb-10 transition-colors">
+          <div className="w-10 h-10 bg-sky-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
              <FileText size={20} className="text-sky-500" />
           </div>
-          <div>
-            <h3 className="text-xl font-black text-text-main uppercase tracking-tight leading-none transition-colors">Clinical Status Report</h3>
-            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">Submit high-fidelity patient telemetry</p>
+          <div className="text-center sm:text-left">
+            <h3 className="text-lg md:text-xl font-black text-text-main uppercase tracking-tight leading-none transition-colors">Clinical Status Report</h3>
+            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">Submit patient telemetry</p>
           </div>
         </div>
 
@@ -90,20 +90,20 @@ export default function ReportView({
                <select 
                 value={form.physical_status} 
                 onChange={e => setField('physical_status', e.target.value as ReportForm['physical_status'])}
-                className={`w-full relative z-10 bg-card border rounded-2xl py-5 px-6 text-sm font-black uppercase tracking-[0.15em] focus:outline-none transition-all appearance-none cursor-pointer ${
+                className={`w-full relative z-10 bg-card border rounded-2xl py-4 md:py-5 px-5 md:px-6 text-[11px] md:text-sm font-black uppercase tracking-[0.1em] md:tracking-[0.15em] focus:outline-none transition-all appearance-none cursor-pointer ${
                   form.physical_status === 'stable' ? 'border-emerald-500/50 text-emerald-500' : 
                   form.physical_status === 'warning' ? 'border-amber-500/50 text-amber-500' : 'border-red-500 text-red-500 animate-pulse'
                 }`}
               >
-                <option value="stable" className="bg-card text-text-main">Phase: Stable Monitoring</option>
-                <option value="warning" className="bg-card text-text-main">Phase: Warning / Pre-Clinical</option>
-                <option value="critical" className="bg-card text-red-500">Phase: CLINICAL EMERGENCY</option>
+                <option value="stable" className="bg-card text-text-main">Stable Monitoring</option>
+                <option value="warning" className="bg-card text-text-main">Warning State</option>
+                <option value="critical" className="bg-card text-red-500">CLINICAL EMERGENCY</option>
               </select>
             </div>
           </div>
 
           {/* Vitals Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {[
               { label: 'Blood Pressure', val: form.blood_pressure, key: 'blood_pressure', icon: Activity, placeholder: '120/80', color: 'text-sky-400' },
               { label: 'Heart Rate (BPM)', val: form.heart_rate, key: 'heart_rate', icon: Heart, placeholder: '72', color: 'text-sky-500' },
@@ -118,7 +118,7 @@ export default function ReportView({
                     placeholder={v.placeholder}
                     value={v.val}
                     onChange={e => setField(v.key as keyof ReportForm, e.target.value)}
-                    className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-4 text-xs font-bold text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-mono shadow-sm dark:shadow-none"
+                    className="w-full bg-card border border-card-border rounded-xl md:rounded-2xl py-4 pl-12 pr-4 text-[13px] md:text-xs font-bold text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-mono shadow-sm dark:shadow-none"
                   />
                 </div>
               </div>

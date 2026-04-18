@@ -84,7 +84,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 lg:w-72 h-screen !bg-sidebar border-r border-sidebar-border flex flex-col sticky top-0 z-40 transition-colors duration-300">
+    <aside className="hidden md:flex w-64 lg:w-72 h-screen !bg-sidebar border-r border-sidebar-border flex-col sticky top-0 z-40 transition-colors duration-300">
       
       <div className="p-8 pb-12 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
@@ -99,7 +99,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
           className="p-2 rounded-xl bg-card text-sidebar-text-muted transition-all border border-sidebar-border hover:border-sky-500"
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
       </div>
 

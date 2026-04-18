@@ -16,15 +16,15 @@ export default function AdminOverview() {
           { label: 'Security Alerts', val: health.criticalAlerts, icon: ShieldAlert, color: 'text-sky-500', bg: 'bg-sky-500/10', path: '/dashboard/admin/security' },
           { label: 'Uptime', val: health.serverUptime, icon: Server, color: 'text-sky-500', bg: 'bg-sky-500/10', path: '/dashboard/admin/health' },
         ].map(stat => (
-          <Link to={stat.path} key={stat.label} className="p-6 bg-card border border-card-border rounded-3xl group hover:border-sky-500/20 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all block cursor-pointer shadow-sm dark:shadow-none">
+          <Link to={stat.path} key={stat.label} className="p-5 md:p-6 bg-card border border-card-border rounded-3xl group hover:border-sky-500/20 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all block cursor-pointer shadow-sm active:scale-95">
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transition-all`}>
-                <stat.icon size={24} />
+              <div className={`w-10 h-10 md:w-12 md:h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transition-all`}>
+                <stat.icon size={20} className="md:w-6 md:h-6" />
               </div>
-              <ArrowUpRight size={20} className="text-sidebar-text-muted/40 group-hover:text-text-main transition-colors" />
+              <ArrowUpRight size={18} className="text-sidebar-text-muted/40 group-hover:text-text-main transition-colors" />
             </div>
-            <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest mb-1 transition-colors">{stat.label}</div>
-            <div className="text-3xl font-black tracking-tight text-text-main transition-colors">{stat.val}</div>
+            <div className="text-[9px] md:text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest mb-1 transition-colors">{stat.label}</div>
+            <div className="text-2xl md:text-3xl font-black tracking-tight text-text-main transition-colors">{stat.val}</div>
           </Link>
         ))}
       </div>
@@ -39,7 +39,7 @@ export default function AdminOverview() {
             </div>
             <Link to="/dashboard/admin/users" className="text-[10px] font-black text-sky-500 hover:underline uppercase tracking-tighter">View All</Link>
           </div>
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest bg-card transition-colors">
@@ -76,6 +76,23 @@ export default function AdminOverview() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="md:hidden divide-y divide-card-border">
+             {users.slice(0, 5).map(u => (
+               <div key={u.id} className="p-4 flex items-center justify-between active:bg-primary/20 transition-colors">
+                  <div>
+                    <div className="font-black text-xs text-text-main uppercase tracking-tight">{u.first_name?.slice(0,1)}. {u.last_name}</div>
+                    <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest">{u.role.replace(/_/g, ' ')}</div>
+                  </div>
+                  <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${
+                    u.status === 'authorized' ? 'text-emerald-500' : 'text-amber-500'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${u.status === 'authorized' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                    {u.status}
+                  </div>
+               </div>
+             ))}
           </div>
         </div>
 

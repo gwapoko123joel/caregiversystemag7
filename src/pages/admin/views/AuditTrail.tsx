@@ -22,25 +22,25 @@ export default function AuditTrail() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
       <div className="bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
-        <div className="p-8 border-b border-card-border flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card transition-colors">
+        <div className="p-6 md:p-8 border-b border-card-border flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card transition-colors">
           <div>
-            <h3 className="text-xl font-black text-text-main uppercase tracking-tight transition-colors">System Audit Log</h3>
+            <h3 className="text-lg md:text-xl font-black text-text-main uppercase tracking-tight transition-colors">System Audit Log</h3>
             <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">Immutable Global Activity Stream</p>
           </div>
-          <div className="flex gap-4">
-             <div className="relative group min-w-[200px]">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+             <div className="relative group w-full md:min-w-[200px]">
                 <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500" />
                 <input 
                   value={logSearch}
                   onChange={e => setLogSearch(e.target.value)}
-                  className="w-full bg-card border border-card-border rounded-xl py-2 pl-10 pr-4 text-[10px] font-black text-text-main focus:outline-none uppercase tracking-widest placeholder:text-sidebar-text-muted/50 transition-colors shadow-sm dark:shadow-none" 
-                  placeholder="FILTER BY DETAILS..." 
+                  className="w-full bg-card border border-card-border rounded-xl py-3.5 md:py-2 pl-10 pr-4 text-[10px] font-black text-text-main focus:outline-none uppercase tracking-widest placeholder:text-sidebar-text-muted/50 transition-colors shadow-sm dark:shadow-none" 
+                  placeholder="SEARCH DETAILS..." 
                 />
              </div>
              <select 
                 value={logFilter} 
                 onChange={e => setLogFilter(e.target.value)}
-                className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none appearance-none cursor-pointer transition-colors shadow-sm dark:shadow-none"
+                className="w-full md:w-auto bg-card border border-card-border rounded-xl px-4 py-3.5 md:py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none appearance-none cursor-pointer transition-colors shadow-sm dark:shadow-none"
               >
                 <option value="all" className="bg-card text-text-main">All Ops</option>
                 <option value="LOGIN" className="bg-card text-text-main">Logins</option>
@@ -51,7 +51,7 @@ export default function AuditTrail() {
              </select>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest bg-card transition-colors">
@@ -79,6 +79,31 @@ export default function AuditTrail() {
                 ))}
               </tbody>
             </table>
+        </div>
+
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden divide-y divide-card-border">
+           {filteredLogs.map((l: ActivityLog) => (
+             <div key={l.log_id} className="p-6 transition-all active:bg-primary/20">
+                <div className="flex items-start justify-between mb-4">
+                   <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">{new Date(l.timestamp).toLocaleString()}</div>
+                   <span className="text-[10px] font-black text-brand-luminous-cyan px-2 py-1 bg-sky-500/10 rounded-lg border border-sky-500/20">{l.action}</span>
+                </div>
+
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-500 font-black text-[10px]">ID</div>
+                   <div>
+                      <div className="text-xs font-black text-text-main uppercase">{l.user_id?.slice(0, 12)}...</div>
+                      <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest">{l.user_type} SESSION</div>
+                   </div>
+                </div>
+
+                <div className="bg-primary/30 rounded-2xl p-4 border border-card-border">
+                   <div className="text-[9px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-2">Payload Data:</div>
+                   <div className="text-[10px] font-medium font-mono text-text-main leading-relaxed break-all whitespace-pre-wrap">{JSON.stringify(l.details, null, 2)}</div>
+                </div>
+             </div>
+           ))}
         </div>
       </div>
     </div>

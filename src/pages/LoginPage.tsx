@@ -74,7 +74,7 @@ export default function LoginPage() {
           className="p-3 rounded-2xl bg-card text-sidebar-text-muted hover:text-text-main transition-all border border-card-border shadow-sm dark:shadow-none hover:shadow-md"
           title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
         </button>
       </div>
       
@@ -116,8 +116,13 @@ export default function LoginPage() {
           <div className="bg-card/80 backdrop-blur-2xl border border-card-border rounded-3xl p-8 shadow-xl dark:shadow-2xl transition-colors">
             
             <div className="mb-8 font-sans">
-              <h2 className="text-3xl font-black text-text-main mb-2 tracking-tight transition-colors">Welcome Back</h2>
-              <p className="text-sidebar-text-muted font-medium">Verify your credentials to continue</p>
+              <div className="lg:hidden flex justify-center mb-8">
+                <Link to="/" className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg active:scale-95">
+                  <Heart size={28} className="text-white fill-white" />
+                </Link>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-text-main mb-2 tracking-tight transition-colors text-center lg:text-left">Welcome Back</h2>
+              <p className="text-sidebar-text-muted font-medium text-center lg:text-left text-sm">Verify your credentials to continue</p>
             </div>
 
             {/* Role Switcher */}

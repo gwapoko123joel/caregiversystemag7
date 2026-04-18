@@ -8,9 +8,14 @@ import {
 import {
   Phone,
   Zap,
-  ShieldAlert
+  ShieldAlert,
+  Heart,
+  Sun,
+  Moon
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import BottomNav from '../../components/BottomNav'
+import { useTheme } from '../../contexts/ThemeContext'
 import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
@@ -49,6 +54,7 @@ const EMPTY_FORM: ReportForm = {
 
 export default function CaregiverDashboard() {
   const { profile, user } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [recentLogs, setRecentLogs] = useState<PatientMonitoringLog[]>([])
@@ -229,11 +235,11 @@ export default function CaregiverDashboard() {
 
   if (profile?.status === 'pending') {
     return (
-      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-hidden items-center justify-center p-6 relative transition-colors duration-300">
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-hidden items-center justify-center p-4 md:p-6 relative transition-colors duration-300">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-500/10 dark:bg-sky-500/20 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-500/5 dark:bg-sky-500/10 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none transition-opacity" />
         
-        <div className="w-full max-w-md bg-card backdrop-blur-3xl border border-card-border rounded-[40px] p-12 text-center relative overflow-hidden group hover:border-sky-500/30 transition-all shadow-xl dark:shadow-none">
+        <div className="w-full max-w-md bg-card backdrop-blur-3xl border border-card-border rounded-[32px] md:rounded-[40px] p-8 md:p-12 text-center relative overflow-hidden group hover:border-sky-500/30 transition-all shadow-xl dark:shadow-none">
           <div className="absolute -inset-10 bg-sky-500/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
           
           <div className="relative z-10 flex flex-col items-center">
@@ -265,7 +271,7 @@ export default function CaregiverDashboard() {
         />
       )}
 
-      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white">
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
         <Sidebar />
 
         <main className="flex-1 flex flex-col relative overflow-hidden h-screen bg-primary">
@@ -273,27 +279,44 @@ export default function CaregiverDashboard() {
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
           
           {/* Topbar */}
-          <header className="relative z-20 px-8 py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 shrink-0 transition-colors">
-            <div>
-              <h1 className="text-2xl font-black tracking-tight uppercase italic text-text-main transition-colors">{getViewTitle()}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                 <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest leading-none transition-colors">Live Deployment — {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase()}</p>
+          <header className="relative z-20 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 shrink-0 transition-colors">
+            <div className="flex items-center gap-4">
+              {/* Mobile Logo */}
+              <div className="md:hidden flex items-center gap-2">
+                <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg">
+                  <Heart size={16} className="text-white fill-white" />
+                </div>
+              </div>
+
+              <div>
+                <h1 className="text-lg md:text-2xl font-black tracking-tight uppercase italic text-text-main transition-colors leading-tight">{getViewTitle()}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                   <p className="hidden md:block text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest leading-none transition-colors">Live Deployment — {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase()}</p>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Mobile Theme Toggle */}
+              <button 
+                onClick={toggleTheme}
+                className="md:hidden p-2.5 rounded-xl bg-card border border-card-border text-sidebar-text-muted transition-all active:scale-90"
+              >
+                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+
               <button 
                 onClick={() => setShowCall(true)}
-                className="px-6 py-3 node-urgent font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
+                className="px-4 md:px-6 py-2.5 md:py-3 node-urgent font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
               >
-                <Phone size={14} className="fill-current text-current" /> Emergency Link
+                <Phone size={14} className="fill-current text-current" /> <span className="hidden sm:inline">Emergency Link</span>
               </button>
             </div>
           </header>
 
           {/* Sub-view Content Area */}
-          <div className="flex-1 p-8 relative z-10 overflow-y-auto overflow-x-hidden transition-colors">
+          <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto overflow-x-hidden transition-colors">
             <Routes>
               {/* Home / Overview */}
               <Route index element={
@@ -357,6 +380,7 @@ export default function CaregiverDashboard() {
             </Routes>
           </div>
         </main>
+        <BottomNav />
       </div>
     </>
   )

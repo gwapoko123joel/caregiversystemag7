@@ -27,42 +27,42 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
            </div>
         </div>
       ) : patient ? (
-        <div className="group relative bg-card border border-card-border rounded-[40px] p-8 lg:p-12 overflow-hidden hover:border-sky-500/30 transition-all duration-500 shadow-sm dark:shadow-none">
-           <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-sky-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all" />
-           
-           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-             <div className="flex items-start gap-8">
-                <div className="relative">
-                   <div className="w-24 h-24 bg-gradient-to-br from-sky-500/20 to-slate-500/10 rounded-[32px] border border-card-border flex items-center justify-center shadow-2xl relative z-10 overflow-hidden transition-colors">
-                      <User size={40} className="text-sky-500" />
-                   </div>
-                   <div className="absolute -inset-2 bg-sky-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full font-sans" />
-                </div>
-                
-                <div className="space-y-2">
-                   <div className="flex items-center gap-3">
-                      <h2 className="text-4xl font-black text-text-main tracking-tight leading-none transition-colors">{patient.first_name} {patient.last_name}</h2>
-                      <span className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-500 text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,229,255,0.3)]">{patient.status}</span>
-                   </div>
-                   <div className="flex flex-wrap gap-4 pt-2">
-                     <div className="flex items-center gap-2 text-sidebar-text-muted transition-colors">
-                       <Calendar size={14} className="text-sidebar-text-muted/50" />
-                       <span className="text-xs font-bold uppercase tracking-tight">{patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '—'}</span>
-                     </div>
-                     <div className="flex items-center gap-2 text-sidebar-text-muted transition-colors">
-                       <MapPin size={14} className="text-sidebar-text-muted/50" />
-                       <span className="text-xs font-bold uppercase tracking-tight">{patient.address}</span>
-                     </div>
-                   </div>
-                </div>
-             </div>
+         <div className="group relative bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 md:p-8 lg:p-12 overflow-hidden hover:border-sky-500/30 transition-all duration-500 shadow-sm dark:shadow-none">
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-sky-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all" />
+            
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 md:gap-12">
+              <div className="flex flex-col sm:flex-row items-start gap-6 md:gap-8">
+                 <div className="relative">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-sky-500/20 to-slate-500/10 rounded-[28px] md:rounded-[32px] border border-card-border flex items-center justify-center shadow-2xl relative z-10 overflow-hidden transition-colors">
+                       <User size={32} className="text-sky-500" />
+                    </div>
+                    <div className="absolute -inset-2 bg-sky-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full font-sans" />
+                 </div>
+                 
+                 <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                       <h2 className="text-2xl md:text-4xl font-black text-text-main tracking-tight leading-none transition-colors">{patient.first_name} {patient.last_name}</h2>
+                       <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-sky-500/10 text-sky-500 text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,229,255,0.3)]">{patient.status}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2">
+                      <div className="flex items-center gap-2 text-sidebar-text-muted transition-colors">
+                        <Calendar size={14} className="text-sidebar-text-muted/50" />
+                        <span className="text-xs font-bold uppercase tracking-tight">{patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sidebar-text-muted transition-colors">
+                        <MapPin size={14} className="text-sidebar-text-muted/50" />
+                        <span className="text-xs font-bold uppercase tracking-tight truncate max-w-[200px]">{patient.address}</span>
+                      </div>
+                    </div>
+                 </div>
+              </div>
 
-             <div className="flex lg:flex-col items-end gap-2 text-right">
-                <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest mb-1 leading-none transition-colors">Internal Case ID</div>
-                <code className="text-2xl font-black text-sky-500 bg-sky-500/5 px-4 py-2 rounded-2xl border border-sky-500/10 italic tracking-tighter">PT-{patient.patient_id.toString().padStart(4, '0')}</code>
-             </div>
-           </div>
-        </div>
+              <div className="flex lg:flex-col items-center lg:items-end justify-between lg:justify-end gap-2 text-right border-t lg:border-none pt-4 lg:pt-0 border-card-border/50">
+                 <div className="text-[9px] md:text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest mb-1 leading-none transition-colors">Case ID</div>
+                 <code className="text-xl md:text-2xl font-black text-sky-500 bg-sky-500/5 px-4 py-2 rounded-2xl border border-sky-500/10 italic tracking-tighter">PT-{patient.patient_id.toString().padStart(4, '0')}</code>
+              </div>
+            </div>
+         </div>
       ) : (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-[40px] p-8 flex items-center gap-6 animate-pulse">
           <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-500">
@@ -78,11 +78,11 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
       {/* ── Status Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Telemetry Flow Summary */}
-        <div className="bg-card border border-card-border rounded-[40px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
-          <div className="p-8 border-b border-card-border bg-card flex items-center justify-between transition-colors">
+        <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
+          <div className="px-6 md:p-8 py-5 border-b border-card-border bg-card flex items-center justify-between transition-colors">
              <div className="flex items-center gap-2">
                 <TrendingUp size={18} className="text-sky-500" />
-                <h3 className="text-xs font-black uppercase text-text-main tracking-[0.2em] leading-none transition-colors">Telemetry Flow</h3>
+                <h3 className="text-[10px] md:text-xs font-black uppercase text-text-main tracking-[0.2em] leading-none transition-colors">Telemetry Flow</h3>
              </div>
              <Link to="/dashboard/caregiver/history" className="text-[9px] font-black text-sidebar-text-muted uppercase hover:text-text-main transition-colors">Full History</Link>
           </div>
@@ -133,13 +133,13 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
         </div>
 
         {/* Quick Actions / Summary */}
-        <div className="p-12 bg-card rounded-[40px] border border-card-border flex flex-col justify-center shadow-sm dark:shadow-none transition-all duration-300">
-           <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-4 leading-none italic transition-colors">Welcome Back</h3>
-           <p className="text-xs font-bold text-sidebar-text-muted uppercase tracking-widest leading-relaxed mb-8 max-w-[280px] transition-colors">
-             Ensure all clinical telemetry is synchronized before the next practitioner round.
+        <div className="p-8 md:p-12 bg-card rounded-[32px] md:rounded-[40px] border border-card-border flex flex-col justify-center shadow-sm dark:shadow-none transition-all duration-300">
+           <h3 className="text-xl md:text-2xl font-black text-text-main uppercase tracking-tight mb-4 leading-none italic transition-colors">Welcome Back</h3>
+           <p className="text-[10px] md:text-xs font-bold text-sidebar-text-muted uppercase tracking-widest leading-relaxed mb-8 max-w-[280px] transition-colors">
+             Ensure clinical telemetry is synced before the next round.
            </p>
            <div className="space-y-4">
-              <Link to="/dashboard/caregiver/report" className="flex items-center justify-between p-6 bg-sky-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,229,255,0.3)]">
+              <Link to="/dashboard/caregiver/report" className="flex items-center justify-between p-5 md:p-6 bg-sky-500 text-white rounded-2xl md:rounded-3xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,229,255,0.3)]">
                  Submit New Report <ChevronRight size={16} />
               </Link>
            </div>

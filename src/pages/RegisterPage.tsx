@@ -178,8 +178,13 @@ export default function RegisterPage() {
           <div className="bg-card backdrop-blur-2xl border border-card-border rounded-3xl p-8 lg:p-12 shadow-2xl transition-colors">
             
             <div className="mb-10">
-              <h2 className="text-3xl font-black text-text-main mb-2 tracking-tight transition-colors">Create Your Account</h2>
-              <p className="text-sidebar-text-muted font-medium transition-colors">Complete the secure enrollment form below</p>
+              <div className="lg:hidden flex justify-center mb-8">
+                <Link to="/" className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg active:scale-95">
+                  <Heart size={28} className="text-white fill-white" />
+                </Link>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-text-main mb-2 tracking-tight transition-colors text-center lg:text-left">Create Your Account</h2>
+              <p className="text-sidebar-text-muted font-medium transition-colors text-center lg:text-left text-sm">Complete the enrollment form below</p>
             </div>
 
             {/* Error Message */}
