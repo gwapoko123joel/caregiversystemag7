@@ -41,13 +41,13 @@ export default function VideoConsole({ initiateCall }: VideoConsoleProps) {
                    { label: 'Global Gateway', val: 'DUM-CENTER', icon: Globe },
                    { label: 'Signal Quality', val: 'OPTIMAL', icon: Radio },
                  ].map((mod, i) => (
-                    <div key={i} className="p-5 bg-slate-50 dark:bg-slate-900/50 border border-card-border rounded-2xl flex items-center gap-4 transition-colors shadow-sm dark:shadow-none">
-                       <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center text-sky-500 transition-colors">
+                    <div key={i} className="p-5 bg-sky-500/5 border border-card-border rounded-2xl flex items-center gap-4 transition-colors shadow-sm dark:shadow-none">
+                       <div className="w-10 h-10 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-500 transition-colors">
                           <mod.icon size={18} />
                        </div>
                        <div>
                           <div className="text-[9px] font-black text-sidebar-text-muted uppercase tracking-widest mb-0.5 transition-colors">{mod.label}</div>
-                          <div className="text-xs font-black text-text-main tracking-widest transition-colors">{mod.val}</div>
+                          <div className="text-sm font-black text-text-main tracking-widest transition-colors">{mod.val}</div>
                        </div>
                     </div>
                  ))}
