@@ -98,29 +98,29 @@ function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-brand-dark font-sans text-white selection:bg-brand-neon-green selection:text-brand-dark">
+    <div className="flex min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white">
       <Sidebar />
       <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-purple/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
 
         {/* Topbar */}
-        <header className="relative z-10 px-8 py-6 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0">
+        <header className="relative z-10 px-8 py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
           <div>
-            <h1 className="text-2xl font-black tracking-tight uppercase">{title}</h1>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">{subTitle}</p>
+            <h1 className="text-2xl font-black tracking-tight uppercase text-text-main transition-colors">{title}</h1>
+            <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
           </div>
 
           <div className="flex items-center gap-4">
             <button
               onClick={() => { loadUsers(); loadLogs(); loadSystemData(); }}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-2 text-xs font-black uppercase transition-all"
+              className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
             >
-              <RefreshCw size={14} className="text-brand-neon-green" /> Sync Node
+              <RefreshCw size={14} className="text-sky-500" /> Sync Node
             </button>
-            <div className="p-[2px] bg-gradient-to-tr from-brand-neon-green to-brand-accent-green rounded-full shadow-[0_0_15px_rgba(57,255,20,0.3)]">
-              <div className="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center">
-                <ShieldCheck size={16} className="text-brand-neon-green" />
+            <div className="p-[2px] bg-gradient-to-tr from-sky-400 to-sky-600 rounded-full shadow-[0_0_15px_rgba(0,186,255,0.3)]">
+              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center">
+                <ShieldCheck size={16} className="text-sky-400" />
               </div>
             </div>
           </div>

@@ -5,11 +5,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --navy:      #1e3a5f;
-  --navy-dark: #132844;
-  --blue:      #2196f3;
+  --navy:      #001242;
+  --navy-dark: #000B2E;
+  --blue:      #00E5FF;
   --red:       #ef4444;
-  --green:     #10b981;
+  --green:     #00FFFF;
   --amber:     #f59e0b;
   --white:     #ffffff;
   --off-white: #f8fafc;

@@ -13,9 +13,12 @@ import {
   Cpu,
   LogOut,
   Heart,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import type { UserRole } from '../lib/supabaseClient';
 
 interface SidebarProps {
@@ -61,6 +64,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 export default function Sidebar({ alertCount = 0 }: SidebarProps) {
   const { profile, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -80,19 +84,28 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
   }
 
   return (
-    <aside className="w-64 lg:w-72 h-screen bg-brand-dark border-r border-white/5 flex flex-col sticky top-0 z-40 selection:bg-brand-neon-green selection:text-brand-dark">
+    <aside className="w-64 lg:w-72 h-screen !bg-sidebar border-r border-sidebar-border flex flex-col sticky top-0 z-40 transition-colors duration-300">
       
-      {/* Branding */}
-      <div className="p-8 pb-12 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-brand-neon-green to-brand-accent-green rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.3)]">
-          <Heart size={20} className="text-brand-dark fill-brand-dark" />
-        </div>
-        <span className="text-lg font-black tracking-tighter text-white uppercase italic">BantayanCare</span>
+      <div className="p-8 pb-12 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
+          <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all">
+            <Heart size={20} className="text-white fill-white" />
+          </div>
+          <span className="text-lg font-black tracking-tighter text-sidebar-text uppercase italic">BantayanCare</span>
+        </Link>
+        
+        <button 
+          onClick={toggleTheme}
+          className="p-2 rounded-xl bg-card text-sidebar-text-muted transition-all border border-sidebar-border hover:border-sky-500"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto scrollbar-hide">
-        <div className="px-4 mb-4 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Management</div>
+        <div className="px-4 mb-4 text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em]">Management</div>
         
         {navItems.map((item) => {
           const isActive = location.pathname === item.path ||
@@ -107,11 +120,11 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
             <Link
               key={item.path}
               to={item.path}
-              className={`group flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 relative overflow-hidden ${
+              className={`group relative flex items-center gap-3 px-6 py-4 rounded-xl transition-all duration-300 ${
                 isActive 
-                  ? 'bg-brand-neon-green text-brand-dark font-bold shadow-[0_0_20px_rgba(57,255,20,0.2)]' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+                  ? '!bg-sky-500 !text-white font-bold shadow-lg' 
+                  : 'text-sidebar-text hover:bg-card'
+              } shadow-sm`}
             >
               <div className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                 {item.icon}
@@ -120,7 +133,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
               
               {badgeCount > 0 && (
                 <div className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  isActive ? 'bg-brand-dark text-brand-neon-green' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]'
+                  isActive ? 'bg-white text-sky-500' : 'node-urgent shadow-[0_0_10px_rgba(239,68,68,0.3)]'
                 }`}>
                   {badgeCount > 99 ? '99+' : badgeCount}
                 </div>
@@ -138,20 +151,20 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
 
       {/* Footer / User Profile */}
       <div className="p-4 mt-auto">
-        <div className="p-4 rounded-3xl bg-white/5 border border-white/10 group transition-colors hover:border-brand-neon-green/30">
+        <div className="p-4 rounded-3xl bg-card border border-card-border group transition-colors hover:border-sky-500/30 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-             <div className="w-10 h-10 rounded-full bg-brand-neon-green flex items-center justify-center text-brand-dark font-black text-xs shadow-[0_0_10px_rgba(57,255,20,0.3)]">
+             <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-black text-xs shadow-lg">
                 {initials}
              </div>
-             <div className="flex-1 overflow-hidden">
-                <div className="text-xs font-black text-white truncate uppercase tracking-tight">{profile?.full_name ?? '—'}</div>
-                <div className="text-[10px] font-bold text-brand-neon-green/60 uppercase">{ROLE_LABELS[role]}</div>
-             </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="text-xs font-black text-sidebar-text truncate uppercase tracking-tight">{profile?.full_name ?? '—'}</div>
+                <div className="text-[10px] font-bold text-sky-500 uppercase tracking-wider">{ROLE_LABELS[role]}</div>
+              </div>
           </div>
           
           <button 
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black text-gray-500 hover:text-white hover:bg-white/5 transition-all uppercase tracking-widest border border-transparent hover:border-white/10"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black text-sidebar-text-muted hover:text-text-main hover:bg-card transition-all uppercase tracking-widest border border-card-border"
           >
             <LogOut size={12} />
             SIGN OUT FROM PORTAL
@@ -159,7 +172,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
         </div>
         
         <div className="mt-4 flex items-center justify-center gap-2 text-[9px] font-bold text-gray-700 tracking-tighter uppercase whitespace-nowrap">
-           <ShieldCheck size={10} className="text-brand-accent-green/40" />
+           <ShieldCheck size={10} className="text-brand-accent-cyan/40" />
            ENCRYPTED NODE: DUMAGUETE-X01
         </div>
       </div>

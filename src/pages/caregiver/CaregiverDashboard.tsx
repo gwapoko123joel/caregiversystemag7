@@ -229,23 +229,23 @@ export default function CaregiverDashboard() {
 
   if (profile?.status === 'pending') {
     return (
-      <div className="flex min-h-screen bg-brand-dark font-sans text-white overflow-hidden items-center justify-center p-6 relative">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-purple/20 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-purple/10 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-hidden items-center justify-center p-6 relative transition-colors duration-300">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sky-500/10 dark:bg-sky-500/20 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-500/5 dark:bg-sky-500/10 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none transition-opacity" />
         
-        <div className="w-full max-w-md bg-[#1e1b4b]/50 backdrop-blur-3xl border border-white/5 rounded-[40px] p-12 text-center relative overflow-hidden group hover:border-yellow-500/30 transition-all">
-          <div className="absolute -inset-10 bg-yellow-500/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="w-full max-w-md bg-card backdrop-blur-3xl border border-card-border rounded-[40px] p-12 text-center relative overflow-hidden group hover:border-sky-500/30 transition-all shadow-xl dark:shadow-none">
+          <div className="absolute -inset-10 bg-sky-500/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
           
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full bg-yellow-500/10 flex items-center justify-center mb-8 border-2 border-yellow-500/20 shadow-[0_0_40px_rgba(234,179,8,0.3)]">
-              <ShieldAlert size={40} className="text-yellow-500" />
+            <div className="w-24 h-24 rounded-full bg-amber-500/10 flex items-center justify-center mb-8 border-2 border-amber-500/20 shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all">
+              <ShieldAlert size={40} className="text-amber-500" />
             </div>
-            <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-4 leading-none">Security Clearance Pending</h2>
-            <p className="text-gray-400 font-bold text-sm leading-relaxed mb-10 tracking-widest max-w-[280px]">
+            <h2 className="text-3xl font-black text-text-main uppercase tracking-tight mb-4 leading-none transition-colors">Security Clearance Pending</h2>
+            <p className="text-sidebar-text-muted font-bold text-sm leading-relaxed mb-10 tracking-widest max-w-[280px] transition-colors">
               Access to real-time network operations requires administrative authorization.
             </p>
             <div className="w-full space-y-3">
-               <button onClick={() => window.location.reload()} className="w-full py-4 text-xs font-black text-brand-dark uppercase tracking-widest rounded-2xl bg-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all flex items-center justify-center gap-2">
+               <button onClick={() => window.location.reload()} className="w-full py-4 text-xs font-black text-white uppercase tracking-widest rounded-2xl bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.6)] transition-all flex items-center justify-center gap-2">
                  <Zap size={16} /> Recheck Status
                </button>
             </div>
@@ -265,35 +265,35 @@ export default function CaregiverDashboard() {
         />
       )}
 
-      <div className="flex min-h-screen bg-brand-dark font-sans text-white overflow-x-hidden selection:bg-brand-neon-green selection:text-brand-dark">
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white">
         <Sidebar />
 
-        <main className="flex-1 flex flex-col relative overflow-hidden h-screen bg-brand-dark">
+        <main className="flex-1 flex flex-col relative overflow-hidden h-screen bg-primary">
           {/* Background Gradients */}
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-purple/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
           
           {/* Topbar */}
-          <header className="relative z-20 px-8 py-6 flex items-center justify-between border-b border-white/5 bg-brand-dark/50 backdrop-blur-md sticky top-0 shrink-0">
+          <header className="relative z-20 px-8 py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 shrink-0 transition-colors">
             <div>
-              <h1 className="text-2xl font-black tracking-tight uppercase italic">{getViewTitle()}</h1>
+              <h1 className="text-2xl font-black tracking-tight uppercase italic text-text-main transition-colors">{getViewTitle()}</h1>
               <div className="flex items-center gap-2 mt-1">
-                 <div className="w-1.5 h-1.5 rounded-full bg-brand-neon-green animate-pulse" />
-                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">Live Deployment — {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase()}</p>
+                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                 <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest leading-none transition-colors">Live Deployment — {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase()}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setShowCall(true)}
-                className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] flex items-center gap-2 hover:scale-105 active:scale-95"
+                className="px-6 py-3 node-urgent font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
               >
-                <Phone size={14} className="fill-white" /> Emergency Link
+                <Phone size={14} className="fill-current text-current" /> Emergency Link
               </button>
             </div>
           </header>
 
           {/* Sub-view Content Area */}
-          <div className="flex-1 p-8 relative z-10 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 p-8 relative z-10 overflow-y-auto overflow-x-hidden transition-colors">
             <Routes>
               {/* Home / Overview */}
               <Route index element={
@@ -338,13 +338,13 @@ export default function CaregiverDashboard() {
               <Route path="call" element={
                 <div className="h-full flex items-center justify-center">
                    <div className="text-center space-y-6">
-                      <div className="w-24 h-24 bg-red-600/10 rounded-full flex items-center justify-center border border-red-600/20 mx-auto animate-pulse">
-                         <Phone size={40} className="text-red-600" />
+                      <div className="w-24 h-24 node-urgent rounded-full flex items-center justify-center mx-auto animate-pulse border-none">
+                         <Phone size={40} className="text-current" />
                       </div>
-                      <h2 className="text-2xl font-black text-white uppercase italic">Initializing Emergency Link...</h2>
+                      <h2 className="text-2xl font-black text-text-main uppercase italic transition-colors">Initializing Emergency Link...</h2>
                       <button 
                         onClick={() => setShowCall(true)}
-                        className="px-12 py-5 bg-red-600 rounded-3xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(220,38,38,0.5)]"
+                        className="px-12 py-5 node-urgent rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] shadow-harmonized border-none"
                       >
                          Launch Video Console
                       </button>

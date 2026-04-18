@@ -6,23 +6,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Core Palette - HSL Tailored */
-  --primary-h: 215;
-  --primary-s: 60%;
-  --primary-l: 25%;
+  /* Core Palette - HSL Tailored for Cobalt & Cyan */
+  --primary-h: 228;
+  --primary-s: 100%;
+  --primary-l: 10%;
   
   --navy:         hsl(var(--primary-h), var(--primary-s), var(--primary-l));
-  --navy-light:   hsl(var(--primary-h), var(--primary-s), 35%);
-  --navy-dark:    hsl(var(--primary-h), var(--primary-s), 15%);
-  --accent:       hsl(200, 95%, 50%); /* Bright Blue */
+  --navy-light:   hsl(var(--primary-h), var(--primary-s), 20%);
+  --navy-dark:    hsl(var(--primary-h), var(--primary-s), 5%);
+  --accent:       hsl(185, 100%, 50%); /* Luminous Cyan */
   
   /* Status Colors */
-  --green:        hsl(160, 84%, 39%);
-  --green-bg:     hsl(160, 84%, 39%, 0.1);
+  --green:        hsl(185, 100%, 45%); /* Stable - Luminous Cyan-ish */
+  --green-bg:     hsl(185, 100%, 45%, 0.1);
   --amber:        hsl(38, 92%, 50%);
   --amber-bg:     hsl(38, 92%, 50%, 0.1);
-  --red:          hsl(0, 84%, 60%);
-  --red-bg:       hsl(0, 84%, 60%, 0.1);
+  --red:          hsl(190, 100%, 50%); /* Emergency - High Luminous Cyan */
+  --red-bg:       hsl(190, 100%, 50%, 0.1);
   
   /* Neutrals */
   --white:        #ffffff;

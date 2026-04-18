@@ -114,19 +114,19 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-brand-dark flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      <div className="min-h-screen bg-primary flex items-center justify-center p-6 relative overflow-hidden font-sans">
         <div className="absolute inset-0 bg-hero-gradient opacity-30" />
-        <div className="w-full max-w-lg bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-2xl relative z-10 text-center">
-          <div className="w-20 h-20 bg-brand-neon-green rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(57,255,20,0.5)]">
-            <CheckCircle2 size={40} className="text-brand-dark" />
+        <div className="w-full max-w-lg bg-card backdrop-blur-2xl border border-card-border rounded-3xl p-10 shadow-2xl relative z-10 text-center">
+          <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(0,186,255,0.5)]">
+            <CheckCircle2 size={40} className="text-white" />
           </div>
-          <h2 className="text-4xl font-black text-white mb-4 tracking-tight">Request Submitted</h2>
-          <p className="text-gray-400 font-medium leading-relaxed mb-10">
+          <h2 className="text-4xl font-black text-text-main mb-4 tracking-tight">Request Submitted</h2>
+          <p className="text-sidebar-text-muted font-medium leading-relaxed mb-10">
             Your registration is complete. Please verify your email <strong>{form.email}</strong> before signing in to the portal.
           </p>
           <button 
             onClick={() => window.location.href='/login'}
-            className="w-full bg-brand-neon-green text-brand-dark font-black rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(57,255,20,0.4)] transition-all uppercase tracking-tight"
+            className="w-full bg-sky-500 text-white font-black rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,186,255,0.4)] transition-all uppercase tracking-tight"
           >
             GO TO SIGN IN <ArrowRight size={20} />
           </button>
@@ -136,38 +136,38 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-dark flex items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-primary flex items-center justify-center p-6 relative overflow-hidden font-sans">
       {/* ── Background Elements ── */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-purple/20 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-purple/10 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blur-glow-primary opacity-20 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blur-glow-secondary opacity-15 blur-[120px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
       
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-5 gap-12 items-start relative z-10">
         
         {/* Left Branding (2/5) */}
         <div className="hidden lg:block lg:col-span-2 sticky top-12 space-y-10">
-          <div className="flex items-center gap-3">
-             <div className="w-12 h-12 bg-gradient-to-br from-brand-neon-green to-brand-accent-green rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(57,255,20,0.4)]">
-                <Heart size={28} className="text-brand-dark fill-brand-dark" />
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
+             <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
+                <Heart size={28} className="text-white fill-white" />
              </div>
-             <span className="text-2xl font-black tracking-tight text-white uppercase">BantayanCare</span>
-          </div>
+             <span className="text-2xl font-black tracking-tight text-text-main uppercase transition-colors">BantayanCare</span>
+          </Link>
           
-          <h1 className="text-5xl font-bold text-white leading-[1.1] tracking-tight">
-            Join the <span className="text-brand-neon-green">Medical</span> Fleet.
+          <h1 className="text-5xl font-bold text-text-main leading-[1.1] tracking-tight transition-colors">
+            Join the <span className="text-sky-500">Medical</span> Fleet.
           </h1>
           
-          <p className="text-lg text-gray-400 font-medium leading-relaxed">
+          <p className="text-lg text-sidebar-text-muted font-medium leading-relaxed transition-colors">
             Register your credentials to begin coordination in Barangay Bantayan.
           </p>
           
           <div className="space-y-4">
              {ROLES.map(r => (
-               <div key={r.value} className={`p-5 rounded-2xl border transition-all ${form.role === r.value ? 'bg-brand-neon-green/10 border-brand-neon-green/30' : 'bg-white/5 border-white/5'}`}>
+               <div key={r.value} className={`p-5 rounded-2xl border transition-all ${form.role === r.value ? 'bg-sky-500/10 border-sky-500/30' : 'bg-card border-card-border'}`}>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${form.role === r.value ? 'bg-brand-neon-green shadow-[0_0_8px_rgba(57,255,20,0.8)]' : 'bg-gray-600'}`} />
-                    <span className={`text-sm font-black uppercase tracking-widest ${form.role === r.value ? 'text-brand-neon-green' : 'text-gray-500'}`}>{r.label}</span>
+                    <div className={`w-2 h-2 rounded-full ${form.role === r.value ? 'bg-sky-500 shadow-[0_0_8px_rgba(0,186,255,0.5)]' : 'bg-sidebar-text-muted/30'}`} />
+                    <span className={`text-sm font-black uppercase tracking-widest ${form.role === r.value ? 'text-sky-500' : 'text-sidebar-text-muted'}`}>{r.label}</span>
                   </div>
-                  <p className="text-xs text-gray-400 font-medium">{r.description}</p>
+                  <p className="text-xs text-sidebar-text-muted/80 font-medium">{r.description}</p>
                </div>
              ))}
           </div>
@@ -175,18 +175,18 @@ export default function RegisterPage() {
 
         {/* Right Form Card (3/5) */}
         <div className="w-full lg:col-span-3">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl">
+          <div className="bg-card backdrop-blur-2xl border border-card-border rounded-3xl p-8 lg:p-12 shadow-2xl transition-colors">
             
             <div className="mb-10">
-              <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Create Your Account</h2>
-              <p className="text-gray-400 font-medium">Complete the secure enrollment form below</p>
+              <h2 className="text-3xl font-black text-text-main mb-2 tracking-tight transition-colors">Create Your Account</h2>
+              <p className="text-sidebar-text-muted font-medium transition-colors">Complete the secure enrollment form below</p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-500 animate-shake">
+              <div className="mb-8 p-4 node-urgent border-none shadow-[var(--shadow-harmonized)] rounded-xl flex items-start gap-3 animate-shake">
                 <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                <span className="text-sm font-bold">{error}</span>
+                <span className="text-sm font-bold text-current">{error}</span>
               </div>
             )}
 
@@ -195,15 +195,15 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Legal Full Name</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Legal Full Name</label>
                   <div className="relative group">
-                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors" />
+                    <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
                       type="text"
                       placeholder="Juan dela Cruz"
                       value={form.full_name}
                       onChange={(e) => set('full_name', e.target.value)}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium shadow-sm dark:shadow-none"
                       required
                     />
                   </div>
@@ -211,15 +211,15 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Email Address</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
                   <div className="relative group">
-                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors" />
+                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
                       type="email"
                       placeholder="you@email.com"
                       value={form.email}
                       onChange={(e) => set('email', e.target.value)}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium shadow-sm dark:shadow-none"
                       required
                     />
                   </div>
@@ -229,17 +229,17 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Role Select */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">System Role</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">System Role</label>
                   <div className="relative group">
-                    <ShieldCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors z-20" />
+                    <ShieldCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors z-20" />
                     <select
                       value={form.role}
                       onChange={(e) => set('role', e.target.value as Role)}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-10 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium appearance-none relative z-10"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium appearance-none relative z-10 shadow-sm dark:shadow-none"
                     >
-                      {ROLES.map(r => <option key={r.value} value={r.value} className="bg-brand-dark">{r.label}</option>)}
+                      {ROLES.map(r => <option key={r.value} value={r.value} className="bg-card text-text-main">{r.label}</option>)}
                     </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none z-20">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted pointer-events-none z-20">
                       <ChevronRight size={18} className="rotate-90" />
                     </div>
                   </div>
@@ -247,20 +247,20 @@ export default function RegisterPage() {
 
                 {/* Access ID */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Access ID (PREFIX-YYYY-NNN)</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Access ID (PREFIX-YYYY-NNN)</label>
                   <div className="relative group">
-                    <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors" />
+                    <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
                       type="text"
                       placeholder="e.g. CG-2024-001"
                       value={form.access_id}
                       onChange={(e) => set('access_id', e.target.value.toUpperCase())}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium tracking-wider"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-12 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium tracking-wider shadow-sm dark:shadow-none"
                       required
                     />
                     {form.access_id && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        {validateAccessId(form.access_id) ? <CheckCircle2 size={18} className="text-brand-neon-green" /> : <AlertCircle size={18} className="text-red-500" />}
+                        {validateAccessId(form.access_id) ? <CheckCircle2 size={18} className="text-emerald-500" /> : <AlertCircle size={18} className="text-red-500" />}
                       </div>
                     )}
                   </div>
@@ -270,21 +270,21 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Password</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
                   <div className="relative group">
-                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors" />
+                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={form.password}
                       onChange={(e) => set('password', e.target.value)}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-12 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium shadow-sm dark:shadow-none"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -293,21 +293,21 @@ export default function RegisterPage() {
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Confirm Password</label>
+                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm Password</label>
                   <div className="relative group">
-                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-neon-green transition-colors" />
+                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
                       type={showConfirm ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={form.confirm_password}
                       onChange={(e) => set('confirm_password', e.target.value)}
-                      className="w-full bg-brand-dark/50 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white focus:outline-none focus:border-brand-neon-green/50 focus:ring-1 focus:ring-brand-neon-green/50 transition-all font-medium"
+                      className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-12 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-medium shadow-sm dark:shadow-none"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors"
                     >
                       {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -318,18 +318,18 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-brand-neon-green text-brand-dark font-black rounded-2xl py-5 flex items-center justify-center gap-2 hover:shadow-[0_0_40px_rgba(57,255,20,0.4)] hover:scale-[1.01] transition-all disabled:opacity-50 text-xl uppercase tracking-tight group"
+                className="w-full bg-sky-500 text-white font-black rounded-2xl py-5 flex items-center justify-center gap-2 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-50 text-xl uppercase tracking-tight group"
               >
                 {loading ? <Loader2 size={24} className="animate-spin" /> : <>ENROLL IN PLATFORM <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" /></>}
               </button>
             </form>
 
-            <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center gap-4">
-              <p className="text-gray-500 text-sm font-semibold">
-                Already registered? <Link to="/login" className="text-brand-neon-green hover:underline">Return to Sign In</Link>
+            <div className="mt-10 pt-8 border-t border-card-border flex flex-col items-center gap-4">
+              <p className="text-sidebar-text-muted text-sm font-semibold transition-colors">
+                Already registered? <Link to="/login" className="text-sky-500 hover:underline">Return to Sign In</Link>
               </p>
-              <div className="flex items-center gap-2 text-gray-600 text-[10px] font-black uppercase tracking-tighter">
-                <ShieldCheck size={12} className="text-brand-accent-green" />
+              <div className="flex items-center gap-2 text-sidebar-text-muted/50 text-[10px] font-black uppercase tracking-tighter transition-colors">
+                <ShieldCheck size={12} className="text-sky-400" />
                 HIPAA COMPLIANT SECURE GATEWAY
               </div>
             </div>

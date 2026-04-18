@@ -187,25 +187,25 @@ export default function PractitionerDashboard() {
         />
       )}
       
-      <div className="flex min-h-screen bg-brand-dark font-sans text-white overflow-x-hidden selection:bg-brand-neon-green selection:text-brand-dark">
+      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white">
         <Sidebar alertCount={alertCount} />
 
-        <main className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-700 ${alertCount > 0 ? 'ring-4 ring-red-600/50 shadow-[inset_0_0_100px_rgba(220,38,38,0.2)]' : ''}`}>
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-purple/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <main className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-700 ${alertCount > 0 ? 'ring-4 ring-sky-500/50 shadow-[inset_0_0_100px_rgba(0,186,255,0.2)] animate-pulse-slow' : ''}`}>
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
           
-          <header className={`relative z-50 px-8 py-6 flex items-center justify-between border-b bg-brand-dark/50 backdrop-blur-md sticky top-0 transition-colors duration-500 ${alertCount > 0 ? 'border-red-500/30' : 'border-white/5'}`}>
+          <header className={`relative z-50 px-8 py-6 flex items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
             <div>
-              <h1 className="text-2xl font-black tracking-tight uppercase italic flex items-center gap-3">
-                 <Monitor size={24} className="text-brand-neon-green" /> {getHeaderTitle()}
+              <h1 className="text-2xl font-black tracking-tight uppercase italic flex items-center gap-3 text-text-main transition-colors">
+                 <Monitor size={24} className="text-sky-500" /> {getHeaderTitle()}
               </h1>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mt-1 ml-9">Barangay Monitoring Network — Real-time Feed</p>
+              <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
             </div>
             <div className="flex items-center gap-4">
-              <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-brand-neon-green/10 border-brand-neon-green/30 text-brand-neon-green' : 'bg-white/5 border-white/5 text-gray-600'}`}>
+              <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
                 {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
               </button>
-              <button onClick={loadData} className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center gap-2 text-xs font-black uppercase transition-all">
-                <Activity size={16} className="text-brand-neon-green" /> Sync Network
+              <button onClick={loadData} className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
+                <Activity size={16} className="text-sky-500" /> Sync Network
               </button>
             </div>
           </header>
@@ -241,7 +241,7 @@ export default function PractitionerDashboard() {
                       patient={patient} 
                       initiateCall={initiateCall} 
                     />
-                  ) : <div className="text-center py-20 text-gray-500">Patient not found in network.</div>
+                  ) : <div className="text-center py-20 text-sidebar-text-muted font-black uppercase tracking-widest text-xs">Patient not found in network.</div>
                 })()
               } />
             </Routes>

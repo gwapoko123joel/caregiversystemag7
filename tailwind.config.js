@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,16 +9,27 @@ export default {
     extend: {
       colors: {
         'brand': {
-          'purple': '#2D0A4E',
-          'dark': '#1A052E',
-          'neon-green': '#39FF14',
-          'accent-green': '#00F5FF',
+          'cobalt': '#000B2E',
+          'navy': '#001242',
+          'luminous-cyan': 'var(--cyan-primary)',
+          'accent-cyan': 'var(--cyan-accent)',
         },
-        'navy-dark': '#0F172A',
-        'purple-glow': 'rgba(139, 92, 246, 0.5)',
+        'navy-dark': '#000820',
+        'cyan-glow': 'rgba(0, 229, 255, 0.5)',
+        // Semantic Tokens
+        'primary': 'var(--bg-primary)',
+        'sidebar': 'var(--sidebar-bg)',
+        'card': 'var(--bg-card)',
+        'card-border': 'var(--card-border)',
+        'sidebar-border': 'var(--sidebar-border)',
+        'text-main': 'var(--text-main)',
+        'sidebar-text': 'var(--sidebar-text)',
+        'sidebar-text-muted': 'var(--sidebar-text-muted)',
       },
       backgroundImage: {
-        'hero-gradient': 'radial-gradient(circle at top right, #3B0764, #1E1B4B)',
+        'hero-gradient': 'radial-gradient(circle at top right, #001242, #000B2E)',
+        'blur-glow-primary': 'var(--blur-glow-primary)',
+        'blur-glow-secondary': 'var(--blur-glow-secondary)',
       },
       animation: {
         'orbit': 'orbit linear infinite',
