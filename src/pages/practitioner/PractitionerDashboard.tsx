@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
-  Activity, VolumeX, Volume2, Monitor, Heart, Sun, Moon
+  Activity, VolumeX, Volume2, Monitor, Heart, Phone
 } from 'lucide-react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
+import MobileHeader from '../../components/MobileHeader'
+import LogoutModal from '../../components/LogoutModal'
 import { useTheme } from '../../contexts/ThemeContext'
 import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
+import { AnimatePresence } from 'framer-motion'
+import PageTransition from '../../components/PageTransition'
 
 // Import Sub-Views
 import PractitionerOverview from './views/PractitionerOverview'
@@ -54,20 +58,34 @@ export interface Patient {
   patient_monitoring_logs: MonitoringLog[]
 }
 
-export default function PractitionerDashboard() {
-  useAuth()
+export interface PractitionerDashboardContextType {
+  patients: Patient[]
+  alerts: AlertItem[]
+  alertCount: number
+  isLoading: boolean
+  criticalAlerts: AlertItem[]
+  allLogs: any[]
+  initiateCall: (caregiverName?: string, patientName?: string) => void
+  loadData: () => Promise<void>
+  dismissAlert: (id: number) => void
+}
+
+function PractitionerLayout() {
+  const { signOut } = useAuth()
   const location = useLocation()
-  const { theme, toggleTheme } = useTheme()
+  const navigate = useNavigate()
+  const { theme } = useTheme()
   const [patients, setPatients] = useState<Patient[]>([])
   const [alerts, setAlerts] = useState<AlertItem[]>([])
   const [alertCount, setAlertCount] = useState(0)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [showCall, setShowCall] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   
   const [selectedCaregiver, setSelectedCaregiver] = useState<string | undefined>()
   const [selectedPatientForCall, setSelectedPatientForCall] = useState<string | undefined>()
   
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const audioCtx = useRef<AudioContext | null>(null)
 
   const playAlert = useCallback(() => {
@@ -86,7 +104,7 @@ export default function PractitionerDashboard() {
   }, [soundEnabled])
 
   const loadData = useCallback(async () => {
-    setLoading(true)
+    setIsLoading(true)
     const { data: pData, error } = await supabase
       .from('patients')
       .select(`
@@ -133,7 +151,7 @@ export default function PractitionerDashboard() {
       setAlerts(newAlerts)
       setAlertCount(urgentCount)
     }
-    setLoading(false)
+    setIsLoading(false)
   }, [alertCount, playAlert])
 
   useEffect(() => {
@@ -158,6 +176,11 @@ export default function PractitionerDashboard() {
     setShowCall(true)
   }
 
+  const handleConfirmLogout = async () => {
+    await signOut()
+    navigate('/')
+  }
+
   // Derive global data
   const criticalAlerts = useMemo(() => alerts.filter(a => a.status === 'critical' && !a.dismissed), [alerts])
   const allLogs = useMemo(() => {
@@ -169,6 +192,10 @@ export default function PractitionerDashboard() {
       }))
     ).sort((a,b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
   }, [patients])
+
+  const contextValue: PractitionerDashboardContextType = {
+    patients, alerts, alertCount, isLoading, criticalAlerts, allLogs, initiateCall, loadData, dismissAlert
+  }
 
   // Context-aware Header Title
   const getHeaderTitle = () => {
@@ -182,6 +209,12 @@ export default function PractitionerDashboard() {
 
   return (
     <>
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+      />
+
       {showCall && (
         <VideoCallModal
           caregiverName={selectedCaregiver}
@@ -190,86 +223,126 @@ export default function PractitionerDashboard() {
         />
       )}
       
-      <div className="flex min-h-screen bg-primary font-sans text-text-main overflow-x-hidden transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
-        <Sidebar alertCount={alertCount} />
+      <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
+        <Sidebar alertCount={alertCount} onLogoutClick={() => setShowLogoutModal(true)} />
 
-        <main className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-700 ${alertCount > 0 ? 'ring-4 ring-sky-500/50 shadow-[inset_0_0_100px_rgba(0,186,255,0.2)] animate-pulse-slow' : ''}`}>
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
+        <div className="flex-1 flex flex-col min-h-screen">
+          <MobileHeader onLogoutClick={() => setShowLogoutModal(true)} />
           
-          <header className={`relative z-50 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
-            <div className="flex items-center gap-4">
-               {/* Mobile Logo */}
-               <div className="md:hidden flex items-center gap-2">
-                 <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg">
-                   <Heart size={16} className="text-white fill-white" />
+          <main className={`flex-1 flex flex-col relative overflow-hidden transition-all duration-700 ${alertCount > 0 ? 'ring-4 ring-sky-500/50 shadow-[inset_0_0_100px_rgba(0,186,255,0.2)] animate-pulse-slow' : ''}`}>
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
+            
+            {/* Desktop Header */}
+            <header className={`hidden md:flex relative z-50 px-8 py-6 items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
+              <div className="flex items-center gap-4">
+                 <div>
+                   <h1 className="text-2xl font-black tracking-tight uppercase italic flex items-center gap-3 text-text-main transition-colors leading-tight">
+                      <Monitor size={20} className="text-sky-500" /> {getHeaderTitle()}
+                   </h1>
+                   <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
                  </div>
-               </div>
+              </div>
 
-               <div>
-                 <h1 className="text-lg md:text-2xl font-black tracking-tight uppercase italic flex items-center gap-2 md:gap-3 text-text-main transition-colors leading-tight">
-                    <Monitor size={20} className="text-sky-500 hidden sm:block" /> {getHeaderTitle()}
-                 </h1>
-                 <p className="hidden md:block text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
-               </div>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
+                  {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                </button>
+                <button onClick={loadData} className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
+                  <Activity size={16} className="text-sky-500" /> Sync Network
+                </button>
+              </div>
+            </header>
+
+            <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
+              <AnimatePresence mode="wait">
+                <PageTransition key={location.pathname}>
+                   <Outlet context={contextValue} />
+                </PageTransition>
+              </AnimatePresence>
             </div>
-
-            <div className="flex items-center gap-2 md:gap-4">
-              {/* Mobile Theme Toggle */}
-              <button 
-                onClick={toggleTheme}
-                className="md:hidden p-2.5 rounded-xl bg-card border border-card-border text-sidebar-text-muted transition-all active:scale-90"
-              >
-                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-              </button>
-
-              <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-2.5 md:p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
-                {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-              </button>
-              <button onClick={loadData} className="px-4 md:px-6 py-2.5 md:py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
-                <Activity size={16} className="text-sky-500" /> <span className="hidden sm:inline">Sync Network</span>
-              </button>
-            </div>
-          </header>
-
-          <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
-            <Routes>
-              <Route path="/" element={
-                <PractitionerOverview 
-                  patientsCount={patients.length}
-                  alertCount={alertCount}
-                  totalAlerts={alerts.length}
-                  criticalAlerts={criticalAlerts}
-                  initiateCall={initiateCall}
-                />
-              } />
-              <Route path="/feed" element={<PatientFeed patients={patients} loading={loading} />} />
-              <Route path="/alerts" element={
-                <AlertCenter 
-                  alerts={alerts} 
-                  alertCount={alertCount} 
-                  dismissAlert={dismissAlert}
-                  initiateCall={initiateCall}
-                />
-              } />
-              <Route path="/video" element={<VideoConsole initiateCall={initiateCall} />} />
-              <Route path="/history" element={<HistoryLogs logs={allLogs} />} />
-              <Route path="/patient/:id" element={
-                (() => {
-                  const patientId = location.pathname.split('/').pop()
-                  const patient = patients.find(p => p.patient_id.toString() === patientId)
-                  return patient ? (
-                    <PatientDossier 
-                      patient={patient} 
-                      initiateCall={initiateCall} 
-                    />
-                  ) : <div className="text-center py-20 text-sidebar-text-muted font-black uppercase tracking-widest text-xs">Patient not found in network.</div>
-                })()
-              } />
-            </Routes>
-          </div>
-        </main>
+          </main>
+        </div>
         <BottomNav />
       </div>
     </>
   )
+}
+
+export default function PractitionerDashboard() {
+  const { patients, loading } = usePractitionerData(); // Placeholder logic to show structure
+
+  return (
+    <Routes>
+      <Route element={<PractitionerLayout />}>
+        <Route index element={
+          <PractitionerOverviewWrapper />
+        } />
+        <Route path="feed" element={<PatientFeedWrapper />} />
+        <Route path="alerts" element={<AlertCenterWrapper />} />
+        <Route path="video" element={<VideoConsoleWrapper />} />
+        <Route path="history" element={<HistoryLogsWrapper />} />
+        <Route path="patient/:id" element={<PatientDossierWrapper />} />
+        <Route path="*" element={<Navigate to="/dashboard/practitioner" replace />} />
+      </Route>
+    </Routes>
+  )
+}
+
+// Wrapper components to extract data from Outlet context
+import { useOutletContext } from 'react-router-dom'
+
+function PractitionerOverviewWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  return (
+    <PractitionerOverview 
+      patientsCount={ctx.patients.length}
+      alertCount={ctx.alertCount}
+      totalAlerts={ctx.allLogs.length}
+      criticalAlerts={ctx.criticalAlerts}
+      initiateCall={ctx.initiateCall}
+    />
+  )
+}
+
+function PatientFeedWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  return <PatientFeed patients={ctx.patients} loading={ctx.isLoading} />
+}
+
+function AlertCenterWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  return (
+    <AlertCenter 
+      alerts={ctx.alerts} 
+      alertCount={ctx.alertCount} 
+      dismissAlert={ctx.dismissAlert}
+      initiateCall={ctx.initiateCall}
+    />
+  )
+}
+
+function VideoConsoleWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  return <VideoConsole initiateCall={ctx.initiateCall} />
+}
+
+function HistoryLogsWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  return <HistoryLogs logs={ctx.allLogs} />
+}
+
+function PatientDossierWrapper() {
+  const ctx = useOutletContext<PractitionerDashboardContextType>()
+  const location = useLocation()
+  const patientId = location.pathname.split('/').pop()
+  const patient = ctx.patients.find(p => p.patient_id.toString() === patientId)
+  
+  if (!patient) return <div className="text-center py-20 text-sidebar-text-muted font-black uppercase tracking-widest text-xs">Patient not found in network.</div>
+  
+  return <PatientDossier patient={patient} initiateCall={ctx.initiateCall} />
+}
+
+// Minimal hook to satisfy PractitionerDashboard structure before layout mount
+function usePractitionerData() {
+  return { patients: [], loading: false }
 }

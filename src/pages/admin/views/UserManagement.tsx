@@ -14,6 +14,7 @@ import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { Profile } from '../../../lib/supabaseClient'
+import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 /**
  * Generate a random 6-character uppercase alphanumeric string for access IDs.
@@ -23,7 +24,7 @@ function generateAccessId(): string {
 }
 
 export default function UserManagement() {
-  const { users, user, profile, loadUsers, loadLogs } = useOutletContext<AdminDashboardContextType>()
+  const { users, user, profile, loadUsers, loadLogs, isLoading } = useOutletContext<AdminDashboardContextType>()
   
   // State
   const [searchUser, setSearchUser] = useState('')
@@ -99,213 +100,123 @@ export default function UserManagement() {
       return
     }
 
-    const accessId = newUser.access_id.trim() || generateAccessId()
-    const tempUid = crypto.randomUUID() // For manual provisioning without GoTrue user (will link upon first login)
-
     const { error } = await supabase
       .from('caregivers')
       .insert({
-        id: tempUid,
-        first_name: newUser.first_name,
-        last_name: newUser.last_name,
-        email: newUser.email,
-        role: newUser.role,
-        status: 'authorized',
-        unique_access_id: accessId
+        ...newUser,
+        status: 'pending'
       })
 
-    if (error) {
-      console.error('Provisioning Error:', error)
-      alert(`Provisioning failed: ${error.message}`)
-      return
+    if (!error) {
+      setShowAddUser(false)
+      setNewUser({ first_name: '', last_name: '', email: '', role: 'caregiver', access_id: '' })
+      await loadUsers()
+    } else {
+      alert(error.message)
     }
-
-    await supabase.from('activity_logs').insert({
-      user_id: user?.id,
-      user_type: profile?.role ?? 'admin',
-      action: 'AUTHORIZE_USER',
-      details: { ...newUser, assigned_id: accessId }
-    })
-
-    await loadUsers()
-    await loadLogs()
-    setShowAddUser(false)
-    setNewUser({ first_name: '', last_name: '', email: '', role: 'caregiver', access_id: '' })
   }
 
-  const filteredUsers = users.filter(u => {
-    const q = searchUser.toLowerCase()
-    return (
-      `${u.first_name} ${u.last_name}`.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q) ||
-      u.unique_access_id?.toLowerCase().includes(q)
-    )
-  })
+  const filteredUsers = users.filter(u => 
+    `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchUser.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchUser.toLowerCase()) ||
+    u.unique_access_id?.toLowerCase().includes(searchUser.toLowerCase())
+  )
 
-  const pendingUsers = users.filter(u => u.status === 'pending')
+  if (isLoading && users.length === 0) {
+    return (
+      <div className="p-4 md:p-8 space-y-6">
+        <div className="h-12 w-full md:w-64 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+        <div className="bg-card border border-card-border rounded-[32px] overflow-hidden">
+          <table className="w-full">
+            <tbody className="divide-y divide-card-border">
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
-      
-      {/* Header & Main Action */}
-      <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 lg:p-12 relative overflow-hidden shadow-sm dark:shadow-none transition-colors">
-        <div className="md:absolute top-0 right-0 md:p-8 mb-8 md:mb-0">
-           <button 
-             onClick={() => setShowAddUser(!showAddUser)}
-             className="w-full md:w-auto px-6 py-4 md:py-3 bg-sky-500 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-harmonized flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all"
-           >
-             <Plus size={16} /> Authorize Personnel
-           </button>
-        </div>
-        
-        <h2 className="text-2xl md:text-3xl font-black text-text-main mb-2 tracking-tight uppercase transition-colors">Access Governance</h2>
-        <p className="text-sidebar-text-muted font-bold text-[10px] md:text-sm uppercase tracking-widest mb-6 md:mb-12 transition-colors">User Provisioning & Authorization Matrix</p>
-
-        {/* Enrollment Form */}
-        {showAddUser && (
-          <div className="mb-12 p-6 md:p-8 bg-card border border-card-border rounded-3xl animate-in zoom-in-95 duration-300 shadow-sm dark:shadow-none">
-            <h4 className="text-[10px] md:text-xs font-black uppercase text-sky-500 tracking-[0.2em] mb-6">Initialize New Node Authorization</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-              {[
-                { label: 'First Name', val: newUser.first_name, set: (v:string)=>setNewUser(p=>({...p,first_name:v})) },
-                { label: 'Last Name', val: newUser.last_name, set: (v:string)=>setNewUser(p=>({...p,last_name:v})) },
-                { label: 'Email', val: newUser.email, set: (v:string)=>setNewUser(p=>({...p,email:v})) },
-              ].map(f => (
-                <div key={f.label} className="space-y-2">
-                   <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1">{f.label}</label>
-                   <input 
-                     value={f.val} 
-                     onChange={e => f.set(e.target.value)} 
-                     className="w-full bg-card border border-card-border rounded-xl px-4 py-3 text-xs font-bold text-text-main focus:outline-none focus:border-sky-500/50 placeholder:text-sidebar-text-muted/50 transition-colors shadow-sm dark:shadow-none"
-                   />
-                </div>
-              ))}
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1">System Role</label>
-                 <select 
-                   value={newUser.role} 
-                   onChange={e => setNewUser(p => ({ ...p, role: e.target.value as Profile['role'] }))}
-                   className="w-full bg-card border border-card-border rounded-xl px-4 py-3 text-xs font-bold text-text-main focus:outline-none focus:border-sky-500/50 appearance-none transition-colors shadow-sm dark:shadow-none"
-                 >
-                    <option value="caregiver" className="bg-card text-text-main">Caregiver</option>
-                    <option value="medical_practitioner" className="bg-card text-text-main">Practitioner</option>
-                    <option value="admin" className="bg-card text-text-main">Administrator</option>
-                 </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Access ID (Optional)</label>
-                <input 
-                  placeholder="Auto-generate" 
-                  value={newUser.access_id} 
-                  onChange={e => setNewUser(p => ({ ...p, access_id: e.target.value.toUpperCase() }))} 
-                  className="w-full bg-card border border-card-border rounded-xl px-4 py-3 text-xs font-bold text-text-main focus:outline-none focus:border-sky-500/50 placeholder:text-sidebar-text-muted/50 tracking-widest transition-colors shadow-sm dark:shadow-none"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
-               <button 
-                 onClick={handleProvisionUser}
-                 className="flex-1 px-8 py-4 md:py-3 bg-sky-500 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:scale-105 active:scale-95 transition-all"
-               >
-                 Initialize Credentials
-               </button>
-               <button onClick={()=>setShowAddUser(false)} className="px-8 py-4 md:py-3 text-xs font-black text-sidebar-text-muted hover:text-text-main uppercase tracking-widest transition-colors">Abort</button>
-            </div>
-          </div>
-        )}
-
-        {/* Pending Approvals Section */}
-        {pendingUsers.length > 0 && (
-          <div className="mb-10 p-6 bg-sky-500/5 border border-sky-500/20 rounded-[32px] transition-colors">
-            <h4 className="flex items-center gap-2 text-sky-500 mb-4 px-2 tracking-[0.15em] text-xs font-black uppercase">
-               <ShieldAlert size={14} /> Critical: Node Verification Required ({pendingUsers.length})
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pendingUsers.map(u => (
-                <div key={u.id} className="flex items-center justify-between bg-card p-4 rounded-2xl border border-card-border shadow-sm dark:shadow-lg transition-colors">
-                  <div>
-                    <div className="font-black text-sm uppercase tracking-tight text-text-main transition-colors">{u.first_name} {u.last_name}</div>
-                    <div className="text-[10px] font-bold text-sidebar-text-muted font-mono uppercase italic transition-colors">{u.role} · {u.email}</div>
-                  </div>
-                  <div className="flex gap-2">
-                     <button 
-                       onClick={() => handleUpdateStatus(u.id, 'authorized')} 
-                       className="px-4 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-lg hover:scale-105 active:scale-95 transition-all shadow-none border-none"
-                     >
-                       Approve
-                     </button>
-                     <button 
-                       onClick={() => handleUpdateStatus(u.id, 'revoked')} 
-                       className="px-4 py-2 text-[10px] font-black text-sidebar-text-muted hover:text-text-main uppercase transition-all"
-                     >
-                       Deny
-                     </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Table Header Filter */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-           <div className="relative group w-full md:max-w-sm">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-              <input 
-                placeholder="SEARCH FLEET: NAME, EMAIL, OR NODE ID..." 
-                value={searchUser} 
-                onChange={e => setSearchUser(e.target.value)}
-                className="w-full bg-card border border-card-border rounded-2xl py-4 md:py-3 pl-12 pr-4 text-xs font-semibold text-text-main focus:outline-none focus:border-sky-500/40 placeholder:text-sidebar-text-muted/50 tracking-wider transition-colors shadow-sm dark:shadow-none" 
-              />
-           </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-96 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search personnel by name, email, or ID..." 
+            className="w-full pl-12 pr-6 py-4 bg-card border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm shadow-sm placeholder:text-sidebar-text-muted/50"
+            value={searchUser}
+            onChange={(e) => setSearchUser(e.target.value)}
+          />
         </div>
 
+        <button 
+          onClick={() => setShowAddUser(true)}
+          className="w-full md:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+        >
+          <Plus size={18} /> Provision Personnel
+        </button>
+      </div>
+
+      <div className="bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm transition-colors">
         {/* Users Table (Desktop) */}
-        <div className="hidden md:block overflow-x-auto">
-            <table className="w-full font-sans">
+        {filteredUsers.length === 0 ? (
+          <EmptyState 
+            title="Personnel Not Found"
+            message={searchUser ? `No results for "${searchUser}" across the administrative node.` : "No personnel have been provisioned in the system yet."}
+            onRetry={loadUsers}
+            icon={Search}
+          />
+        ) : (
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
               <thead>
-                <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] bg-card transition-colors">
-                  <th className="px-6 py-5">Personnel Profile</th>
-                  <th className="px-6 py-5">System Role</th>
-                  <th className="px-6 py-5">Node Identity</th>
-                  <th className="px-6 py-5">Status</th>
-                  <th className="px-6 py-5 text-right flex items-center justify-end gap-2">Actions</th>
+                <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] bg-card border-b border-card-border transition-colors">
+                  <th className="px-6 py-6">Identity & Credentials</th>
+                  <th className="px-6 py-6">Unique Access Token</th>
+                  <th className="px-6 py-6">Clearance Level</th>
+                  <th className="px-6 py-6 text-right">Node Controls</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-card-border transition-colors">
                 {filteredUsers.map(u => (
-                  <tr key={u.id} className="hover:bg-card transition-colors group">
+                  <tr key={u.id} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-6 py-6">
-                       <div className="text-sm font-black text-text-main transition-colors">{u.first_name} {u.last_name}</div>
-                       <div className="text-xs text-sidebar-text-muted lowercase transition-colors">{u.email}</div>
-                    </td>
-                    <td className="px-6 py-6 transition-colors">
-                       <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${
-                          u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' : 
-                          u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
-                          'bg-card text-sidebar-text-muted transition-all'
-                       }`}>{u.role.replace('_', ' ')}</span>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center font-black text-sky-500 text-lg border border-card-border">
+                          {u.first_name?.[0]}{u.last_name?.[0]}
+                        </div>
+                        <div>
+                          <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.first_name} {u.last_name}</div>
+                          <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-6">
-                       <div className="flex items-center gap-3">
-                          <code className="text-xs font-black text-sky-500 font-mono tracking-widest bg-sky-500/10 dark:bg-sky-500/5 px-3 py-1.5 rounded-lg border border-sky-500/20">
-                            {u.unique_access_id ?? 'UNINITIALIZED'}
-                          </code>
-                          <button 
-                            disabled={processingId === u.id}
-                            onClick={() => handleReissueId(u.id)}
-                            title="Reissue Access ID (Invalidates old ID)"
-                            className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all group/btn shadow-sm dark:shadow-none"
-                          >
-                             {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                          </button>
-                       </div>
+                        <div className="flex items-center gap-3">
+                           <code className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm">
+                             {u.unique_access_id ?? 'UNINITIALIZED'}
+                           </code>
+                           <button 
+                             disabled={processingId === u.id}
+                             onClick={() => handleReissueId(u.id)}
+                             title="Reissue Security Token"
+                             className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
+                           >
+                              {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                           </button>
+                        </div>
                     </td>
                     <td className="px-6 py-6">
                         <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${
-                          u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-none' : 
-                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-none' : 
-                          'node-urgent border-none shadow-none px-3 py-1.5'
+                          u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                          'bg-red-500/10 text-red-500 border-red-500/20'
                         }`}>
                            {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
                            {u.status}
@@ -321,9 +232,9 @@ export default function UserManagement() {
                                onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])} 
                                disabled={updatingStatus === u.id}
                              >
-                               <option value="pending" className="bg-card text-text-main">Pending</option>
-                               <option value="authorized" className="bg-card text-text-main">Authorize</option>
-                               <option value="revoked" className="bg-card text-text-main">Revoke</option>
+                               <option value="pending">Pending</option>
+                               <option value="authorized">Authorize</option>
+                               <option value="revoked">Revoke</option>
                              </select>
                            </div>
                          )}
@@ -336,66 +247,144 @@ export default function UserManagement() {
                 ))}
               </tbody>
             </table>
-        </div>
+          </div>
+        )}
 
         {/* Users Card List (Mobile) */}
-        <div className="md:hidden space-y-4">
-           {filteredUsers.map(u => (
-             <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                   <div>
-                      <div className="text-base font-black text-text-main uppercase tracking-tight">{u.first_name} {u.last_name}</div>
-                      <div className="text-xs text-sidebar-text-muted">{u.email}</div>
-                   </div>
-                   <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${
-                      u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' : 
-                      u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
-                      'bg-card text-sidebar-text-muted transition-all'
-                   }`}>{u.role.replace('_', ' ')}</span>
-                </div>
+        {!isLoading && filteredUsers.length > 0 && (
+          <div className="md:hidden space-y-4 p-4">
+             {filteredUsers.map(u => (
+               <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
+                  <div className="flex items-start justify-between mb-4">
+                     <div>
+                        <div className="text-base font-black text-text-main uppercase tracking-tight">{u.first_name} {u.last_name}</div>
+                        <div className="text-xs text-sidebar-text-muted">{u.email}</div>
+                     </div>
+                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${
+                        u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' : 
+                        u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
+                        'bg-slate-100 dark:bg-white/5 text-sidebar-text-muted'
+                     }`}>{u.role.replace('_', ' ')}</span>
+                  </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
-                      <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
-                        {u.unique_access_id ?? 'UNINITIALIZED'}
-                      </code>
-                      <button 
-                        disabled={processingId === u.id}
-                        onClick={() => handleReissueId(u.id)}
-                        className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
-                      >
-                         {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                      </button>
-                   </div>
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
+                        <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
+                          {u.unique_access_id ?? 'UNINITIALIZED'}
+                        </code>
+                        <button 
+                          disabled={processingId === u.id}
+                          onClick={() => handleReissueId(u.id)}
+                          className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
+                        >
+                           {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                        </button>
+                     </div>
 
-                   <div className="flex items-center justify-between">
-                      <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${
-                        u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                        u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                        'node-urgent border-none shadow-none'
-                      }`}>
-                         {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
-                         {u.status}
-                      </div>
+                     <div className="flex items-center justify-between">
+                        <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${
+                          u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                          'bg-red-500/10 text-red-500 border-red-500/20'
+                        }`}>
+                           {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
+                           {u.status}
+                        </div>
 
-                      {u.role !== 'admin' && (
-                         <select 
-                           className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted active:scale-95 transition-all appearance-none cursor-pointer"
-                           value={u.status} 
-                           onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])} 
-                           disabled={updatingStatus === u.id}
-                         >
-                           <option value="pending">Pending</option>
-                           <option value="authorized">Authorize</option>
-                           <option value="revoked">Revoke</option>
-                         </select>
-                      )}
-                   </div>
-                </div>
-             </div>
-           ))}
-        </div>
+                        {u.role !== 'admin' && (
+                           <select 
+                             className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted active:scale-95 transition-all appearance-none cursor-pointer"
+                             value={u.status} 
+                             onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])} 
+                             disabled={updatingStatus === u.id}
+                           >
+                             <option value="pending">Pending</option>
+                             <option value="authorized">Authorize</option>
+                             <option value="revoked">Revoke</option>
+                           </select>
+                        )}
+                     </div>
+                  </div>
+               </div>
+             ))}
+          </div>
+        )}
       </div>
+
+      {/* Add User Modal */}
+      {showAddUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowAddUser(false)} />
+          <div className="relative w-full max-w-lg bg-card border border-card-border rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-300 transition-colors">
+            <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2 transition-colors">Provision New Personnel</h3>
+            <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">Grant secure node access to credentials</p>
+            
+            <div className="space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">First Name</label>
+                     <input 
+                       type="text" 
+                       className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                       placeholder="e.g. Maria"
+                       value={newUser.first_name}
+                       onChange={(e) => setNewUser({...newUser, first_name: e.target.value})}
+                     />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Last Name</label>
+                     <input 
+                       type="text" 
+                       className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                       placeholder="e.g. Santos"
+                       value={newUser.last_name}
+                       onChange={(e) => setNewUser({...newUser, last_name: e.target.value})}
+                     />
+                  </div>
+               </div>
+
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Email Instance</label>
+                  <input 
+                    type="email" 
+                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                    placeholder="name@bantayancare.com"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  />
+               </div>
+
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Network Role</label>
+                  <select 
+                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm appearance-none cursor-pointer transition-colors"
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value as any})}
+                  >
+                    <option value="caregiver">Caregiver — Field Operations</option>
+                    <option value="medical_practitioner">Medical Practitioner — Clinical Node</option>
+                    <option value="admin">Administrator — Network Governance</option>
+                  </select>
+               </div>
+            </div>
+
+            <div className="flex gap-3 mt-10">
+               <button 
+                 onClick={() => setShowAddUser(false)}
+                 className="flex-1 py-4 text-xs font-black text-sidebar-text-muted uppercase tracking-widest hover:text-text-main transition-all"
+               >
+                 Abort Provisioning
+               </button>
+               <button 
+                 onClick={handleProvisionUser}
+                 className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+               >
+                 Commit to Network
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

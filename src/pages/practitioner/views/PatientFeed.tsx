@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Patient, MonitoringLog } from '../PractitionerDashboard'
+import { SkeletonCard, EmptyState } from '../../../components/ClinicalPolish'
 
 interface PatientFeedProps {
   patients: Patient[]
@@ -19,8 +20,8 @@ export default function PatientFeed({ patients, loading }: PatientFeedProps) {
       <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 lg:p-12 shadow-sm dark:shadow-none transition-colors">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8 mb-8 md:mb-12 transition-colors">
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand-luminous-cyan/10 rounded-xl flex items-center justify-center">
-                 <Users size={20} className="text-brand-luminous-cyan" />
+              <div className="w-10 h-10 bg-sky-500/10 rounded-xl flex items-center justify-center">
+                 <Users size={20} className="text-sky-500" />
               </div>
               <div>
                 <h3 className="text-lg md:text-xl font-black text-text-main uppercase tracking-tight leading-none italic transition-colors">Patient Roster</h3>
@@ -39,13 +40,20 @@ export default function PatientFeed({ patients, loading }: PatientFeedProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
            {loading ? (
-              <div className="col-span-full py-20 flex flex-col items-center gap-4">
-                 <div className="w-12 h-12 border-4 border-brand-luminous-cyan/30 border-t-brand-luminous-cyan rounded-full animate-spin" />
-                 <span className="text-[10px] font-black uppercase text-sidebar-text-muted tracking-widest transition-colors">Accessing Node Telemetry Stream...</span>
-              </div>
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
            ) : patients.length === 0 ? (
-              <div className="col-span-full py-20 text-center">
-                 <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest italic transition-colors">No patients registered in network.</div>
+              <div className="col-span-full">
+                <EmptyState 
+                  title="No Patients Synchronized"
+                  message="The clinical node has not detected any active patient records in the monitoring fleet."
+                  icon={Users}
+                  onRetry={() => window.location.reload()}
+                />
               </div>
            ) : (
               patients.map(p => {

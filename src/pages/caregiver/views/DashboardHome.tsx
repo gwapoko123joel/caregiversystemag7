@@ -4,10 +4,13 @@ import {
   MapPin, 
   TrendingUp, 
   ChevronRight, 
-  AlertTriangle 
+  AlertTriangle,
+  RefreshCw,
+  Search
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Patient, PatientMonitoringLog } from '../../../lib/supabaseClient'
+import { SkeletonCard, EmptyState } from '../../../components/ClinicalPolish'
 
 interface DashboardHomeProps {
   patient: Patient | null
@@ -20,12 +23,7 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
     <div className="space-y-8 animate-in fade-in duration-700 slide-in-from-bottom-4">
       {/* ── Patient Identity Card ── */}
       {loadingPatient ? (
-        <div className="w-full h-48 bg-card border border-card-border rounded-[40px] flex items-center justify-center shadow-sm dark:shadow-none transition-colors">
-           <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-sky-500/30 border-t-sky-500 rounded-full animate-spin" />
-              <span className="text-[10px] font-black uppercase text-sidebar-text-muted tracking-widest transition-colors">Accessing Patient Record...</span>
-           </div>
-        </div>
+        <SkeletonCard />
       ) : patient ? (
          <div className="group relative bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 md:p-8 lg:p-12 overflow-hidden hover:border-sky-500/30 transition-all duration-500 shadow-sm dark:shadow-none">
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-sky-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-sky-500/20 transition-all" />
@@ -64,15 +62,12 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
             </div>
          </div>
       ) : (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-[40px] p-8 flex items-center gap-6 animate-pulse">
-          <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-500">
-            <AlertTriangle size={32} />
-          </div>
-          <div>
-            <h4 className="text-lg font-black text-amber-500 uppercase tracking-tight">No Patient Assigned</h4>
-            <p className="text-sm font-bold text-amber-500/60 uppercase tracking-widest mt-1 italic">Contact supervisor to link access credentials.</p>
-          </div>
-        </div>
+        <EmptyState 
+          title="No Clinical Assignment"
+          message="Your caregiver node is not currently linked to an active patient record."
+          icon={Search}
+          onRetry={() => window.location.reload()}
+        />
       )}
 
       {/* ── Status Grid ── */}
@@ -84,13 +79,18 @@ export default function DashboardHome({ patient, loadingPatient, recentLogs }: D
                 <TrendingUp size={18} className="text-sky-500" />
                 <h3 className="text-[10px] md:text-xs font-black uppercase text-text-main tracking-[0.2em] leading-none transition-colors">Telemetry Flow</h3>
              </div>
-             <Link to="/dashboard/caregiver/history" className="text-[9px] font-black text-sidebar-text-muted uppercase hover:text-text-main transition-colors">Full History</Link>
+             {!loadingPatient && recentLogs.length > 0 && <Link to="/dashboard/caregiver/history" className="text-[9px] font-black text-sidebar-text-muted uppercase hover:text-text-main transition-colors">Full History</Link>}
           </div>
 
-          {recentLogs.length === 0 ? (
-             <div className="p-16 flex flex-col items-center text-center">
+          {loadingPatient ? (
+            <div className="p-12 space-y-6">
+              <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+              <div className="h-4 w-3/4 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+            </div>
+          ) : recentLogs.length === 0 ? (
+             <div className="p-12 flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center text-sidebar-text-muted mb-4 italic transition-colors">!</div>
-                <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest transition-colors">No Recent Telemetry Data</div>
+                <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest transition-colors tracking-[0.2em]">No Recent Telemetry Data</div>
              </div>
           ) : (
             <div className="divide-y divide-card-border transition-colors">

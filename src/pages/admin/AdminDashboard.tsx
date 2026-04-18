@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
-import { ShieldCheck, RefreshCw, Heart, Sun, Moon } from 'lucide-react'
+import { Routes, Route, Navigate, useLocation, Outlet, useNavigate } from 'react-router-dom'
+import { ShieldCheck, RefreshCw, Heart } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
+import MobileHeader from '../../components/MobileHeader'
+import LogoutModal from '../../components/LogoutModal'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
 import type { Profile, ActivityLog } from '../../lib/supabaseClient'
 import type { User } from '@supabase/supabase-js'
+import { AnimatePresence } from 'framer-motion'
+import PageTransition from '../../components/PageTransition'
 
 // Views
 import AdminOverview from './views/AdminOverview'
@@ -32,14 +36,19 @@ export interface AdminDashboardContextType {
   loadSystemData: () => Promise<void>
   user: User | null
   profile: Profile | null
+  isLoading: boolean
+  error: string | null
 }
 
 function AdminLayout() {
-  const { user, profile } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { user, profile, signOut } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
 
   // State
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [users, setUsers] = useState<Profile[]>([])
   const [logs, setLogs] = useState<ActivityLog[]>([])
   const [health, setHealth] = useState({
@@ -47,39 +56,65 @@ function AdminLayout() {
     dbStatus: 'Operational', authStatus: 'Operational', pushService: 'Active',
   })
 
+  const loadData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      await Promise.all([loadUsers(), loadLogs(), loadSystemData()])
+    } catch (err: any) {
+      setError(err.message || 'Synchronization failed.')
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   const loadUsers = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error: fetchErr } = await supabase
       .from('caregivers')
       .select('*')
       .order('status', { ascending: false })
       .order('created_at', { ascending: false })
+    
+    if (fetchErr) throw fetchErr
     setUsers((data ?? []) as Profile[])
   }, [])
 
   const loadLogs = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error: fetchErr } = await supabase
       .from('activity_logs')
       .select('*')
       .order('timestamp', { ascending: false })
       .limit(100)
+    
+    if (fetchErr) throw fetchErr
     setLogs((data ?? []) as ActivityLog[])
   }, [])
 
   const loadSystemData = useCallback(async () => {
     const today = new Date(); today.setHours(0, 0, 0, 0)
-    const [{ count: reports }, { count: critical }] = await Promise.all([
+    const [{ count: reports, error: er1 }, { count: critical, error: er2 }] = await Promise.all([
       supabase.from('patient_monitoring_logs').select('log_id', { count: 'exact', head: true }).gte('recorded_at', today.toISOString()),
       supabase.from('alerts').select('alert_id', { count: 'exact', head: true }).eq('alert_type', 'emergency'),
     ])
+    
+    if (er1) throw er1
+    if (er2) throw er2
+    
     setHealth(prev => ({ ...prev, reportsToday: reports ?? 0, criticalAlerts: critical ?? 0 }))
   }, [])
 
   useEffect(() => {
-    Promise.all([loadUsers(), loadLogs(), loadSystemData()]).catch(console.error)
-  }, [loadUsers, loadLogs, loadSystemData])
+    loadData()
+  }, [loadData])
 
   const contextValue: AdminDashboardContextType = {
-    users, logs, health, loadUsers, loadLogs, loadSystemData, user, profile
+    users, logs, health, loadUsers, loadLogs, loadSystemData, user, profile, isLoading, error
+  }
+
+  const handleConfirmLogout = async () => {
+    await signOut()
+    navigate('/')
   }
 
   // Derive title based on current path
@@ -101,57 +136,58 @@ function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
-      <Sidebar />
-      <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
+    <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
+      <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
+      
+      <div className="flex-1 flex flex-col min-h-screen">
+        <MobileHeader onLogoutClick={() => setShowLogoutModal(true)} />
+        
+        <main className="flex-1 flex flex-col relative overflow-hidden">
+          {/* Background Gradients */}
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
 
-        {/* Header */}
-        <header className="relative z-10 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
-          <div className="flex items-center gap-4">
-            {/* Mobile Logo */}
-            <div className="md:hidden flex items-center gap-2">
-              <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg">
-                <Heart size={16} className="text-white fill-white" />
+          {/* Desktop Header */}
+          <header className="hidden md:flex relative z-10 px-8 py-6 items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-black tracking-tight uppercase text-text-main transition-colors leading-tight">{title}</h1>
+                <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
               </div>
             </div>
-            
-            <div>
-              <h1 className="text-lg md:text-2xl font-black tracking-tight uppercase text-text-main transition-colors leading-tight">{title}</h1>
-              <p className="hidden md:block text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Mobile Theme Toggle */}
-            <button 
-              onClick={toggleTheme}
-              className="md:hidden p-2.5 rounded-xl bg-card border border-card-border text-sidebar-text-muted transition-all active:scale-90"
-            >
-              {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
-
-            <button
-              onClick={() => { loadUsers(); loadLogs(); loadSystemData(); }}
-              className="px-4 md:px-6 py-2.5 md:py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
-            >
-              <RefreshCw size={14} className="text-sky-500" /> <span className="hidden sm:inline">Sync Node</span>
-            </button>
-            <div className="hidden sm:block p-[2px] bg-gradient-to-tr from-sky-400 to-sky-600 rounded-full shadow-[0_0_15px_rgba(0,186,255,0.3)]">
-              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center">
-                <ShieldCheck size={16} className="text-sky-400" />
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => { loadUsers(); loadLogs(); loadSystemData(); }}
+                className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
+              >
+                <RefreshCw size={14} className="text-sky-500" /> Sync Node
+              </button>
+              <div className="p-[2px] bg-gradient-to-tr from-sky-400 to-sky-600 rounded-full shadow-[0_0_15px_rgba(0,186,255,0.3)]">
+                <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center">
+                  <ShieldCheck size={16} className="text-sky-400" />
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Content Area */}
-        <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
-          <Outlet context={contextValue} />
-        </div>
-      </main>
+          {/* Content Area */}
+          <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                <Outlet context={contextValue} />
+              </PageTransition>
+            </AnimatePresence>
+          </div>
+        </main>
+      </div>
+
       <BottomNav />
+      
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </div>
   )
 }

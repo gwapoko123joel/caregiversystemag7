@@ -136,25 +136,26 @@ function RoleRouter() {
   return <FullPageSpinner />
 }
 
-// ── App Routes ────────────────────────────────────────────────
+import { AnimatePresence } from 'framer-motion'
+import PageTransition from './components/PageTransition'
 
 function AppRoutes() {
   const location = useLocation()
   
   return (
-    <div key={location.pathname} className="page-transition">
-      <Routes location={location}>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         {/* Public */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
 
         {/* Auth (guest only) */}
-        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-        <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/login" element={<GuestRoute><PageTransition><LoginPage /></PageTransition></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><PageTransition><RegisterPage /></PageTransition></GuestRoute>} />
 
         {/* Role dispatcher */}
         <Route path="/dashboard" element={<ProtectedRoute><RoleRouter /></ProtectedRoute>} />
 
-        {/* Role-specific dashboards */}
+        {/* Role-specific dashboards - These will have internal transitions */}
         <Route path="/dashboard/caregiver/*" element={<ProtectedRoute><CaregiverDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/practitioner/*" element={<ProtectedRoute><PractitionerDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
@@ -162,7 +163,7 @@ function AppRoutes() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+    </AnimatePresence>
   )
 }
 

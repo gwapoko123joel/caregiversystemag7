@@ -50,7 +50,7 @@ export default function BottomNav() {
   const items = NAV_MAP[role] ?? NAV_MAP.caregiver;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-card/90 backdrop-blur-xl border-t border-card-border pb-safe transition-colors">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#020617]/80 backdrop-blur-md border-t border-white/5 pb-safe transition-colors">
       <div className="flex items-center justify-around h-20 px-4">
         {items.map((item) => {
           const isActive = location.pathname === item.path || 

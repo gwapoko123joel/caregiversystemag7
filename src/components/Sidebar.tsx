@@ -23,6 +23,7 @@ import type { UserRole } from '../lib/supabaseClient';
 
 interface SidebarProps {
   alertCount?: number;
+  onLogoutClick: () => void;
 }
 
 interface NavItem {
@@ -62,7 +63,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'System Admin',
 };
 
-export default function Sidebar({ alertCount = 0 }: SidebarProps) {
+export default function Sidebar({ alertCount = 0, onLogoutClick }: SidebarProps) {
   const { profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -78,10 +79,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
     .join('')
     .toUpperCase();
 
-  async function handleSignOut() {
-    await signOut();
-    navigate('/');
-  }
+
 
   return (
     <aside className="hidden md:flex w-64 lg:w-72 h-screen !bg-sidebar border-r border-sidebar-border flex-col sticky top-0 z-40 transition-colors duration-300">
@@ -163,7 +161,7 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
           </div>
           
           <button 
-            onClick={handleSignOut}
+            onClick={onLogoutClick}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black text-sidebar-text-muted hover:text-text-main hover:bg-card transition-all uppercase tracking-widest border border-card-border"
           >
             <LogOut size={12} />

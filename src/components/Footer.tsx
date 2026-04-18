@@ -58,14 +58,16 @@ const Footer: React.FC = () => {
             <h3 className="text-xs font-black uppercase tracking-widest text-text-main">Connect With Us</h3>
             <div className="flex flex-wrap gap-4">
               {[
-                { icon: FacebookIcon, label: 'Facebook' },
-                { icon: TwitterIcon, label: 'Twitter' },
-                { icon: LinkedinIcon, label: 'LinkedIn' },
-                { icon: InstagramIcon, label: 'Instagram' }
+                { icon: FacebookIcon, label: 'Facebook', url: 'https://facebook.com/bantayancare' },
+                { icon: TwitterIcon, label: 'Twitter', url: 'https://twitter.com/bantayancare' },
+                { icon: LinkedinIcon, label: 'LinkedIn', url: 'https://linkedin.com/company/bantayancare' },
+                { icon: InstagramIcon, label: 'Instagram', url: 'https://instagram.com/bantayancare' }
               ].map((social) => (
                 <a 
                   key={social.label}
-                  href="#"
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-xl bg-card border border-card-border flex items-center justify-center text-sidebar-text-muted hover:text-sky-500 hover:border-sky-500/50 hover:shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all duration-300 group"
                   aria-label={social.label}
                 >
