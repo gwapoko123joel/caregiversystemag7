@@ -13,6 +13,7 @@ import {
   Heart
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import Footer from '../components/Footer';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -258,22 +259,8 @@ const LandingPage: React.FC = () => {
         </div>
       </main>
 
-      {/* ── Footer Stats ── */}
-      <footer className="relative z-10 px-6 md:px-12 pb-12 border-t border-card-border pt-12 transition-colors">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-           {[
-             { label: 'Network', value: '1,240+' },
-             { label: 'Authorized', value: '86' },
-             { label: 'Telemetry', value: '3.1k/s' },
-             { label: 'Response', value: '< 4m' }
-           ].map(stat => (
-             <div key={stat.label} className="p-4 bg-card/50 border border-card-border rounded-2xl">
-                <div className="text-sidebar-text-muted text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-1 transition-colors">{stat.label}</div>
-                <div className="text-lg md:text-2xl font-black text-text-main transition-colors">{stat.value}</div>
-             </div>
-           ))}
-        </div>
-      </footer>
+      {/* ── Footer ── */}
+      <Footer />
     </div>
   );
 };

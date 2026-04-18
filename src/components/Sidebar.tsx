@@ -87,12 +87,12 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
     <aside className="hidden md:flex w-64 lg:w-72 h-screen !bg-sidebar border-r border-sidebar-border flex-col sticky top-0 z-40 transition-colors duration-300">
       
       <div className="p-8 pb-12 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
+        <div className="flex items-center gap-3 group/logo select-none">
           <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all">
             <Heart size={20} className="text-white fill-white" />
           </div>
           <span className="text-lg font-black tracking-tighter text-sidebar-text uppercase italic">BantayanCare</span>
-        </Link>
+        </div>
         
         <button 
           onClick={toggleTheme}
@@ -120,10 +120,10 @@ export default function Sidebar({ alertCount = 0 }: SidebarProps) {
             <Link
               key={item.path}
               to={item.path}
-              className={`group relative flex items-center gap-3 px-6 py-4 rounded-xl transition-all duration-300 ${
+              className={`group relative flex items-center gap-3 px-6 py-4 rounded-xl transition-all duration-300 border ${
                 isActive 
-                  ? '!bg-sky-500 !text-white font-bold shadow-lg' 
-                  : 'text-sidebar-text hover:bg-card'
+                  ? 'border-sky-500 bg-sky-500/10 text-sky-500 font-black shadow-[0_0_15px_rgba(14,165,233,0.15)]' 
+                  : 'border-transparent text-sidebar-text hover:border-card-border hover:bg-card'
               } shadow-sm`}
             >
               <div className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>

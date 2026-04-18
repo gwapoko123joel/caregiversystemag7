@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { type ReactNode, useEffect } from 'react'
 import { ShieldAlert } from 'lucide-react'
+import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { useAuth } from './hooks/useAuth'
@@ -169,6 +170,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
+        <Toaster richColors position="top-right" />
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>

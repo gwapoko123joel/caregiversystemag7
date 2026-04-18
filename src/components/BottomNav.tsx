@@ -63,20 +63,16 @@ export default function BottomNav() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${
+              className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-[80%] my-auto rounded-2xl transition-all duration-300 border ${
                 isActive 
-                  ? 'text-sky-500 dark:text-sky-400 font-black scale-105' 
-                  : 'text-sidebar-text-muted font-bold'
+                  ? 'border-sky-500/50 bg-sky-500/10 text-sky-500 font-black scale-105 shadow-[0_0_20px_rgba(14,165,233,0.1)]' 
+                  : 'border-transparent text-sidebar-text-muted font-bold'
               } active:scale-90`}
             >
               <div className={`transition-transform duration-300 ${isActive ? 'drop-shadow-[0_0_8px_rgba(14,165,233,0.5)]' : ''}`}>
                 {item.icon}
               </div>
-              <span className="text-[10px] uppercase tracking-widest">{item.label}</span>
-              
-              {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-sky-500 rounded-b-full shadow-[0_4px_10px_rgba(14,165,233,0.4)]" />
-              )}
+              <span className="text-[10px] uppercase tracking-widest leading-none">{item.label}</span>
             </Link>
           );
         })}

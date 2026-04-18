@@ -162,7 +162,7 @@ export default function RegisterPage() {
           
           <div className="space-y-4">
              {ROLES.map(r => (
-               <div key={r.value} className={`p-5 rounded-2xl border transition-all ${form.role === r.value ? 'bg-sky-500/10 border-sky-500/30' : 'bg-card border-card-border'}`}>
+               <div key={r.value} className={`p-5 rounded-2xl border transition-all duration-300 ${form.role === r.value ? 'bg-sky-500/10 border-sky-500 shadow-[0_0_20px_rgba(14,165,233,0.1)]' : 'bg-card border-card-border hover:border-sidebar-text-muted/30'}`}>
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`w-2 h-2 rounded-full ${form.role === r.value ? 'bg-sky-500 shadow-[0_0_8px_rgba(0,186,255,0.5)]' : 'bg-sidebar-text-muted/30'}`} />
                     <span className={`text-sm font-black uppercase tracking-widest ${form.role === r.value ? 'text-sky-500' : 'text-sidebar-text-muted'}`}>{r.label}</span>

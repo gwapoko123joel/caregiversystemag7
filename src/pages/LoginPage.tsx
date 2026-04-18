@@ -131,10 +131,10 @@ export default function LoginPage() {
                 <button
                   key={r.value}
                   type="button"
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                  className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all border ${
                       role === r.value 
-                        ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' 
-                        : 'text-sidebar-text-muted hover:text-text-main'
+                        ? 'border-sky-500/50 bg-sky-500/10 text-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.1)]' 
+                        : 'border-transparent text-sidebar-text-muted hover:text-text-main'
                   }`}
                   onClick={() => setRole(r.value)}
                 >

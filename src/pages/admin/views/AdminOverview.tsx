@@ -16,7 +16,7 @@ export default function AdminOverview() {
           { label: 'Security Alerts', val: health.criticalAlerts, icon: ShieldAlert, color: 'text-sky-500', bg: 'bg-sky-500/10', path: '/dashboard/admin/security' },
           { label: 'Uptime', val: health.serverUptime, icon: Server, color: 'text-sky-500', bg: 'bg-sky-500/10', path: '/dashboard/admin/health' },
         ].map(stat => (
-          <Link to={stat.path} key={stat.label} className="p-5 md:p-6 bg-card border border-card-border rounded-3xl group hover:border-sky-500/20 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all block cursor-pointer shadow-sm active:scale-95">
+          <Link to={stat.path} key={stat.label} className="p-5 md:p-6 bg-card border border-card-border rounded-3xl group hover:border-sky-500 hover:shadow-[0_0_15px_rgba(14,165,233,0.15)] transition-all block cursor-pointer shadow-sm active:scale-95">
             <div className="flex items-center justify-between mb-4">
               <div className={`w-10 h-10 md:w-12 md:h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center transition-all`}>
                 <stat.icon size={20} className="md:w-6 md:h-6" />
