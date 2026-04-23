@@ -21,6 +21,7 @@ import AlertCenter from './views/AlertCenter'
 import HistoryLogs from './views/HistoryLogs'
 import PatientDossier from './views/PatientDossier'
 import VideoConsole from './views/VideoConsole'
+import ProfilePage from '../ProfilePage'
 
 export interface AlertItem {
   id: number
@@ -204,6 +205,7 @@ function PractitionerLayout() {
     if (location.pathname.includes('/video')) return 'High-Bandwidth Consultation'
     if (location.pathname.includes('/history')) return 'Historical Node Archive'
     if (location.pathname.includes('/patient/')) return 'Clinical Subject Dossier'
+    if (location.pathname.includes('/profile')) return 'Operator Profile Node'
     return 'Regional Operations Center'
   }
 
@@ -282,6 +284,7 @@ export default function PractitionerDashboard() {
         <Route path="video" element={<VideoConsoleWrapper />} />
         <Route path="history" element={<HistoryLogsWrapper />} />
         <Route path="patient/:id" element={<PatientDossierWrapper />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard/practitioner" replace />} />
       </Route>
     </Routes>

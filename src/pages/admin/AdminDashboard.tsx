@@ -19,6 +19,7 @@ import UserManagement from './views/UserManagement'
 import AuditTrail from './views/AuditTrail'
 import SystemHealth from './views/SystemHealth'
 import SecurityOverview from './views/SecurityOverview'
+import ProfilePage from '../ProfilePage'
 
 export interface AdminDashboardContextType {
   users: Profile[]
@@ -133,6 +134,9 @@ function AdminLayout() {
   } else if (location.pathname.includes('/security')) {
     title = "Security Overview"
     subTitle = "Global Authorization Metrics & Security Rules Engine"
+  } else if (location.pathname.includes('/profile')) {
+    title = "My Operator Profile"
+    subTitle = "Personalized Administrative Credentials & Node Metadata"
   }
 
   return (
@@ -201,6 +205,7 @@ export default function AdminDashboard() {
         <Route path="logs" element={<AuditTrail />} />
         <Route path="health" element={<SystemHealth />} />
         <Route path="security" element={<SecurityOverview />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard/admin" replace />} />
       </Route>
     </Routes>

@@ -1,10 +1,11 @@
 import type { User, Session } from '@supabase/supabase-js'
-import type { Profile } from '../lib/supabaseClient'
+import type { Profile, UserProfile } from '../lib/supabaseClient'
 
 export interface AuthContextType {
   user: User | null
   session: Session | null
   profile: Profile | null
+  userProfile: UserProfile | null
   loading: boolean
   signIn: (email: string, password: string, accessId: string) => Promise<{ error: string | null }>
   signUp: (data: SignUpData) => Promise<{ error: string | null }>

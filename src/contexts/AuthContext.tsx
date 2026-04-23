@@ -4,11 +4,14 @@ import type { User, Session } from '@supabase/supabase-js'
 import type { Profile } from '../lib/supabaseClient'
 import type { SignUpData } from '../types/auth'
 import { AuthContext } from './AuthContextDefinition'
+import { ensureUserProfile } from '../services/profileService'
+import type { UserProfile, UserRole } from '../lib/supabaseClient'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const fetchingUserId = useRef<string | null>(null)
 
@@ -28,22 +31,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!profile) setLoading(true)
 
     try {
-      const { data, error } = await supabase
+      // 1. Legacy Profile (Caregivers table)
+      const { data: legacyData, error: legacyError } = await supabase
         .from('caregivers')
         .select('*')
         .eq('id', userId)
         .maybeSingle()
       
-      if (error) {
-        console.error('[AuthContext] Profile fetch error:', error)
-        setProfile(null)
-      } else {
-        console.log('[AuthContext] Profile fetched successfully:', data?.id)
-        setProfile(data as Profile | null)
+      if (!legacyError && legacyData) {
+        setProfile(legacyData as Profile)
       }
+
+      // 2. New Profile (user_profiles table)
+      const { ensureAndGetProfile } = await import('../services/profileService')
+      const { data: profileData } = await ensureAndGetProfile()
+      
+      if (profileData) {
+        setUserProfile(profileData)
+      }
+
     } catch (err) {
       console.error('[AuthContext] Unexpected fetch error:', err)
-      setProfile(null)
     } finally {
       fetchingUserId.current = null
       setLoading(false)
@@ -110,20 +118,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // 3. SECURE THE STATE: Update context state before returning
-      // We set fetchingUserId.current temporarily to "own" the update
       fetchingUserId.current = data.user.id
       setSession(data.session)
       setUser(data.user)
       setProfile(profileData as Profile)
       
-      // We wait 100ms before setting loading(false) to ensure the component tree flushes the User updates
+      // 4. Ensure new user_profile exists
+      const { data: newUserProfile } = await ensureUserProfile(data.user, profileData.role)
+      if (newUserProfile) setUserProfile(newUserProfile)
+
+      // 5. Sync delay
       setTimeout(() => {
         setLoading(false)
         fetchingUserId.current = null
         console.log('[AuthContext] SignIn successful, state synchronized')
       }, 100)
 
-      // 4. Log activity
+      // 6. Log activity
       await supabase.from('activity_logs').insert({
         user_id: data.user.id,
         user_type: profileData.role,
@@ -199,6 +210,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
        setUser(data.user)
        setProfile(newProfile as unknown as Profile)
        
+       // Ensure new user_profile exists
+       const { data: newUserProfile } = await ensureUserProfile(data.user, payload.role)
+       if (newUserProfile) setUserProfile(newUserProfile)
+
        // Sync delay before lifting loading state
        setTimeout(() => {
          setLoading(false)
@@ -229,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, userProfile, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )

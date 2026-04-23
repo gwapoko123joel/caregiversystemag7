@@ -40,6 +40,7 @@ const NAV: Record<UserRole, NavItem[]> = {
     { icon: <FileText size={20} />,       label: 'Submit Report',  path: '/dashboard/caregiver/report' },
     { icon: <ClipboardList size={20} />,  label: 'History',        path: '/dashboard/caregiver/history' },
     { icon: <Video size={20} />,          label: 'Emergency Call', path: '/dashboard/caregiver/call' },
+    { icon: <User size={20} />,           label: 'My Profile',     path: '/dashboard/caregiver/profile' },
   ],
   medical_practitioner: [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard',    path: '/dashboard/practitioner' },
@@ -47,6 +48,15 @@ const NAV: Record<UserRole, NavItem[]> = {
     { icon: <Bell size={20} />,            label: 'Alert Center', path: '/dashboard/practitioner/alerts' },
     { icon: <Video size={20} />,           label: 'Video Console',path: '/dashboard/practitioner/video' },
     { icon: <ClipboardList size={20} />,   label: 'History Logs', path: '/dashboard/practitioner/history' },
+    { icon: <User size={20} />,            label: 'My Profile',   path: '/dashboard/practitioner/profile' },
+  ],
+  practitioner: [
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard',    path: '/dashboard/practitioner' },
+    { icon: <Activity size={20} />,        label: 'Patient Feed', path: '/dashboard/practitioner/feed' },
+    { icon: <Bell size={20} />,            label: 'Alert Center', path: '/dashboard/practitioner/alerts' },
+    { icon: <Video size={20} />,           label: 'Video Console',path: '/dashboard/practitioner/video' },
+    { icon: <ClipboardList size={20} />,   label: 'History Logs', path: '/dashboard/practitioner/history' },
+    { icon: <User size={20} />,            label: 'My Profile',   path: '/dashboard/practitioner/profile' },
   ],
   admin: [
     { icon: <LayoutDashboard size={20} />, label: 'Dashboard',      path: '/dashboard/admin' },
@@ -54,25 +64,27 @@ const NAV: Record<UserRole, NavItem[]> = {
     { icon: <ClipboardList size={20} />,   label: 'Activity Log',   path: '/dashboard/admin/logs' },
     { icon: <Cpu size={20} />,             label: 'System Health',  path: '/dashboard/admin/health' },
     { icon: <ShieldCheck size={20} />,     label: 'Security',       path: '/dashboard/admin/security' },
+    { icon: <User size={20} />,            label: 'My Profile',     path: '/dashboard/admin/profile' },
   ],
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
   caregiver: 'Caregiver',
   medical_practitioner: 'Practitioner',
+  practitioner: 'Practitioner',
   admin: 'System Admin',
 };
 
 export default function Sidebar({ alertCount = 0, onLogoutClick }: SidebarProps) {
-  const { profile, signOut } = useAuth();
+  const { profile, userProfile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const role = profile?.role ?? 'caregiver';
-  const navItems = NAV[role] ?? NAV.caregiver;
+  const role = userProfile?.role || profile?.role || 'caregiver';
+  const navItems = NAV[role as UserRole] ?? NAV.caregiver;
 
-  const initials = (profile?.full_name ?? 'U')
+  const displayName = userProfile?.full_name || profile?.full_name || 'U';
+  const initials = displayName
     .split(' ')
     .map((w) => w[0])
     .slice(0, 2)
@@ -151,12 +163,14 @@ export default function Sidebar({ alertCount = 0, onLogoutClick }: SidebarProps)
       <div className="p-4 mt-auto">
         <div className="p-4 rounded-3xl bg-card border border-card-border group transition-colors hover:border-sky-500/30 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-             <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-black text-xs shadow-lg">
-                {initials}
+             <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white font-black text-xs shadow-lg overflow-hidden">
+                {userProfile?.avatar_url ? (
+                  <img src={userProfile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                ) : initials}
              </div>
               <div className="flex-1 overflow-hidden">
-                <div className="text-xs font-black text-sidebar-text truncate uppercase tracking-tight">{profile?.full_name ?? '—'}</div>
-                <div className="text-[10px] font-bold text-sky-500 uppercase tracking-wider">{ROLE_LABELS[role]}</div>
+                <div className="text-xs font-black text-sidebar-text truncate uppercase tracking-tight">{displayName}</div>
+                <div className="text-[10px] font-bold text-sky-500 uppercase tracking-wider">{ROLE_LABELS[role as UserRole]}</div>
               </div>
           </div>
           

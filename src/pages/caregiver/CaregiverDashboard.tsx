@@ -18,6 +18,7 @@ import PageTransition from '../../components/PageTransition'
 import DashboardHome from './views/DashboardHome'
 import ReportView from './views/ReportView'
 import HistoryView from './views/HistoryView'
+import ProfilePage from '../ProfilePage'
 
 import type { Patient, PatientMonitoringLog } from '../../lib/supabaseClient'
 
@@ -189,6 +190,7 @@ function CaregiverLayout() {
     if (location.pathname.includes('/report')) return 'New Telemetry Report'
     if (location.pathname.includes('/history')) return 'Clinical History Archive'
     if (location.pathname.includes('/call')) return 'Direct Emergency Link'
+    if (location.pathname.includes('/profile')) return 'Operator Profile'
     return 'Caregiver Portal'
   }
 
@@ -268,6 +270,7 @@ export default function CaregiverDashboard() {
         <Route path="report" element={<ReportViewWrapper />} />
         <Route path="history" element={<HistoryViewWrapper />} />
         <Route path="call" element={<EmergencyCallWrapper />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard/caregiver" replace />} />
       </Route>
     </Routes>
