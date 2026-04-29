@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Shield, Mail, Phone, MapPin, Calendar, 
   Clock, Hash, Activity, BadgeCheck, Edit3, 
-  Save, X, AlertCircle, Briefcase, FileText,
-  Zap, Heart, Users, Clipboard, Lock, Info,
-  CheckCircle2, AlertTriangle, Monitor, LogOut,
-  ChevronRight, ArrowUpRight, Signal
+  Save, X, Briefcase, FileText,
+  Zap, Users as UsersIcon, Clipboard as ClipboardIcon, Lock as LockIcon,
+  AlertTriangle, Monitor, LogOut,
+  Signal
 } from 'lucide-react';
 import { 
   updateUserProfile, getProfileStats, ensureAndGetProfile 
 } from '../services/profileService';
-import type { UserProfile, AvailabilityStatus, ShiftStatus, ProfileStats } from '../lib/supabaseClient';
+import type { UserProfile, AvailabilityStatus, ProfileStats } from '../lib/supabaseClient';
 
 const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -400,7 +400,7 @@ const ProfilePage: React.FC = () => {
                     icon={<User className="w-4 h-4" />} 
                     isEditing={isEditing}
                     editValue={editForm.full_name}
-                    onChange={(v) => setEditForm({...editForm, full_name: v})}
+                    onChange={(v: string) => setEditForm({...editForm, full_name: v})}
                    />
                    <StatField 
                     label="Primary Datastream" 
@@ -414,7 +414,7 @@ const ProfilePage: React.FC = () => {
                     icon={<MapPin className="w-4 h-4" />} 
                     isEditing={isEditing}
                     editValue={editForm.address}
-                    onChange={(v) => setEditForm({...editForm, address: v})}
+                    onChange={(v: string) => setEditForm({...editForm, address: v})}
                    />
                 </div>
              </motion.div>
@@ -434,7 +434,7 @@ const ProfilePage: React.FC = () => {
                     icon={<Briefcase className="w-4 h-4" />} 
                     isEditing={isEditing}
                     editValue={editForm.specialization}
-                    onChange={(v) => setEditForm({...editForm, specialization: v})}
+                    onChange={(v: string) => setEditForm({...editForm, specialization: v})}
                    />
                    <StatField 
                     label="Node License ID" 
@@ -442,7 +442,7 @@ const ProfilePage: React.FC = () => {
                     icon={<FileText className="w-4 h-4" />} 
                     isEditing={isEditing}
                     editValue={editForm.license_number}
-                    onChange={(v) => setEditForm({...editForm, license_number: v})}
+                    onChange={(v: string) => setEditForm({...editForm, license_number: v})}
                    />
                    <StatField 
                     label="Experience Baseline" 
@@ -450,7 +450,7 @@ const ProfilePage: React.FC = () => {
                     icon={<Activity className="w-4 h-4" />} 
                     isEditing={isEditing}
                     editValue={String(editForm.experience_years)}
-                    onChange={(v) => setEditForm({...editForm, experience_years: parseInt(v) || 0})}
+                    onChange={(v: string) => setEditForm({...editForm, experience_years: parseInt(v) || 0})}
                    />
                 </div>
              </motion.div>
@@ -489,7 +489,7 @@ const ProfilePage: React.FC = () => {
                     <OversightCard 
                       label="Patients Monitored" 
                       value={String(stats?.patients_monitored || 0)} 
-                      icon={<Users className="w-6 h-6" />}
+                      icon={<UsersIcon className="w-6 h-6" />}
                       color="cyan"
                     />
                     <OversightCard 
@@ -512,7 +512,7 @@ const ProfilePage: React.FC = () => {
                     <OversightCard 
                       label="Total Submissions" 
                       value={String(stats?.total_reports || 0)} 
-                      icon={<Clipboard className="w-6 h-6" />}
+                      icon={<ClipboardIcon className="w-6 h-6" />}
                       color="blue"
                     />
                     <OversightCard 
@@ -535,7 +535,7 @@ const ProfilePage: React.FC = () => {
                     <OversightCard 
                       label="Security Anomalies" 
                       value={String(stats?.security_alerts || 0)} 
-                      icon={<Lock className="w-6 h-6" />}
+                      icon={<LockIcon className="w-6 h-6" />}
                       color="rose"
                     />
                   </>

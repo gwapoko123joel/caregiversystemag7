@@ -13,6 +13,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type UserRole = 'caregiver' | 'medical_practitioner' | 'practitioner' | 'admin'
 
+export interface ProfileStats {
+  patients_monitored?: number;
+  active_alerts?: number;
+  resolved_alerts?: number;
+  total_reports?: number;
+  last_report_date?: string;
+  total_users?: number;
+  security_alerts?: number;
+  avg_response_time?: string;
+}
+
 export type AvailabilityStatus = 'available' | 'busy' | 'off_duty' | 'on_call' | 'unavailable'
 export type ShiftStatus = 'on_duty' | 'off_duty' | 'on_break' | 'emergency_responding'
 
@@ -59,6 +70,9 @@ export interface Profile {
   user_id?: string | null
   access_id: string | null
   full_name: string
+  first_name?: string // For compatibility
+  last_name?: string  // For compatibility
+  unique_access_id?: string // For compatibility
   email: string | null
   role: UserRole
   is_active: boolean

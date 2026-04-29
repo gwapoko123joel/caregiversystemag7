@@ -31,7 +31,7 @@ interface ReportViewProps {
   patient: Patient | null
   form: ReportForm
   setField: <K extends keyof ReportForm>(key: K, val: ReportForm[K]) => void
-  handleSubmit: () => Promise<void>
+  handleSubmit: (e?: React.FormEvent) => Promise<void>
   submitting: boolean
   submitSuccess: boolean
   error: string | null

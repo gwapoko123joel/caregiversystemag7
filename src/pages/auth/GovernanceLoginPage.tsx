@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Lock, Mail, ArrowRight, AlertTriangle,
-  Fingerprint, KeyRound, ServerCrash, Eye, EyeOff,
+  Fingerprint, KeyRound, ServerCrash,
   Loader2, ChevronRight, ShieldAlert, ShieldCheck,
 } from 'lucide-react';
 import {
-  AuthBackground, AuthInput, AuthButton,
+  AuthBackground, AuthInput,
   AuthError, AuthNodeFooter,
 } from '../../components/auth/AuthComponents';
 import { adminGovernanceLogin, getCurrentSession } from '../../services/authService';
@@ -94,7 +94,7 @@ const GovernanceLoginPage = () => {
       // Navigate to admin dashboard
       navigate('/dashboard/admin');
     } else {
-      setError(result.error);
+      setError(result.error || 'Authentication failure.');
       setFailedAttempts((prev) => prev + 1);
     }
 

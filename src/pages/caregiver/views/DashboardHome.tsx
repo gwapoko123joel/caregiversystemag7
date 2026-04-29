@@ -3,9 +3,7 @@ import {
   Calendar, 
   MapPin, 
   TrendingUp, 
-  ChevronRight, 
-  AlertTriangle,
-  RefreshCw,
+  ChevronRight,
   Search
 } from 'lucide-react'
 import { Link } from 'react-router-dom'

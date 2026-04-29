@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation, Outlet, useNavigate } from 'react-router-dom'
-import { ShieldCheck, RefreshCw, Heart } from 'lucide-react'
+import { ShieldCheck, RefreshCw } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
 import MobileHeader from '../../components/MobileHeader'
 import LogoutModal from '../../components/LogoutModal'
-import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
 import type { Profile, ActivityLog } from '../../lib/supabaseClient'
@@ -35,6 +34,7 @@ export interface AdminDashboardContextType {
   loadUsers: () => Promise<void>
   loadLogs: () => Promise<void>
   loadSystemData: () => Promise<void>
+  loadData: () => Promise<void>
   user: User | null
   profile: Profile | null
   isLoading: boolean
@@ -110,7 +110,7 @@ function AdminLayout() {
   }, [loadData])
 
   const contextValue: AdminDashboardContextType = {
-    users, logs, health, loadUsers, loadLogs, loadSystemData, user, profile, isLoading, error
+    users, logs, health, loadUsers, loadLogs, loadSystemData, loadData, user, profile, isLoading, error
   }
 
   const handleConfirmLogout = async () => {

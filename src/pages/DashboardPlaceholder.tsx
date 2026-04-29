@@ -97,7 +97,7 @@ export default function DashboardPlaceholder() {
             <h2>System Initializing</h2>
             <p>
               The BantayanCare monitoring system is ready. Your access ID{' '}
-              <code>{profile?.unique_access_id ?? '—'}</code> has been verified. Full module
+              <code>{profile?.access_id ?? '—'}</code> has been verified. Full module
               development is underway — your care dashboard will be available shortly.
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function DashboardPlaceholder() {
         {/* Stats strip */}
         <div className="stats-strip">
           {[
-            { label: 'Access ID', value: profile?.unique_access_id ?? '—' },
+            { label: 'Access ID', value: profile?.access_id ?? '—' },
             { label: 'Role', value: ROLE_LABELS[profile?.role ?? ''] ?? '—' },
             { label: 'Status', value: 'Active' },
             { label: 'Last Login', value: new Date().toLocaleDateString('en-PH', { dateStyle: 'medium' }) },

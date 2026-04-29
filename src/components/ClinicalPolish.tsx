@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { RefreshCw, LayoutIcon, FileQuestion } from 'lucide-react'
+import { RefreshCw, FileQuestion } from 'lucide-react'
 
 /**
  * Skeleton Card for Grid items.

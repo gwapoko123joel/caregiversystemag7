@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { 
   Search, 
   Plus, 
-  ShieldAlert, 
   KeyRound, 
   RefreshCw,
   MoreVertical,
@@ -104,20 +103,21 @@ export default function UserManagement() {
   }
 
   async function handleManualIdUpdate() {
-    if (!editingId) return
+    const currentEdit = editingId
+    if (!currentEdit) return
     
-    setProcessingId(editingId.id)
+    setProcessingId(currentEdit.id)
     const { error } = await supabase
       .from('system_users')
-      .update({ access_id: editingId.value.trim().toUpperCase() })
-      .eq('id', editingId.id)
+      .update({ access_id: currentEdit.value.trim().toUpperCase() })
+      .eq('id', currentEdit.id)
 
     if (!error) {
       await supabase.from('activity_logs').insert({
         user_id: user?.id,
         user_type: profile?.role ?? 'admin',
         action: 'MANUAL_ACCESS_ID_UPDATE',
-        details: { target_user: editingId.id, new_id: editingId.value }
+        details: { target_user: currentEdit.id, new_id: currentEdit.value }
       })
       await loadUsers()
       await loadLogs()
@@ -144,7 +144,7 @@ export default function UserManagement() {
 
     if (!error) {
       setShowAddUser(false)
-      setNewUser({ full_name: '', email: '', role: 'caregiver', access_id: '' })
+      setNewUser({ full_name: '', email: '', role: 'caregiver' as Profile['role'], access_id: '' })
       await loadUsers()
     } else {
       alert(error.message)
@@ -238,8 +238,12 @@ export default function UserManagement() {
                              <div className="flex items-center gap-2">
                                <input 
                                  className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-sky-500 shadow-inner w-32 focus:outline-none"
-                                 value={editingId.value}
-                                 onChange={(e) => setEditingId({ ...editingId, value: e.target.value.toUpperCase() })}
+                                 value={editingId?.value || ''}
+                                 onChange={(e) => {
+                                   if (editingId) {
+                                     setEditingId({ id: editingId.id, value: e.target.value.toUpperCase() })
+                                   }
+                                 }}
                                  autoFocus
                                  onKeyDown={(e) => e.key === 'Enter' && handleManualIdUpdate()}
                                />

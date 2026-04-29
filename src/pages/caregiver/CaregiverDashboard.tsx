@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Activity, Phone, ShieldCheck, RefreshCw
+  Activity, Phone
 } from 'lucide-react'
 import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
 import MobileHeader from '../../components/MobileHeader'
 import LogoutModal from '../../components/LogoutModal'
-import { useTheme } from '../../contexts/ThemeContext'
 import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
@@ -29,7 +28,7 @@ export interface CaregiverDashboardContextType {
   loadData: () => Promise<void>
   form: any
   setField: (field: string, value: any) => void
-  handleSubmit: (e: React.FormEvent) => Promise<void>
+  handleSubmit: (e?: React.FormEvent) => Promise<void>
   submitting: boolean
   submitSuccess: boolean
   error: string | null
@@ -108,8 +107,8 @@ function CaregiverLayout() {
     setField('image_url', '')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!patient || !user) return
     
     setSubmitting(true)
@@ -315,7 +314,6 @@ function HistoryViewWrapper() {
 }
 
 function EmergencyCallWrapper() {
-  const navigate = useNavigate()
   return (
     <div className="h-full flex items-center justify-center">
        <div className="text-center space-y-6">

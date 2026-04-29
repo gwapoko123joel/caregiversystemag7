@@ -89,7 +89,7 @@ export default function AdminOverview() {
                   users.slice(0, 5).map(u => (
                     <tr key={u.id} className="hover:bg-card transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-sm text-text-main transition-colors">{u.first_name} {u.last_name}</div>
+                        <div className="font-bold text-sm text-text-main transition-colors">{u.full_name}</div>
                         <div className="text-xs text-sidebar-text-muted transition-colors">{u.email}</div>
                       </td>
                       <td className="px-6 py-4">
@@ -121,7 +121,7 @@ export default function AdminOverview() {
                {users.slice(0, 5).map(u => (
                  <div key={u.id} className="p-4 flex items-center justify-between active:bg-primary/20 transition-colors">
                     <div>
-                      <div className="font-black text-xs text-text-main uppercase tracking-tight">{u.first_name?.slice(0,1)}. {u.last_name}</div>
+                      <div className="font-black text-xs text-text-main uppercase tracking-tight">{u.full_name}</div>
                       <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest">{u.role.replace(/_/g, ' ')}</div>
                     </div>
                     <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${

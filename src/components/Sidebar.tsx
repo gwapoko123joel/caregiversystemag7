@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   User,
@@ -76,7 +76,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export default function Sidebar({ alertCount = 0, onLogoutClick }: SidebarProps) {
-  const { profile, userProfile, signOut } = useAuth();
+  const { profile, userProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 

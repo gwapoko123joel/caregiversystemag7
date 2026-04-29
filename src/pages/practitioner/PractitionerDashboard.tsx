@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
-  Activity, VolumeX, Volume2, Monitor, Heart, Phone
+  Activity, VolumeX, Volume2, Monitor
 } from 'lucide-react'
 import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
@@ -75,7 +75,7 @@ function PractitionerLayout() {
   const { signOut } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const { theme } = useTheme()
+  const { theme: _theme } = useTheme()
   const [patients, setPatients] = useState<Patient[]>([])
   const [alerts, setAlerts] = useState<AlertItem[]>([])
   const [alertCount, setAlertCount] = useState(0)
@@ -271,7 +271,6 @@ function PractitionerLayout() {
 }
 
 export default function PractitionerDashboard() {
-  const { patients, loading } = usePractitionerData(); // Placeholder logic to show structure
 
   return (
     <Routes>
@@ -345,7 +344,3 @@ function PatientDossierWrapper() {
   return <PatientDossier patient={patient} initiateCall={ctx.initiateCall} />
 }
 
-// Minimal hook to satisfy PractitionerDashboard structure before layout mount
-function usePractitionerData() {
-  return { patients: [], loading: false }
-}

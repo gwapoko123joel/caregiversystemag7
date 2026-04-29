@@ -4,8 +4,8 @@ import type { User, Session } from '@supabase/supabase-js'
 import type { Profile } from '../lib/supabaseClient'
 import type { SignUpData } from '../types/auth'
 import { AuthContext } from './AuthContextDefinition'
-import { ensureUserProfile } from '../services/profileService'
-import type { UserProfile, UserRole } from '../lib/supabaseClient'
+import { ensureUserProfile, ensureAndGetProfile } from '../services/profileService'
+import type { UserProfile } from '../lib/supabaseClient'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // 2. New Profile (user_profiles table)
-      const { ensureAndGetProfile } = await import('../services/profileService')
       const { data: profileData } = await ensureAndGetProfile()
       
       if (profileData) {

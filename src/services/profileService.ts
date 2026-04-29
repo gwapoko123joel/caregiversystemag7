@@ -1,16 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
-import type { UserProfile, UserRole, AvailabilityStatus, ShiftStatus } from '../lib/supabaseClient';
-
-export interface ProfileStats {
-  patients_monitored?: number;
-  active_alerts?: number;
-  resolved_alerts?: number;
-  total_reports?: number;
-  last_report_date?: string;
-  total_users?: number;
-  security_alerts?: number;
-  avg_response_time?: string;
-}
+import type { UserProfile, UserRole, ProfileStats } from '../lib/supabaseClient';
 
 /**
  * Normalizes a role string to snake_case for DB constraints.

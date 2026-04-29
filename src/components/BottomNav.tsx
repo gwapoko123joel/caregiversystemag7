@@ -34,6 +34,12 @@ const NAV_MAP: Record<UserRole, NavItem[]> = {
     { icon: <Video size={22} />,           label: 'Video',    path: '/dashboard/practitioner/video' },
     { icon: <ClipboardList size={22} />,   label: 'Logs',     path: '/dashboard/practitioner/history' },
   ],
+  practitioner: [
+    { icon: <LayoutDashboard size={22} />, label: 'Home',     path: '/dashboard/practitioner' },
+    { icon: <Bell size={22} />,            label: 'Alerts',   path: '/dashboard/practitioner/alerts' },
+    { icon: <Video size={22} />,           label: 'Video',    path: '/dashboard/practitioner/video' },
+    { icon: <ClipboardList size={22} />,   label: 'Logs',     path: '/dashboard/practitioner/history' },
+  ],
   caregiver: [
     { icon: <LayoutDashboard size={22} />, label: 'Portal',   path: '/dashboard/caregiver' },
     { icon: <User size={22} />,            label: 'Patient',  path: '/dashboard/caregiver/patient' },

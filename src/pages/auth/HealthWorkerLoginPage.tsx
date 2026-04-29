@@ -70,9 +70,9 @@ const HealthWorkerLoginPage = () => {
       await ensureUserProfile(result.user, result.role);
 
       // Redirect based on role
-      navigate(result.redirectTo);
+      navigate(result.redirectTo || '/');
     } else {
-      setError(result.error);
+      setError(result.error || 'Authentication failure.');
     }
 
     setLoading(false);
