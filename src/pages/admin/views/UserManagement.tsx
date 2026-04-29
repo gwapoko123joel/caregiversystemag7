@@ -17,10 +17,17 @@ import type { Profile } from '../../../lib/supabaseClient'
 import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 /**
- * Generate a random 6-character uppercase alphanumeric string for access IDs.
+ * Generate a random 4-digit number for access IDs.
  */
-function generateAccessId(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
+function generateAccessId(role: string): string {
+  const prefixMap: Record<string, string> = {
+    admin: 'ADMIN',
+    medical_practitioner: 'MP',
+    caregiver: 'CG'
+  }
+  const prefix = prefixMap[role] || 'USR'
+  const randomNum = Math.floor(1000 + Math.random() * 9000)
+  return `${prefix}-${randomNum}`
 }
 
 export default function UserManagement() {
@@ -30,13 +37,13 @@ export default function UserManagement() {
   const [searchUser, setSearchUser] = useState('')
   const [showAddUser, setShowAddUser] = useState(false)
   const [newUser, setNewUser] = useState({ 
-    first_name: '', 
-    last_name: '', 
+    full_name: '', 
     email: '', 
     role: 'caregiver' as Profile['role'], 
     access_id: '' 
   })
   
+  const [editingId, setEditingId] = useState<{ id: string, value: string } | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
 
@@ -48,12 +55,13 @@ export default function UserManagement() {
     let generatedId = ''
 
     if (newStatus === 'authorized') {
-      generatedId = generateAccessId()
-      payload.unique_access_id = generatedId
+      const targetUser = users.find(u => u.id === userId)
+      generatedId = generateAccessId(targetUser?.role || 'caregiver')
+      payload.access_id = generatedId
     }
 
     const { error } = await supabase
-      .from('caregivers')
+      .from('system_users')
       .update(payload)
       .eq('id', userId)
 
@@ -74,11 +82,12 @@ export default function UserManagement() {
     if (!confirm('Are you sure you want to REISSUE the Access ID? The old ID will be invalidated immediately.')) return
     
     setProcessingId(userId)
-    const newId = generateAccessId()
+    const targetUser = users.find(u => u.id === userId)
+    const newId = generateAccessId(targetUser?.role || 'caregiver')
 
     const { error } = await supabase
-      .from('caregivers')
-      .update({ unique_access_id: newId })
+      .from('system_users')
+      .update({ access_id: newId })
       .eq('id', userId)
 
     if (!error) {
@@ -94,32 +103,58 @@ export default function UserManagement() {
     setProcessingId(null)
   }
 
+  async function handleManualIdUpdate() {
+    if (!editingId) return
+    
+    setProcessingId(editingId.id)
+    const { error } = await supabase
+      .from('system_users')
+      .update({ access_id: editingId.value.trim().toUpperCase() })
+      .eq('id', editingId.id)
+
+    if (!error) {
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: profile?.role ?? 'admin',
+        action: 'MANUAL_ACCESS_ID_UPDATE',
+        details: { target_user: editingId.id, new_id: editingId.value }
+      })
+      await loadUsers()
+      await loadLogs()
+      setEditingId(null)
+    } else {
+      alert(error.message)
+    }
+    setProcessingId(null)
+  }
+
   async function handleProvisionUser() {
-    if (!newUser.first_name || !newUser.last_name || !newUser.email) {
-      alert('Please provide first name, last name, and email.')
+    if (!newUser.full_name || !newUser.email) {
+      alert('Please provide full name and email.')
       return
     }
 
     const { error } = await supabase
-      .from('caregivers')
+      .from('system_users')
       .insert({
         ...newUser,
+        access_id: generateAccessId(newUser.role),
         status: 'pending'
       })
 
     if (!error) {
       setShowAddUser(false)
-      setNewUser({ first_name: '', last_name: '', email: '', role: 'caregiver', access_id: '' })
+      setNewUser({ full_name: '', email: '', role: 'caregiver', access_id: '' })
       await loadUsers()
     } else {
       alert(error.message)
     }
   }
 
-  const filteredUsers = users.filter(u => 
-    `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchUser.toLowerCase()) ||
+  const filteredUsers = (users as any[]).filter(u => 
+    u.full_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchUser.toLowerCase()) ||
-    u.unique_access_id?.toLowerCase().includes(searchUser.toLowerCase())
+    u.access_id?.toLowerCase().includes(searchUser.toLowerCase())
   )
 
   if (isLoading && users.length === 0) {
@@ -188,28 +223,58 @@ export default function UserManagement() {
                   <tr key={u.id} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-6 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center font-black text-sky-500 text-lg border border-card-border">
-                          {u.first_name?.[0]}{u.last_name?.[0]}
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center font-black text-sky-500 text-lg border border-card-border uppercase">
+                          {u.full_name?.[0] || u.email?.[0]}
                         </div>
                         <div>
-                          <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.first_name} {u.last_name}</div>
+                          <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.full_name || 'Unnamed User'}</div>
                           <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-6">
                         <div className="flex items-center gap-3">
-                           <code className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm">
-                             {u.unique_access_id ?? 'UNINITIALIZED'}
-                           </code>
-                           <button 
-                             disabled={processingId === u.id}
-                             onClick={() => handleReissueId(u.id)}
-                             title="Reissue Security Token"
-                             className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
-                           >
-                              {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                           </button>
+                           {editingId?.id === u.id ? (
+                             <div className="flex items-center gap-2">
+                               <input 
+                                 className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-sky-500 shadow-inner w-32 focus:outline-none"
+                                 value={editingId.value}
+                                 onChange={(e) => setEditingId({ ...editingId, value: e.target.value.toUpperCase() })}
+                                 autoFocus
+                                 onKeyDown={(e) => e.key === 'Enter' && handleManualIdUpdate()}
+                               />
+                               <button 
+                                 onClick={handleManualIdUpdate}
+                                 className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
+                               >
+                                 <CheckCircle2 size={16} />
+                               </button>
+                               <button 
+                                 onClick={() => setEditingId(null)}
+                                 className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                               >
+                                 <XCircle size={16} />
+                               </button>
+                             </div>
+                           ) : (
+                             <>
+                               <code 
+                                 className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm cursor-pointer hover:bg-sky-500/10 transition-all"
+                                 onClick={() => setEditingId({ id: u.id, value: u.access_id || '' })}
+                                 title="Click to edit Access ID"
+                               >
+                                 {u.access_id ?? 'UNINITIALIZED'}
+                               </code>
+                               <button 
+                                 disabled={processingId === u.id}
+                                 onClick={() => handleReissueId(u.id)}
+                                 title="Reissue Security Token"
+                                 className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
+                               >
+                                  {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                               </button>
+                             </>
+                           )}
                         </div>
                     </td>
                     <td className="px-6 py-6">
@@ -235,6 +300,7 @@ export default function UserManagement() {
                                <option value="pending">Pending</option>
                                <option value="authorized">Authorize</option>
                                <option value="revoked">Revoke</option>
+                               <option value="suspended">Suspend</option>
                              </select>
                            </div>
                          )}
@@ -257,7 +323,7 @@ export default function UserManagement() {
                <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                      <div>
-                        <div className="text-base font-black text-text-main uppercase tracking-tight">{u.first_name} {u.last_name}</div>
+                        <div className="text-base font-black text-text-main uppercase tracking-tight">{u.full_name}</div>
                         <div className="text-xs text-sidebar-text-muted">{u.email}</div>
                      </div>
                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${
@@ -270,15 +336,17 @@ export default function UserManagement() {
                   <div className="space-y-4">
                      <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
                         <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
-                          {u.unique_access_id ?? 'UNINITIALIZED'}
+                          {u.access_id ?? 'UNINITIALIZED'}
                         </code>
-                        <button 
-                          disabled={processingId === u.id}
-                          onClick={() => handleReissueId(u.id)}
-                          className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
-                        >
-                           {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                        </button>
+                        <div className="flex gap-1">
+                          <button 
+                            disabled={processingId === u.id}
+                            onClick={() => handleReissueId(u.id)}
+                            className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
+                          >
+                             {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                          </button>
+                        </div>
                      </div>
 
                      <div className="flex items-center justify-between">
@@ -301,6 +369,7 @@ export default function UserManagement() {
                              <option value="pending">Pending</option>
                              <option value="authorized">Authorize</option>
                              <option value="revoked">Revoke</option>
+                             <option value="suspended">Suspend</option>
                            </select>
                         )}
                      </div>
@@ -320,27 +389,15 @@ export default function UserManagement() {
             <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">Grant secure node access to credentials</p>
             
             <div className="space-y-4">
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">First Name</label>
-                     <input 
-                       type="text" 
-                       className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
-                       placeholder="e.g. Maria"
-                       value={newUser.first_name}
-                       onChange={(e) => setNewUser({...newUser, first_name: e.target.value})}
-                     />
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Last Name</label>
-                     <input 
-                       type="text" 
-                       className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
-                       placeholder="e.g. Santos"
-                       value={newUser.last_name}
-                       onChange={(e) => setNewUser({...newUser, last_name: e.target.value})}
-                     />
-                  </div>
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Full Name</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                    placeholder="e.g. Maria Santos"
+                    value={newUser.full_name}
+                    onChange={(e) => setNewUser({...newUser, full_name: e.target.value})}
+                  />
                </div>
 
                <div className="space-y-2">

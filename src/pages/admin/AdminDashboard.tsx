@@ -72,13 +72,13 @@ function AdminLayout() {
 
   const loadUsers = useCallback(async () => {
     const { data, error: fetchErr } = await supabase
-      .from('caregivers')
+      .from('system_users')
       .select('*')
       .order('status', { ascending: false })
       .order('created_at', { ascending: false })
     
     if (fetchErr) throw fetchErr
-    setUsers((data ?? []) as Profile[])
+    setUsers((data ?? []) as any[])
   }, [])
 
   const loadLogs = useCallback(async () => {

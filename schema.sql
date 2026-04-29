@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- BANTAYAN CARE SYSTEM FULL SCHEMA MIGRATION
 -- Copy and paste this into the Supabase SQL Editor for your project 
--- (nxlppcuspmhlkulxjemp) and click "Run".
+-- (nipxtcbzqtyajlmcdpmb) and click "Run".
 -- ==============================================================================
 
 -- 0. WIPE EXISTING SCHEMA TO PREVENT DUPLICATE ERRORS
@@ -182,7 +182,7 @@ FOR EACH ROW EXECUTE FUNCTION public.restrict_profile_updates();
 CREATE OR REPLACE FUNCTION public.send_auth_email_hook()
 RETURNS trigger AS $$
 DECLARE
-  project_id text := 'nxlppcuspmhlkulxjemp';
+  project_id text := 'nipxtcbzqtyajlmcdpmb';
   function_secret text := 'bantayan_secure_fn_hook_2026';
 BEGIN
   IF (OLD.status IS DISTINCT FROM NEW.status AND NEW.status = 'authorized') THEN

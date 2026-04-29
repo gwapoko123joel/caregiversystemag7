@@ -35,7 +35,7 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
 
   // 1. Check if profile already exists
   const { data: existingProfile, error: fetchError } = await supabase
-    .from('user_profiles')
+    .from('system_users')
     .select('*')
     .eq('user_id', user.id)
     .maybeSingle();
@@ -45,14 +45,13 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
     return { data: null, error: fetchError };
   }
 
-  // 2. If profile exists, update last_login and increment login_count
+  // 2. If profile exists, update last_login (if column exists) or just return
   if (existingProfile) {
     console.log('[ProfileService] Profile exists, updating metadata...');
     const { data: updatedProfile, error: updateError } = await supabase
-      .from('user_profiles')
+      .from('system_users')
       .update({
-        last_login: new Date().toISOString(),
-        login_count: (existingProfile.login_count || 0) + 1,
+        updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
       .select()
@@ -60,9 +59,9 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
 
     if (updateError) {
       console.error('[ProfileService] Error updating profile:', updateError);
-      return { data: existingProfile as UserProfile, error: updateError };
+      return { data: existingProfile as unknown as UserProfile, error: updateError };
     }
-    return { data: updatedProfile as UserProfile, error: null };
+    return { data: updatedProfile as unknown as UserProfile, error: null };
   }
 
   // 3. If no profile exists, create a new one
@@ -76,24 +75,12 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
     full_name: fullName,
     role: role, 
     access_id: accessId,
-    status: 'active',
-    is_verified: true,
-    last_login: new Date().toISOString(),
-    login_count: 1,
-    address: 'Barangay Bantayan, Dumaguete City',
-    
-    // New Defaults
-    availability_status: (role === 'practitioner' || role === 'medical_practitioner') ? 'unavailable' : 'off_duty',
-    can_receive_calls: false,
-    current_shift_status: 'off_duty',
-    experience_years: 0,
-    institution: 'Bantayan Care Network',
-    admin_level: role === 'admin' ? 'Tier 1' : '',
-    governance_clearance: role === 'admin' ? 'Standard' : '',
+    status: 'authorized',
+    is_active: true,
   };
 
   const { data: createdProfile, error: createError } = await supabase
-    .from('user_profiles')
+    .from('system_users')
     .insert(newProfile)
     .select()
     .single();
@@ -132,7 +119,7 @@ export async function ensureAndGetProfile(): Promise<{ data: UserProfile | null;
 
   // 1. Try to fetch
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('system_users')
     .select('*')
     .eq('user_id', user.id)
     .maybeSingle();
@@ -157,7 +144,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('system_users')
     .select('*')
     .eq('user_id', user.id)
     .maybeSingle();
@@ -177,7 +164,7 @@ export async function updateUserProfile(updates: Partial<UserProfile>): Promise<
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('system_users')
     .update(updates)
     .eq('user_id', user.id)
     .select()
@@ -216,7 +203,7 @@ export async function getProfileStats(profile: UserProfile): Promise<ProfileStat
       stats.last_report_date = lastReport?.recorded_at;
     } else if (profile.role === 'admin') {
       // Admin Stats
-      const { count: users } = await supabase.from('user_profiles').select('*', { count: 'exact', head: true });
+      const { count: users } = await supabase.from('system_users').select('*', { count: 'exact', head: true });
       const { count: security } = await supabase.from('activity_logs').select('*', { count: 'exact', head: true }).like('action', '%SECURITY%');
       
       stats.total_users = users || 0;

@@ -56,16 +56,15 @@ export interface UserProfile {
 
 export interface Profile {
   id: string
-  unique_access_id: string | null
-  first_name: string
-  last_name: string
-  full_name?: string // Virtual property for convenience
+  user_id?: string | null
+  access_id: string | null
+  full_name: string
   email: string | null
-  phone: string | null
   role: UserRole
   is_active: boolean
-  status: 'pending' | 'authorized' | 'revoked'
+  status: 'pending' | 'authorized' | 'revoked' | 'suspended'
   created_at: string
+  updated_at?: string
 }
 
 export interface Patient {

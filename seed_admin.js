@@ -60,7 +60,32 @@ async function seedAdmin() {
 
   console.log(`Obtained User ID: ${userId}. Performing upsert/update...`)
 
-  // The database triggers will have created the profile record, but we force status and role.
+  // Update both legacy and new profile tables
+  console.log(`Updating system_users for ${email}...`)
+  const { error: systemUserError } = await supabase
+    .from('system_users')
+    .update({ 
+      user_id: userId,
+      role: 'admin',
+      status: 'authorized',
+      is_active: true
+    })
+    .eq('access_id', 'ADMIN-001')
+
+  if (systemUserError) {
+    console.warn('System user update warning (may not exist yet):', systemUserError.message)
+    // If it doesn't exist, we should probably insert it
+    await supabase.from('system_users').upsert({
+      user_id: userId,
+      email: email,
+      full_name: 'Initial Admin',
+      role: 'admin',
+      access_id: 'ADMIN-001',
+      status: 'authorized',
+      is_active: true
+    })
+  }
+
   const { error: updateError } = await supabase
     .from('caregivers')
     .update({ 
@@ -77,15 +102,15 @@ async function seedAdmin() {
 
   // Verify the changes
   const { data: profile } = await supabase
-    .from('caregivers')
-    .select('role, status')
-    .eq('id', userId)
+    .from('system_users')
+    .select('role, status, user_id')
+    .eq('access_id', 'ADMIN-001')
     .single()
 
-  if (profile && profile.role === 'admin' && profile.status === 'authorized') {
-    console.log('✅ DATABASE CONFIRMATION: Database reflects authorized admin role.')
+  if (profile && profile.role === 'admin' && profile.status === 'authorized' && profile.user_id === userId) {
+    console.log('✅ DATABASE CONFIRMATION: system_users reflects authorized admin role.')
   } else {
-    console.error('❌ DISCREPANCY: Database state:', profile)
+    console.error('❌ DISCREPANCY: system_users state:', profile)
   }
 }
 

@@ -31,15 +31,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!profile) setLoading(true)
 
     try {
-      // 1. Legacy Profile (Caregivers table)
-      const { data: legacyData, error: legacyError } = await supabase
-        .from('caregivers')
+      // 1. Primary Profile (system_users table)
+      const { data: userData, error: userError } = await supabase
+        .from('system_users')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .maybeSingle()
       
-      if (!legacyError && legacyData) {
-        setProfile(legacyData as Profile)
+      if (!userError && userData) {
+        setProfile(userData as unknown as Profile)
       }
 
       // 2. New Profile (user_profiles table)
@@ -99,9 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user) {
       // 1. Fetch the full profile immediately to validate access_id
       const { data: profileData, error: profileError } = await supabase
-        .from('caregivers')
+        .from('system_users')
         .select('*')
-        .eq('id', data.user.id)
+        .eq('user_id', data.user.id)
         .maybeSingle()
 
       if (profileError || !profileData) {
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // 2. Validate identity
-      if (profileData.role !== 'admin' && profileData.unique_access_id !== accessId) {
+      if (profileData.role !== 'admin' && profileData.access_id !== accessId) {
         console.warn('[AuthContext] Access ID mismatch')
         await supabase.auth.signOut()
         return { error: 'Invalid Access ID. Please verify your Caregiver Access ID.' }
@@ -151,9 +151,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Validate access_id uniqueness
     if (payload.role === 'caregiver') {
       const { data: existing } = await supabase
-        .from('caregivers')
+        .from('system_users')
         .select('id')
-        .eq('unique_access_id', payload.access_id)
+        .eq('access_id', payload.access_id)
         .maybeSingle()
       if (existing) return { error: 'This Access ID is already registered.' }
     }
@@ -177,25 +177,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
        await new Promise(resolve => setTimeout(resolve, 150))
        
        const { data: existingProfile } = await supabase
-         .from('caregivers')
+         .from('system_users')
          .select('*')
-         .eq('id', data.user.id)
+         .eq('user_id', data.user.id)
          .maybeSingle()
 
-       const [firstName, ...lastNames] = payload.full_name.split(' ');
        const newProfile = existingProfile || {
-          id: data.user.id,
-          first_name: firstName,
-          last_name: lastNames.join(' '),
+          user_id: data.user.id,
+          full_name: payload.full_name,
           email: payload.email,
           role: payload.role,
           status: 'pending' as const,
-          unique_access_id: payload.access_id
+          access_id: payload.access_id
        };
 
        if (!existingProfile) {
          console.log('[AuthContext] Profile not found by trigger, inserting manually...')
-         const { error: insertError } = await supabase.from('caregivers').insert(newProfile);
+         const { error: insertError } = await supabase.from('system_users').insert(newProfile);
          if (insertError) {
            console.error('[AuthContext] Manual profile insert failed:', insertError)
            return { error: 'Registration succeeded but profile creation failed. Please contact support.' }
