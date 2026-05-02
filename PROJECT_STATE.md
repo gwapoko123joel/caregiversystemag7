@@ -23,3 +23,22 @@
 - [ ] /governance route documentation was wrong
   - Real route is /governance, not /login/governance
   - Update DECISIONS.md
+
+
+  ## 🔄 Currently Refactoring
+
+**Goal:** Replace all `system_users` references with `caregivers` table
+
+**Files being refactored:**
+1. src/services/profileService.ts (10 refs)
+2. src/contexts/AuthContext.tsx (6 refs)
+3. src/services/authService.ts (7 refs)
+
+**Started:** [today's date]
+**Status:** In progress
+
+**Success criteria:**
+- All 3 logins work
+- No 400 errors in console  
+- No more than 5 network requests on dashboard load
+- system_users view can be dropped at the end

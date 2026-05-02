@@ -4,73 +4,29 @@ import type { UserProfile, UserRole, ProfileStats } from '../types/database';
 /**
  * Normalizes a role string to snake_case for DB constraints.
  * Example: "Medical Practitioner" -> "medical_practitioner"
- * 
- * NOTE: We intentionally do NOT include 'practitioner' as a valid role.
- * The only valid practitioner role is 'medical_practitioner'.
  */
 function normalizeRole(role: string): UserRole {
   const normalized = role.toLowerCase().trim().replace(/\s+/g, '_');
-
-  // Map common aliases to canonical role names
-  const roleAliases: Record<string, UserRole> = {
-    'practitioner': 'medical_practitioner',
-    'doctor': 'medical_practitioner',
-    'md': 'medical_practitioner',
-    'nurse': 'medical_practitioner',
-    'bhw': 'caregiver',
-    'health_worker': 'caregiver',
-  };
-
-  // Check if it's an alias first
-  if (roleAliases[normalized]) {
-    return roleAliases[normalized];
-  }
-
-  // Validate against canonical roles, default to caregiver if unknown
-  const validRoles: UserRole[] = ['admin', 'medical_practitioner', 'caregiver'];
+  // Validate against known roles, default to caregiver if unknown
+  const validRoles: UserRole[] = ['admin', 'medical_practitioner', 'caregiver', 'practitioner'];
   return validRoles.includes(normalized as UserRole) ? (normalized as UserRole) : 'caregiver';
-}
-
-/**
- * Splits a full name into first and last name.
- * Used when creating new caregivers row from auth metadata.
- */
-function splitFullName(fullName: string): { first_name: string; last_name: string } {
-  const trimmed = fullName.trim();
-  const parts = trimmed.split(/\s+/);
-
-  if (parts.length === 0 || (parts.length === 1 && !parts[0])) {
-    return { first_name: 'Unknown', last_name: 'User' };
-  }
-
-  if (parts.length === 1) {
-    return { first_name: parts[0], last_name: '-' };
-  }
-
-  // Last word is last name, everything else is first name
-  const last_name = parts[parts.length - 1];
-  const first_name = parts.slice(0, -1).join(' ');
-  return { first_name, last_name };
 }
 
 /**
  * Ensures a user profile exists. Called after every successful login.
  * If no profile exists, it creates one with defaults based on role.
  */
-export async function ensureUserProfile(
-  user: any,
-  rawRole: string
-): Promise<{ data: UserProfile | null; error: any }> {
+export async function ensureUserProfile(user: any, rawRole: string): Promise<{ data: UserProfile | null; error: any }> {
   if (!user || !user.id) return { data: null, error: 'No user provided' };
 
   const role = normalizeRole(rawRole);
   console.log('[ProfileService] Ensuring profile for UID:', user.id, 'with role:', role);
 
-  // 1. Check if profile already exists in caregivers table
+  // 1. Check if profile already exists
   const { data: existingProfile, error: fetchError } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (fetchError) {
@@ -78,32 +34,42 @@ export async function ensureUserProfile(
     return { data: null, error: fetchError };
   }
 
-  // 2. If profile exists, just return it (no metadata update needed for login)
+  // 2. If profile exists, update last_login (if column exists) or just return
   if (existingProfile) {
-    console.log('[ProfileService] Profile exists for:', existingProfile.unique_access_id);
-    return { data: existingProfile as unknown as UserProfile, error: null };
+    console.log('[ProfileService] Profile exists, updating metadata...');
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('system_users')
+      .update({
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id)
+      .select()
+      .maybeSingle();
+
+    if (updateError) {
+      console.error('[ProfileService] Error updating profile:', updateError);
+      return { data: existingProfile as unknown as UserProfile, error: updateError };
+    }
+    return { data: updatedProfile as unknown as UserProfile, error: null };
   }
 
   // 3. If no profile exists, create a new one
   console.log('[ProfileService] No profile found, creating new entry...');
   const accessId = generateAccessId(role);
   const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown User';
-  const { first_name, last_name } = splitFullName(fullName);
 
   const newProfile = {
-    id: user.id,                    // UUID from auth.users
+    user_id: user.id,
     email: user.email || '',
-    first_name,
-    last_name,
-    role: role,
-    unique_access_id: accessId,
-    is_active: true,                // Active by default for new auto-created profiles
-    // NOTE: status is a generated column based on is_active, do not set directly
-    // NOTE: full_name and contact_number are also generated columns
+    full_name: fullName,
+    role: role, 
+    access_id: accessId,
+    status: 'authorized',
+    is_active: true,
   };
 
   const { data: createdProfile, error: createError } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .insert(newProfile)
     .select()
     .maybeSingle();
@@ -113,22 +79,19 @@ export async function ensureUserProfile(
     return { data: null, error: createError };
   }
 
-  console.log('[ProfileService] New profile created successfully:', createdProfile.unique_access_id);
+  console.log('[ProfileService] New profile created successfully:', createdProfile.access_id);
   return { data: createdProfile as UserProfile, error: null };
 }
 
 /**
  * Generates an Access ID based on the user's role.
  * Format: ROLE_PREFIX-XXXX (random 4-digit number)
- * 
- * NOTE: This is a fallback for auto-created profiles. The proper way to generate
- * Access IDs is via the generate_access_id() SQL function which uses sequences
- * to prevent collisions. This is only used for emergency profile creation.
  */
 function generateAccessId(role: UserRole): string {
   const prefixMap: Record<string, string> = {
     admin: 'ADMIN',
     medical_practitioner: 'MP',
+    practitioner: 'MP',
     caregiver: 'CG',
   };
   const prefix = prefixMap[role] || 'USR';
@@ -143,33 +106,36 @@ export async function ensureAndGetProfile(): Promise<{ data: UserProfile | null;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: 'No active session found' };
 
-  // 1. Try to fetch from caregivers
+  // 1. Try to fetch
   const { data, error } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (!error && data) return { data: data as UserProfile, error: null };
 
-  // 2. If missing, recover by creating one from metadata
+  // 2. If missing, we need the role. We'll check the metadata or the caregivers table
   console.log('[ProfileService] Profile missing for active session, attempting recovery...');
+  
+  const { data: legacy } = await supabase
+    .from('caregivers')
+    .select('role, email')
+    .eq('id', user.id)
+    .maybeSingle();
 
-  const role = user.user_metadata?.role || 'caregiver';
+  const role = legacy?.role || user.user_metadata?.role || 'caregiver';
   return await ensureUserProfile(user, role);
 }
 
-/**
- * Fetches the current user's profile (read-only, no auto-create).
- */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
   const { data, error } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (error) {
@@ -181,24 +147,15 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 
 /**
  * Updates the current user's profile with partial data.
- * 
- * NOTE: Generated columns (full_name, contact_number, status) cannot be 
- * directly updated. Update first_name/last_name to change full_name, 
- * update phone to change contact_number, update is_active to change status.
  */
-export async function updateUserProfile(
-  updates: Partial<UserProfile>
-): Promise<UserProfile | null> {
+export async function updateUserProfile(updates: Partial<UserProfile>): Promise<UserProfile | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Strip out generated columns if they accidentally got into updates
-  const { full_name, contact_number, status, ...safeUpdates } = updates as any;
-
   const { data, error } = await supabase
-    .from('caregivers')
-    .update(safeUpdates)
-    .eq('id', user.id)
+    .from('system_users')
+    .update(updates)
+    .eq('user_id', user.id)
     .select()
     .maybeSingle();
 
@@ -215,46 +172,22 @@ export async function updateUserProfile(
 export async function getProfileStats(profile: UserProfile): Promise<ProfileStats> {
   const stats: ProfileStats = {};
 
-  // Use profile.id (the UUID) consistently — this matches the caregivers table
-  const userId = (profile as any).id || (profile as any).user_id;
-
   try {
-    if (profile.role === 'medical_practitioner') {
+    if (profile.role === 'practitioner' || profile.role === 'medical_practitioner') {
       // Practitioner Stats
-      const { count: patients } = await supabase
-        .from('patients')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: alerts } = await supabase
-        .from('alerts')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_acknowledged', false);
-
-      const { count: resolved } = await supabase
-        .from('alerts')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_acknowledged', true);
-
+      const { count: patients } = await supabase.from('patients').select('*', { count: 'exact', head: true });
+      const { count: alerts } = await supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('is_acknowledged', false);
+      const { count: resolved } = await supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('is_acknowledged', true);
+      
       stats.patients_monitored = patients || 0;
       stats.active_alerts = alerts || 0;
       stats.resolved_alerts = resolved || 0;
       stats.avg_response_time = '4.2m'; // Placeholder for complex calc
-
     } else if (profile.role === 'caregiver') {
       // Caregiver Stats
-      const { count: reports } = await supabase
-        .from('patient_monitoring_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('caregiver_id', userId);
-
-      const { data: lastReport } = await supabase
-        .from('patient_monitoring_logs')
-        .select('recorded_at')
-        .eq('caregiver_id', userId)
-        .order('recorded_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
+      const { count: reports } = await supabase.from('patient_monitoring_logs').select('*', { count: 'exact', head: true }).eq('caregiver_id', profile.user_id);
+      const { data: lastReport } = await supabase.from('patient_monitoring_logs').select('recorded_at').eq('caregiver_id', profile.user_id).order('recorded_at', { ascending: false }).limit(1).maybeSingle();
+      
       const startOfWeek = new Date();
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
@@ -262,24 +195,17 @@ export async function getProfileStats(profile: UserProfile): Promise<ProfileStat
       const { count: weeklyReports } = await supabase
         .from('patient_monitoring_logs')
         .select('*', { count: 'exact', head: true })
-        .eq('caregiver_id', userId)
+        .eq('caregiver_id', profile.user_id)
         .gte('recorded_at', startOfWeek.toISOString());
-
+      
       stats.total_reports = reports || 0;
       stats.reports_this_week = weeklyReports || 0;
       stats.last_report_date = lastReport?.recorded_at;
-
     } else if (profile.role === 'admin') {
-      // Admin Stats — count from caregivers (all users live here)
-      const { count: users } = await supabase
-        .from('caregivers')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: security } = await supabase
-        .from('activity_logs')
-        .select('*', { count: 'exact', head: true })
-        .like('action', '%SECURITY%');
-
+      // Admin Stats
+      const { count: users } = await supabase.from('system_users').select('*', { count: 'exact', head: true });
+      const { count: security } = await supabase.from('activity_logs').select('*', { count: 'exact', head: true }).like('action', '%SECURITY%');
+      
       stats.total_users = users || 0;
       stats.security_alerts = security || 0;
     }
