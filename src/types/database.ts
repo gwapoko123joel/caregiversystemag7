@@ -1,53 +1,47 @@
 // src/types/database.ts
 
-export type UserRole = 'caregiver' | 'medical_practitioner' | 'practitioner' | 'admin';
+// ============================================================================
+// USER & ROLE TYPES
+// ============================================================================
 
-export type RegistrationStatus = 
-  | 'pending_verification' 
-  | 'active' 
-  | 'inactive' 
-  | 'archived' 
+/**
+ * Canonical user roles. 
+ * 
+ * IMPORTANT: 'practitioner' is NOT valid. Always use 'medical_practitioner'.
+ * The normalizeRole() helper in profileService.ts handles legacy aliases.
+ */
+export type UserRole = 'caregiver' | 'medical_practitioner' | 'admin';
+
+export type RegistrationStatus =
+  | 'pending_verification'
+  | 'active'
+  | 'inactive'
+  | 'archived'
   | 'rejected';
 
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 
-export interface Patient {
-  patient_id: number;
-  first_name: string;
-  last_name: string;
-  full_name?: string; // Virtual property often used in UI
-  date_of_birth: string | null;
-  gender: string | null;
-  phone_number: string | null;
-  address: string | null;
-  medical_conditions: string | null;
-  emergency_contact: string | null;
-  photo_url: string | null;
-  
-  // Registration workflow
-  registration_status: RegistrationStatus;
-  registered_by: string | null;
-  registered_at: string;
-  verified_by: string | null;
-  verified_at: string | null;
-  rejection_reason: string | null;
-  
-  // Assignment
-  assigned_caregiver_id: string | null;
-  reassignment_history: Array<{
-    from_caregiver_id: string;
-    to_caregiver_id: string;
-    changed_by: string;
-    changed_at: string;
-    reason?: string;
-  }> | null;
-  
-  created_at: string;
-  status: 'active' | 'inactive' | 'discharged';
-}
-
 export type AdminLevel = 'barangay_health_officer' | 'system_admin' | 'super_admin';
-export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+
+// ============================================================================
+// AVAILABILITY & SHIFT TYPES (must come before UserProfile)
+// ============================================================================
+
+export type AvailabilityStatus =
+  | 'available'
+  | 'busy'
+  | 'off_duty'
+  | 'on_break'
+  | 'in_consultation'
+  | 'emergency_only'
+  | 'on_call'
+  | 'unavailable';
+
+export type ShiftStatus = 'on_duty' | 'off_duty' | 'on_break' | 'emergency_responding';
+
+// ============================================================================
+// CAREGIVER (the unified user table)
+// ============================================================================
 
 export interface TrainingCertification {
   name: string;
@@ -62,14 +56,14 @@ export interface Caregiver {
   unique_access_id: string;
   first_name: string;
   last_name: string;
-  full_name?: string; // added to match prompt
+  full_name?: string; // Generated column from first_name + last_name
   email: string | null;
   phone: string | null;
-  contact_number?: string | null; // alias for phone
+  contact_number?: string | null; // Generated column alias for phone
   role: UserRole;
-  status: 'pending' | 'authorized' | 'revoked' | 'suspended' | 'rejected';
+  status: 'pending' | 'authorized' | 'revoked' | 'suspended' | 'rejected'; // Generated from is_active
   is_active: boolean;
-  
+
   // Shared profile fields
   profile_picture_url?: string | null;
   bio?: string | null;
@@ -82,7 +76,7 @@ export interface Caregiver {
   languages_spoken?: string[];
   preferences?: Record<string, unknown>;
   profile_completion_percentage?: number;
-  
+
   // Caregiver-specific
   assigned_barangay?: string | null;
   bhw_id_number?: string | null;
@@ -90,47 +84,58 @@ export interface Caregiver {
   supervising_practitioner_id?: string | null;
   shift_schedule?: string | null;
   coverage_area?: string[] | null;
-  
+
   // Admin-specific
   admin_level?: AdminLevel | null;
   department?: string | null;
   office_phone?: string | null;
   jurisdiction?: string | null;
   appointment_date?: string | null;
-  
+
+  // Approval/rejection workflow (from migration)
+  approved_at?: string | null;
+  approved_by?: string | null;
+  rejected_at?: string | null;
+  rejected_by?: string | null;
+  rejection_reason?: string | null;
+
+  // Consent tracking (RA 10173)
+  terms_accepted_at?: string | null;
+  privacy_consent_at?: string | null;
+  credentials_attestation_at?: string | null;
+  prc_verification_authorized_at?: string | null;
+
+  // Activity tracking
+  last_login_at?: string | null;
+  login_count?: number;
+
+  // Registration metadata
+  registration_ip?: string | null;
+  registration_user_agent?: string | null;
+  registered_via?: string | null;
+
   created_at: string;
   updated_at?: string;
 }
 
-export interface CaregiverProfileStats {
-  caregiver_id: string;
-  total_assigned_patients: number;
-  total_reports_submitted: number;
-  reports_this_week: number;
-  total_consultations_initiated: number;
-}
+// ============================================================================
+// PROFILE (Caregiver alias used in AuthContext)
+// ============================================================================
 
-export interface PractitionerProfileStats {
-  caregiver_id: string;
-  total_consultations_received: number;
-  consultations_this_week: number;
-  critical_consultations_handled: number;
-  avg_call_duration_seconds: number | null;
-}
-
-export interface AdminProfileStats {
-  caregiver_id: string;
-  total_users_authorized: number;
-  total_active_patients: number;
-  pending_approvals: number;
-  total_admin_actions: number;
-}
-
+/**
+ * Profile is what the AuthContext exposes. It's essentially Caregiver with
+ * a legacy `access_id` field that maps to `unique_access_id` for backward
+ * compatibility with components that haven't been migrated yet.
+ */
 export interface Profile extends Caregiver {
-  // Alias for Caregiver often used in Auth context
-  access_id: string | null;
-  full_name: string;
+  /** @deprecated Use unique_access_id instead. Kept for backward compatibility. */
+  access_id?: string | null;
+  full_name: string; // Required at this layer
 }
+
+// ============================================================================
+// USER PROFILE (extended profile from a separate user_profiles table)
+// ============================================================================
 
 export interface UserProfile {
   id: string;
@@ -166,6 +171,89 @@ export interface UserProfile {
   governance_clearance: string;
 }
 
+// ============================================================================
+// PATIENT
+// ============================================================================
+
+export interface Patient {
+  patient_id: number;
+  first_name: string;
+  last_name: string;
+  full_name?: string; // Virtual property often used in UI
+  date_of_birth: string | null;
+  gender: string | null;
+  phone_number: string | null;
+  address: string | null;
+  medical_conditions: string | null;
+  emergency_contact: string | null;
+  photo_url: string | null;
+
+  // Registration workflow
+  registration_status: RegistrationStatus;
+  registered_by: string | null;
+  registered_at: string;
+  verified_by: string | null;
+  verified_at: string | null;
+  rejection_reason: string | null;
+
+  // Assignment
+  assigned_caregiver_id: string | null;
+  reassignment_history: Array<{
+    from_caregiver_id: string;
+    to_caregiver_id: string;
+    changed_by: string;
+    changed_at: string;
+    reason?: string;
+  }> | null;
+
+  created_at: string;
+  status: 'active' | 'inactive' | 'discharged';
+}
+
+// ============================================================================
+// PROFILE STATS (per-role aggregates)
+// ============================================================================
+
+export interface CaregiverProfileStats {
+  caregiver_id: string;
+  total_assigned_patients: number;
+  total_reports_submitted: number;
+  reports_this_week: number;
+  total_consultations_initiated: number;
+}
+
+export interface PractitionerProfileStats {
+  caregiver_id: string;
+  total_consultations_received: number;
+  consultations_this_week: number;
+  critical_consultations_handled: number;
+  avg_call_duration_seconds: number | null;
+}
+
+export interface AdminProfileStats {
+  caregiver_id: string;
+  total_users_authorized: number;
+  total_active_patients: number;
+  pending_approvals: number;
+  total_admin_actions: number;
+}
+
+export interface ProfileStats {
+  patients_monitored?: number;
+  active_alerts?: number;
+  resolved_alerts?: number;
+  total_reports?: number;
+  reports_this_week?: number;
+  last_report_date?: string;
+  total_users?: number;
+  security_alerts?: number;
+  avg_response_time?: string;
+}
+
+// ============================================================================
+// PRACTITIONER CREDENTIALS & AVAILABILITY
+// ============================================================================
+
 export interface PractitionerCredentials {
   id: string;
   caregiver_id: string;
@@ -188,18 +276,6 @@ export interface PractitionerCredentials {
   updated_at: string;
 }
 
-export type AvailabilityStatus = 
-  | 'available' 
-  | 'busy' 
-  | 'off_duty' 
-  | 'on_break' 
-  | 'in_consultation' 
-  | 'emergency_only'
-  | 'on_call'
-  | 'unavailable';
-
-export type ShiftStatus = 'on_duty' | 'off_duty' | 'on_break' | 'emergency_responding';
-
 export interface PractitionerAvailability {
   id: string;
   caregiver_id: string;
@@ -213,6 +289,10 @@ export interface PractitionerAvailability {
   created_at: string;
   updated_at: string;
 }
+
+// ============================================================================
+// CONSULTATION & MONITORING
+// ============================================================================
 
 export interface ConsultationSession {
   session_id: number;
@@ -254,6 +334,10 @@ export interface PatientMonitoringLog {
   recorded_at: string;
 }
 
+// ============================================================================
+// AUDIT & ALERTS
+// ============================================================================
+
 export interface ActivityLog {
   log_id: number;
   user_id: string | null;
@@ -274,16 +358,4 @@ export interface Alert {
   acknowledged_by: string | null;
   created_at: string;
   acknowledged_at: string | null;
-}
-
-export interface ProfileStats {
-  patients_monitored?: number;
-  active_alerts?: number;
-  resolved_alerts?: number;
-  total_reports?: number;
-  reports_this_week?: number;
-  last_report_date?: string;
-  total_users?: number;
-  security_alerts?: number;
-  avg_response_time?: string;
 }
