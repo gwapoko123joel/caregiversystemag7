@@ -6,14 +6,14 @@ import {
   FileText,
   Activity,
   Bell,
-  Video,
+  Phone,
   ClipboardList,
   User,
   PlusSquare,
   History
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import type { UserRole } from '../lib/supabaseClient';
+import type { UserRole } from '../types/database';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -31,13 +31,13 @@ const NAV_MAP: Record<UserRole, NavItem[]> = {
   medical_practitioner: [
     { icon: <LayoutDashboard size={22} />, label: 'Home',     path: '/dashboard/practitioner' },
     { icon: <Bell size={22} />,            label: 'Alerts',   path: '/dashboard/practitioner/alerts' },
-    { icon: <Video size={22} />,           label: 'Video',    path: '/dashboard/practitioner/video' },
+    { icon: <Phone size={22} />,           label: 'Contact',  path: '/dashboard/practitioner/contact' },
     { icon: <ClipboardList size={22} />,   label: 'Logs',     path: '/dashboard/practitioner/history' },
   ],
   practitioner: [
     { icon: <LayoutDashboard size={22} />, label: 'Home',     path: '/dashboard/practitioner' },
     { icon: <Bell size={22} />,            label: 'Alerts',   path: '/dashboard/practitioner/alerts' },
-    { icon: <Video size={22} />,           label: 'Video',    path: '/dashboard/practitioner/video' },
+    { icon: <Phone size={22} />,           label: 'Contact',  path: '/dashboard/practitioner/contact' },
     { icon: <ClipboardList size={22} />,   label: 'Logs',     path: '/dashboard/practitioner/history' },
   ],
   caregiver: [

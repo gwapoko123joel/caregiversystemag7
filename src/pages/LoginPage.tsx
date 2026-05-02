@@ -86,7 +86,7 @@ export default function LoginPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
                  <Heart size={28} className="text-white fill-white" />
               </div>
-             <span className="text-2xl font-black tracking-tight text-text-main uppercase transition-colors">BantayanCare</span>
+             <span className="text-2xl font-light tracking-[0.2em] text-text-main uppercase transition-colors">BantayanCare</span>
           </Link>
           
           <h1 className="text-6xl font-bold text-text-main leading-[1.1] tracking-tight transition-colors">
@@ -121,7 +121,7 @@ export default function LoginPage() {
                   <Heart size={28} className="text-white fill-white" />
                 </Link>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-text-main mb-2 tracking-tight transition-colors text-center lg:text-left">Welcome Back</h2>
+              <h2 className="text-2xl md:text-3xl font-light text-text-main mb-2 tracking-[0.1em] transition-colors text-center lg:text-left">Welcome Back</h2>
               <p className="text-sidebar-text-muted font-medium text-center lg:text-left text-sm">Verify your credentials to continue</p>
             </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 <button
                   key={r.value}
                   type="button"
-                  className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg transition-all border ${
+                  className={`flex-1 py-2 text-[10px] uppercase tracking-widest font-light rounded-lg transition-all border ${
                       role === r.value 
                         ? 'border-sky-500/50 bg-sky-500/10 text-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.1)]' 
                         : 'border-transparent text-sidebar-text-muted hover:text-text-main'
@@ -158,7 +158,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
+                <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
                 <div className="relative group">
                   <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                   <input
@@ -174,7 +174,7 @@ export default function LoginPage() {
 
               {/* Password */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Secure Password</label>
+                <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Secure Password</label>
                 <div className="relative group">
                   <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                   <input
@@ -197,9 +197,9 @@ export default function LoginPage() {
 
               {/* Access ID */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">
+                <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">
                   Access ID 
-                  {role === 'admin' && <span className="text-sky-400/60 normal-case italic ml-1">(Bypass Active)</span>}
+                  {role === 'admin' && <span className="text-sky-400/60 normal-case ml-1">(Bypass Active)</span>}
                 </label>
                 <div className="relative group">
                   <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
@@ -217,7 +217,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-sky-500 text-white font-black rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,186,255,0.4)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg uppercase tracking-tight overflow-hidden relative group"
+                className="w-full bg-sky-500 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,186,255,0.4)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg uppercase tracking-widest overflow-hidden relative group"
               >
                 {loading ? (
                   <Loader2 size={24} className="animate-spin" />
@@ -234,7 +234,7 @@ export default function LoginPage() {
               <p className="text-sidebar-text-muted text-sm font-semibold">
                 New to the system? <Link to="/register" className="text-sky-500 hover:underline">Request Access</Link>
               </p>
-              <div className="flex items-center gap-2 text-sidebar-text-muted/50 text-[10px] font-black uppercase tracking-tighter">
+              <div className="flex items-center gap-2 text-sidebar-text-muted/50 text-[10px] font-light uppercase tracking-widest">
                 <ShieldCheck size={12} className="text-sky-400" />
                 HIPAA COMPLIANT SECURE GATEWAY
               </div>

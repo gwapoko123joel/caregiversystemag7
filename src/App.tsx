@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SidebarProvider } from './contexts/SidebarContext'
 
 // Auth Pages
 import HealthWorkerLoginPage from './pages/auth/HealthWorkerLoginPage'
@@ -101,7 +102,9 @@ export default function App() {
       <ThemeProvider>
         <Toaster richColors position="top-right" />
         <AuthProvider>
-          <AppRoutes />
+          <SidebarProvider>
+            <AppRoutes />
+          </SidebarProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

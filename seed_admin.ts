@@ -42,21 +42,20 @@ async function seedAdmin() {
     return
   }
 
-  console.log(`Obtained User ID: ${userId}. Updating profile in caregivers table...`)
+  console.log(`Obtained User ID: ${userId}. Updating profile in system_users table...`)
 
-  // The trigger 'on_auth_user_created' / 'handle_new_user' might have already created the record
-  // But we want to ensure it's 'admin' and 'authorized'
+  // Ensure record exists in system_users
   const { error: upsertError } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .upsert({
-      id: userId,
+      user_id: userId,
       role: 'admin',
       status: 'authorized',
       email: email,
-      first_name: 'Initial',
-      last_name: 'Admin',
-      unique_access_id: 'ADMIN-001'
-    })
+      full_name: 'Initial Admin',
+      access_id: 'ADMIN-001',
+      is_active: true
+    }, { onConflict: 'email' })
 
   if (upsertError) {
     console.error('Upsert profile error:', upsertError.message)
@@ -65,10 +64,10 @@ async function seedAdmin() {
 
   // Double check
   const { data: profile } = await supabase
-    .from('caregivers')
+    .from('system_users')
     .select('role, status')
-    .eq('id', userId)
-    .single()
+    .eq('email', email)
+    .maybeSingle()
 
   if (profile && profile.role === 'admin' && profile.status === 'authorized') {
     console.log('✅ DATABASE CONFIRMATION: Admin user is now registered and authorized.')

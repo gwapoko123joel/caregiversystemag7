@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Activity, Phone
+  Activity, Phone, Menu
 } from 'lucide-react'
 import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
 import MobileHeader from '../../components/MobileHeader'
 import LogoutModal from '../../components/LogoutModal'
-import VideoCallModal from '../../components/VideoCallModal'
+// import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
+import { useSidebar } from '../../contexts/SidebarContext'
 import { AnimatePresence } from 'framer-motion'
 import PageTransition from '../../components/PageTransition'
 
@@ -18,11 +19,15 @@ import DashboardHome from './views/DashboardHome'
 import ReportView from './views/ReportView'
 import HistoryView from './views/HistoryView'
 import ProfilePage from '../ProfilePage'
+import EmergencyView from './views/EmergencyView'
+import AvailableDoctorsView from './views/AvailableDoctorsView'
+import PatientOnboardingForm from './views/PatientOnboardingForm'
 
-import type { Patient, PatientMonitoringLog } from '../../lib/supabaseClient'
+import type { Patient, PatientMonitoringLog } from '../../types/database'
 
 export interface CaregiverDashboardContextType {
   patient: Patient | null
+  userProfile: any | null
   isLoading: boolean
   recentLogs: PatientMonitoringLog[]
   loadData: () => Promise<void>
@@ -35,23 +40,26 @@ export interface CaregiverDashboardContextType {
   imagePreview: string | null
   handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   removeImage: () => void
+  practitioners: any[]
 }
 
 function CaregiverLayout() {
-  const { user, signOut } = useAuth()
+  const { user, userProfile, signOut } = useAuth()
+  const { isCollapsed, isDesktop, toggleCollapse } = useSidebar()
   const location = useLocation()
   const navigate = useNavigate()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [recentLogs, setRecentLogs] = useState<PatientMonitoringLog[]>([])
   const [loadingPatient, setLoadingPatient] = useState(true)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [showCall, setShowCall] = useState(false)
+  const [practitioners, setPractitioners] = useState<any[]>([])
 
   // Form State
   const [form, setForm] = useState({
     physical_status: 'stable',
     blood_pressure: '',
     heart_rate: '',
+    temperature: '',
     oxygen_saturation: '',
     notes: '',
     image_url: ''
@@ -66,21 +74,45 @@ function CaregiverLayout() {
     if (!user) return
     setLoadingPatient(true)
     
-    // Get the patient assigned to this caregiver
-    const { data: assignment } = await supabase
-      .from('patients')
-      .select('*, patient_monitoring_logs(*)')
+    const { data: assignmentData } = await supabase
+      .from('caregiver_patient_assignments')
+      .select('patient_id')
       .eq('caregiver_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (assignment) {
-      setPatient(assignment)
-      const sortedLogs = [...assignment.patient_monitoring_logs].sort((a,b) => 
-        new Date(b.recorded_at!).getTime() - new Date(a.recorded_at!).getTime()
-      )
-      setRecentLogs(sortedLogs)
+    if (assignmentData) {
+      const { data: assignment } = await supabase
+        .from('patients')
+        .select('*, patient_monitoring_logs(*)')
+        .eq('patient_id', assignmentData.patient_id)
+        .maybeSingle()
+
+      if (assignment) {
+        setPatient(assignment)
+        const sortedLogs = [...assignment.patient_monitoring_logs].sort((a,b) => 
+          new Date(b.recorded_at!).getTime() - new Date(a.recorded_at!).getTime()
+        )
+        setRecentLogs(sortedLogs)
+      }
     }
     setLoadingPatient(false)
+
+    // Load medical practitioners
+    const { data: docs } = await supabase
+      .from('system_users')
+      .select('user_id, full_name, phone, availability_status, specialization')
+      .in('role', ['medical_practitioner', 'practitioner'])
+      .eq('status', 'authorized')
+    
+    if (docs) {
+      setPractitioners(docs.map(d => ({
+        id: d.user_id,
+        full_name: d.full_name,
+        specialty: d.specialization || 'General Practice',
+        phone: d.phone || '',
+        is_available: d.availability_status === 'available'
+      })))
+    }
   }, [user])
 
   useEffect(() => {
@@ -138,6 +170,7 @@ function CaregiverLayout() {
           vital_signs: {
             blood_pressure: form.blood_pressure,
             heart_rate: parseInt(form.heart_rate),
+            temperature: parseFloat(form.temperature),
             oxygen_saturation: parseInt(form.oxygen_saturation)
           },
           notes: form.notes,
@@ -151,6 +184,7 @@ function CaregiverLayout() {
         physical_status: 'stable',
         blood_pressure: '',
         heart_rate: '',
+        temperature: '',
         oxygen_saturation: '',
         notes: '',
         image_url: ''
@@ -171,6 +205,7 @@ function CaregiverLayout() {
 
   const contextValue: CaregiverDashboardContextType = {
     patient,
+    userProfile: userProfile,
     isLoading: loadingPatient,
     recentLogs,
     loadData,
@@ -182,15 +217,16 @@ function CaregiverLayout() {
     error,
     imagePreview,
     handleImageChange,
-    removeImage
+    removeImage,
+    practitioners
   }
 
   const getHeaderTitle = () => {
-    if (location.pathname.includes('/report')) return 'New Telemetry Report'
-    if (location.pathname.includes('/history')) return 'Clinical History Archive'
-    if (location.pathname.includes('/call')) return 'Direct Emergency Link'
-    if (location.pathname.includes('/profile')) return 'Operator Profile'
-    return 'Caregiver Portal'
+    if (location.pathname.includes('/report')) return 'New Patient Report'
+    if (location.pathname.includes('/history')) return 'Past Records'
+    if (location.pathname.includes('/call')) return 'Emergency Support'
+    if (location.pathname.includes('/profile')) return 'My Profile'
+    return 'Caregiver Home'
   }
 
   return (
@@ -213,26 +249,35 @@ function CaregiverLayout() {
             {/* Desktop Header */}
             <header className="hidden md:flex relative z-50 px-8 py-6 items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500">
               <div className="flex items-center gap-4">
+                {isCollapsed && isDesktop && (
+                  <button
+                    onClick={toggleCollapse}
+                    className="p-3 bg-card border border-card-border rounded-xl text-sidebar-text-muted hover:text-sky-500 hover:border-sky-500 transition-all"
+                    title="Expand Sidebar"
+                  >
+                    <Menu size={20} />
+                  </button>
+                )}
                 <div className="p-3 bg-sky-500/10 rounded-2xl border border-sky-500/20">
                    <Activity size={20} className="text-sky-500" />
                 </div>
                 <div>
-                   <h1 className="text-2xl font-black tracking-tight uppercase italic text-text-main transition-colors leading-tight">
+                   <h1 className="text-2xl font-light tracking-tight uppercase  text-text-main transition-colors leading-tight">
                       {getHeaderTitle()}
                    </h1>
                    <div className="flex items-center gap-2 mt-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors leading-none">Node Connected — Encrypted Feed</p>
+                      <p className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors leading-none">System Connected — Secure Line</p>
                    </div>
                 </div>
               </div>
               
               <div className="flex items-center gap-4">
                 <button 
-                  onClick={() => setShowCall(true)}
-                  className="px-6 py-3 node-urgent font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
+                  onClick={() => navigate('/dashboard/caregiver/call')}
+                  className="px-6 py-3 node-urgent font-light text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
                 >
-                  <Phone size={14} className="fill-current text-current" /> Emergency Link
+                  <Phone size={14} className="fill-current text-current" /> Call Support
                 </button>
               </div>
             </header>
@@ -250,13 +295,7 @@ function CaregiverLayout() {
         <BottomNav />
       </div>
 
-      {showCall && (
-        <VideoCallModal
-          caregiverName={user?.user_metadata?.first_name}
-          patientName={`${patient?.first_name} ${patient?.last_name}`}
-          onClose={() => setShowCall(false)}
-        />
-      )}
+      {/* Video Call Modal removed as per requirements */}
     </>
   )
 }
@@ -269,7 +308,9 @@ export default function CaregiverDashboard() {
         <Route path="report" element={<ReportViewWrapper />} />
         <Route path="history" element={<HistoryViewWrapper />} />
         <Route path="call" element={<EmergencyCallWrapper />} />
+        <Route path="doctors" element={<AvailableDoctorsView />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="onboarding" element={<PatientOnboardingFormWrapper />} />
         <Route path="*" element={<Navigate to="/dashboard/caregiver" replace />} />
       </Route>
     </Routes>
@@ -284,8 +325,9 @@ function DashboardHomeWrapper() {
   return (
     <DashboardHome 
       patient={ctx.patient} 
+      userProfile={ctx.userProfile}
       loadingPatient={ctx.isLoading} 
-      recentLogs={ctx.recentLogs.slice(0, 5)} 
+      recentLogs={ctx.recentLogs} 
     />
   )
 }
@@ -314,20 +356,10 @@ function HistoryViewWrapper() {
 }
 
 function EmergencyCallWrapper() {
-  return (
-    <div className="h-full flex items-center justify-center">
-       <div className="text-center space-y-6">
-          <div className="w-24 h-24 node-urgent rounded-full flex items-center justify-center mx-auto animate-pulse border-none">
-             <Phone size={40} className="text-current" />
-          </div>
-          <h2 className="text-2xl font-black text-text-main uppercase italic transition-colors">Initializing Emergency Link...</h2>
-          <button 
-            onClick={() => { /* This is handled by a state in layout, but we can trigger it here */ window.location.reload(); }}
-            className="px-12 py-5 node-urgent rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] shadow-harmonized border-none"
-          >
-             Launch Video Console
-          </button>
-       </div>
-    </div>
-  )
+  return <EmergencyView />
+}
+
+function PatientOnboardingFormWrapper() {
+  const navigate = useNavigate()
+  return <PatientOnboardingForm onBack={() => navigate('/dashboard/caregiver')} />
 }

@@ -47,8 +47,8 @@
 
 :root {
   --bg-primary: linear-gradient(to bottom right, #F8FAFC, #EFF6FF, #F1F5F9);
-  --text-primary: #0F172A;
-  --card-bg: #FFFFFF;
+  --text-main: #0F172A;
+  --bg-card: #FFFFFF;
   --card-border: rgba(15, 23, 42, 0.12);
   --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   
@@ -77,8 +77,8 @@
 
 .dark {
   --bg-primary: linear-gradient(135deg, #000814 0%, #00122e 50%, #000814 100%);
-  --text-primary: #FFFFFF;
-  --card-bg: rgba(0, 11, 46, 0.4);
+  --text-main: #FFFFFF;
+  --bg-card: rgba(0, 11, 46, 0.4);
   --card-border: rgba(0, 209, 255, 0.15);
   --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 
@@ -115,7 +115,7 @@
     transition: color 0.3s ease;
     background: var(--bg-primary);
     background-attachment: fixed;
-    color: var(--text-primary);
+    color: var(--text-main);
     @apply antialiased;
   }
 }
@@ -131,8 +131,18 @@
 
   /* Glassmorphism Card Utility */
   .bg-card {
-    background-color: var(--card-bg);
+    background-color: var(--bg-card);
     @apply backdrop-blur-xl transition-all duration-300;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

@@ -1,6 +1,9 @@
-import { Heart, LogOut, Sun, Moon } from 'lucide-react'
+import { Heart, LogOut, Sun, Moon, Menu } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../hooks/useAuth'
+import { useSidebar } from '../contexts/SidebarContext'
+import AvailabilityToggle from './AvailabilityToggle'
 
 interface MobileHeaderProps {
   onLogoutClick: () => void
@@ -12,6 +15,11 @@ interface MobileHeaderProps {
  */
 export default function MobileHeader({ onLogoutClick }: MobileHeaderProps) {
   const { theme, toggleTheme } = useTheme()
+  const { userProfile, profile } = useAuth()
+  const { toggleMobile } = useSidebar()
+  const role = userProfile?.role || profile?.role
+
+  const isPractitioner = role === 'medical_practitioner' || role === 'practitioner'
 
   return (
     <motion.header
@@ -19,16 +27,27 @@ export default function MobileHeader({ onLogoutClick }: MobileHeaderProps) {
       animate={{ opacity: 1, y: 0 }}
       className="md:hidden sticky top-0 z-[60] flex items-center justify-between px-6 py-4 backdrop-blur-md bg-[#020617]/80 border-b border-white/5 transition-colors"
     >
-      {/* Left: Branding */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20">
-          <Heart size={16} className="text-white fill-white" />
+      {/* Left: Branding & Toggle */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleMobile}
+          className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors active:scale-95 lg:hidden"
+          aria-label="Toggle Navigation Menu"
+        >
+          <Menu size={24} />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20">
+            <Heart size={16} className="text-white fill-white" />
+          </div>
+          <span className="text-sm font-light tracking-[0.2em] text-white uppercase hidden sm:inline-block">BantayanCare</span>
         </div>
-        <span className="text-sm font-black tracking-tighter text-white uppercase italic">BantayanCare</span>
       </div>
 
       {/* Right: Security Cluster */}
       <div className="flex items-center gap-4">
+        {isPractitioner && <AvailabilityToggle />}
+        
         {/* Simple Theme Toggle for Mobile Header */}
         <button 
           onClick={toggleTheme}

@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation, Outlet, useNavigate } from 'react-router-dom'
-import { ShieldCheck, RefreshCw } from 'lucide-react'
+import { ShieldCheck, RefreshCw, Menu } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
 import MobileHeader from '../../components/MobileHeader'
 import LogoutModal from '../../components/LogoutModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
-import type { Profile, ActivityLog } from '../../lib/supabaseClient'
+import type { Profile, ActivityLog } from '../../types/database'
 import type { User } from '@supabase/supabase-js'
 import { AnimatePresence } from 'framer-motion'
 import PageTransition from '../../components/PageTransition'
+import { useSidebar } from '../../contexts/SidebarContext'
 
 // Views
 import AdminOverview from './views/AdminOverview'
@@ -18,6 +19,9 @@ import UserManagement from './views/UserManagement'
 import AuditTrail from './views/AuditTrail'
 import SystemHealth from './views/SystemHealth'
 import SecurityOverview from './views/SecurityOverview'
+import PractitionerVerificationView from './views/PractitionerVerificationView'
+import PatientVerificationView from './views/PatientVerificationView'
+import PatientManagementView from './views/PatientManagementView'
 import ProfilePage from '../ProfilePage'
 
 export interface AdminDashboardContextType {
@@ -43,6 +47,7 @@ export interface AdminDashboardContextType {
 
 function AdminLayout() {
   const { user, profile, signOut } = useAuth()
+  const { isCollapsed, isDesktop, toggleCollapse } = useSidebar()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -137,6 +142,12 @@ function AdminLayout() {
   } else if (location.pathname.includes('/profile')) {
     title = "My Operator Profile"
     subTitle = "Personalized Administrative Credentials & Node Metadata"
+  } else if (location.pathname.includes('/patients/verification')) {
+    title = "Field Verification"
+    subTitle = "Verifying Patient Onboarding Requests"
+  } else if (location.pathname.includes('/patients/roster')) {
+    title = "Patient Roster"
+    subTitle = "Global Health Registry Management"
   }
 
   return (
@@ -153,6 +164,15 @@ function AdminLayout() {
           {/* Desktop Header */}
           <header className="hidden md:flex relative z-10 px-8 py-6 items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-colors">
             <div className="flex items-center gap-4">
+              {isCollapsed && isDesktop && (
+                <button
+                  onClick={toggleCollapse}
+                  className="p-3 bg-card border border-card-border rounded-xl text-sidebar-text-muted hover:text-sky-500 hover:border-sky-500 transition-all shadow-sm"
+                  title="Expand Sidebar"
+                >
+                  <Menu size={20} />
+                </button>
+              )}
               <div>
                 <h1 className="text-2xl font-black tracking-tight uppercase text-text-main transition-colors leading-tight">{title}</h1>
                 <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
@@ -205,6 +225,9 @@ export default function AdminDashboard() {
         <Route path="logs" element={<AuditTrail />} />
         <Route path="health" element={<SystemHealth />} />
         <Route path="security" element={<SecurityOverview />} />
+        <Route path="verification" element={<PractitionerVerificationView />} />
+        <Route path="patients/verification" element={<PatientVerificationView />} />
+        <Route path="patients/roster" element={<PatientManagementView />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard/admin" replace />} />
       </Route>

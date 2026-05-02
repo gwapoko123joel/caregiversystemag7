@@ -36,7 +36,7 @@ export default function AlertCenter({
                  <Zap size={20} className="text-amber-500" />
               </div>
               <div>
-                <h3 className="text-lg md:text-xl font-black text-text-main uppercase tracking-tight leading-none italic transition-colors">Alert Inbox</h3>
+                <h3 className="text-lg md:text-xl font-light text-text-main uppercase tracking-[0.1em] leading-none transition-colors">Alert Inbox</h3>
                 <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">
                    Active threshold breaches
                 </p>
@@ -46,11 +46,11 @@ export default function AlertCenter({
            <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 w-full lg:w-auto">
               <div className="w-full sm:w-auto px-4 py-3 md:py-2 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-center gap-2">
                  <ShieldAlert size={14} className="text-sky-500" />
-                 <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest leading-none">{alertCount} Critical Alerts</span>
+                 <span className="text-[10px] font-light text-sky-500 uppercase tracking-widest leading-none">{alertCount} Critical Alerts</span>
               </div>
               <div className="relative group w-full sm:max-w-xs md:min-w-[200px]">
                   <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                  <input placeholder="SEARCH ALERTS..." className="w-full bg-card border border-card-border rounded-2xl py-4 md:py-3 pl-10 pr-4 text-[10px] font-black text-text-main focus:outline-none focus:border-sky-500/40 placeholder:text-sidebar-text-muted/50 tracking-widest transition-colors shadow-sm dark:shadow-none" />
+                  <input placeholder="SEARCH ALERTS..." className="w-full bg-card border border-card-border rounded-2xl py-4 md:py-3 pl-10 pr-4 text-[10px] font-light text-text-main focus:outline-none focus:border-sky-500/40 placeholder:text-sidebar-text-muted/50 tracking-[0.2em] transition-colors shadow-sm dark:shadow-none" />
               </div>
            </div>
         </div>
@@ -58,7 +58,7 @@ export default function AlertCenter({
         <div className="hidden md:block bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
            <table className="w-full">
               <thead>
-                 <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] bg-card transition-colors">
+                 <tr className="text-left text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] bg-card transition-colors">
                     <th className="px-8 py-5">Severity Threshold</th>
                     <th className="px-8 py-5">Principal Identity</th>
                     <th className="px-8 py-5">Telemetry Payload</th>
@@ -69,7 +69,7 @@ export default function AlertCenter({
                  {alerts.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="px-8 py-20 text-center">
-                        <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest italic transition-colors">All systems clear. No active alerts.</div>
+                        <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors">All systems clear. No active alerts.</div>
                       </td>
                     </tr>
                  ) : (
@@ -78,17 +78,17 @@ export default function AlertCenter({
                           <td className="px-8 py-8">
                              <div className="flex items-center gap-3">
                                 <div className={`w-2 h-2 rounded-full ${a.status === 'critical' ? 'bg-alert-text shadow-[0_0_10px_var(--color-alert-text)] animate-pulse' : 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`} />
-                                <span className={`px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest border transition-colors ${a.status === 'critical' ? 'node-urgent border-none shadow-none text-[10px]' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                                <span className={`px-3 py-1 rounded text-[10px] font-light uppercase tracking-widest border transition-colors ${a.status === 'critical' ? 'node-urgent border-none shadow-none text-[10px]' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
                                    {a.status}
                                 </span>
                              </div>
                           </td>
                           <td className="px-8 py-8">
-                             <div className="text-sm font-black text-text-main italic tracking-tight transition-colors">{a.patient_name}</div>
+                             <div className="text-sm font-light text-text-main tracking-tight transition-colors">{a.patient_name}</div>
                              <div className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-tighter mt-1 transition-colors">{a.time} NETWORK_EVENT</div>
                           </td>
                           <td className="px-8 py-8">
-                             <div className="text-xs font-black text-sky-500/80 font-mono tracking-tighter bg-card px-4 py-2 rounded-xl border border-card-border inline-block transition-colors">{a.vitals}</div>
+                             <div className="text-xs font-light text-sky-500/80 font-mono tracking-tighter bg-card px-4 py-2 rounded-xl border border-card-border inline-block transition-colors">{a.vitals}</div>
                           </td>
                           <td className="px-8 py-8 text-right">
                              {!a.dismissed ? (
@@ -102,13 +102,13 @@ export default function AlertCenter({
                                    </button>
                                    <button 
                                      onClick={() => dismissAlert(a.id)} 
-                                     className="px-6 py-3 bg-sky-500 text-white text-[10px] font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[var(--shadow-harmonized)]"
+                                     className="px-6 py-3 bg-sky-500 text-white text-[10px] font-light uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[var(--shadow-harmonized)]"
                                    >
                                       Acknowledge
                                    </button>
                                 </div>
                              ) : (
-                                <span className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest transition-colors">Acknowledged</span>
+                                <span className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors">Acknowledged</span>
                              )}
                           </td>
                        </tr>
@@ -122,7 +122,7 @@ export default function AlertCenter({
         <div className="md:hidden space-y-4">
            {alerts.length === 0 ? (
               <div className="p-12 text-center bg-card border border-card-border rounded-3xl">
-                 <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest italic">All systems clear.</div>
+                 <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">All systems clear.</div>
               </div>
            ) : (
               alerts.map(a => (
@@ -130,7 +130,7 @@ export default function AlertCenter({
                     <div className="flex items-start justify-between mb-4">
                        <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${a.status === 'critical' ? 'bg-alert-text animate-pulse shadow-[0_0_8px_var(--color-alert-text)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'}`} />
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border transition-colors ${a.status === 'critical' ? 'bg-alert-bg border-alert-border text-alert-text' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-light uppercase tracking-widest border transition-colors ${a.status === 'critical' ? 'bg-alert-bg border-alert-border text-alert-text' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
                              {a.status}
                           </span>
                        </div>
@@ -138,8 +138,8 @@ export default function AlertCenter({
                     </div>
 
                     <div className="mb-6">
-                       <div className="text-base font-black text-text-main italic tracking-tight">{a.patient_name}</div>
-                       <div className="mt-3 p-3 bg-primary/40 rounded-2xl border border-card-border font-mono text-xs font-black text-sky-500/80">
+                       <div className="text-base font-light text-text-main tracking-tight">{a.patient_name}</div>
+                       <div className="mt-3 p-3 bg-primary/40 rounded-2xl border border-card-border font-mono text-xs font-light text-sky-500/80">
                           {a.vitals}
                        </div>
                     </div>
@@ -154,14 +154,14 @@ export default function AlertCenter({
                           </button>
                           <button 
                             onClick={() => dismissAlert(a.id)} 
-                            className="flex-[2] py-4 bg-sky-500 text-white text-[10px] font-black uppercase rounded-2xl active:scale-95 transition-all shadow-lg"
+                            className="flex-[2] py-4 bg-sky-500 text-white text-[10px] font-light uppercase rounded-2xl active:scale-95 transition-all shadow-lg"
                           >
                              Acknowledge
                           </button>
                        </div>
                     ) : (
                        <div className="pt-4 border-t border-card-border text-center">
-                          <span className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">Acknowledged Event</span>
+                          <span className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Acknowledged Event</span>
                        </div>
                     )}
                  </div>

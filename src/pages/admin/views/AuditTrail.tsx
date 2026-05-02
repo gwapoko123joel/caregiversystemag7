@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
-import type { ActivityLog } from '../../../lib/supabaseClient'
+import type { ActivityLog } from '../../../types/database'
 
 type LogFilter = 'all' | 'LOGIN' | 'LOGOUT' | 'REGISTER' | 'SUBMIT_REPORT' | 'ASSIGN_ACCESS_ID' | 'REISSUE_ACCESS_ID' | 'UPDATE_USER_STATUS' | 'AUTHORIZE_USER'
 

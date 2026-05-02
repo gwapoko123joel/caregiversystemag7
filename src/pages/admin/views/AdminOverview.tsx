@@ -1,7 +1,7 @@
 import { Users, Activity, ShieldAlert, Server, Zap, ArrowUpRight, TrendingUp, MoreVertical, RefreshCw } from 'lucide-react'
 import { useOutletContext, Link } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
-import type { ActivityLog } from '../../../lib/supabaseClient'
+import type { ActivityLog } from '../../../types/database'
 import { SkeletonCard, SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 export default function AdminOverview() {

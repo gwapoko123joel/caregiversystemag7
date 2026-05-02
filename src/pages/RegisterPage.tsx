@@ -120,13 +120,13 @@ export default function RegisterPage() {
           <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(0,186,255,0.5)]">
             <CheckCircle2 size={40} className="text-white" />
           </div>
-          <h2 className="text-4xl font-black text-text-main mb-4 tracking-tight">Request Submitted</h2>
+          <h2 className="text-4xl font-light text-text-main mb-4 tracking-[0.1em]">Request Submitted</h2>
           <p className="text-sidebar-text-muted font-medium leading-relaxed mb-10">
             Your registration is complete. Please verify your email <strong>{form.email}</strong> before signing in to the portal.
           </p>
           <button 
             onClick={() => window.location.href='/login'}
-            className="w-full bg-sky-500 text-white font-black rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,186,255,0.4)] transition-all uppercase tracking-tight"
+            className="w-full bg-sky-500 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,186,255,0.4)] transition-all uppercase tracking-widest"
           >
             GO TO SIGN IN <ArrowRight size={20} />
           </button>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
              <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
                 <Heart size={28} className="text-white fill-white" />
              </div>
-             <span className="text-2xl font-black tracking-tight text-text-main uppercase transition-colors">BantayanCare</span>
+             <span className="text-2xl font-light tracking-[0.2em] text-text-main uppercase transition-colors">BantayanCare</span>
           </Link>
           
           <h1 className="text-5xl font-bold text-text-main leading-[1.1] tracking-tight transition-colors">
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                <div key={r.value} className={`p-5 rounded-2xl border transition-all duration-300 ${form.role === r.value ? 'bg-sky-500/10 border-sky-500 shadow-[0_0_20px_rgba(14,165,233,0.1)]' : 'bg-card border-card-border hover:border-sidebar-text-muted/30'}`}>
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`w-2 h-2 rounded-full ${form.role === r.value ? 'bg-sky-500 shadow-[0_0_8px_rgba(0,186,255,0.5)]' : 'bg-sidebar-text-muted/30'}`} />
-                    <span className={`text-sm font-black uppercase tracking-widest ${form.role === r.value ? 'text-sky-500' : 'text-sidebar-text-muted'}`}>{r.label}</span>
+                    <span className={`text-sm font-light uppercase tracking-widest ${form.role === r.value ? 'text-sky-500' : 'text-sidebar-text-muted'}`}>{r.label}</span>
                   </div>
                   <p className="text-xs text-sidebar-text-muted/80 font-medium">{r.description}</p>
                </div>
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                   <Heart size={28} className="text-white fill-white" />
                 </Link>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-text-main mb-2 tracking-tight transition-colors text-center lg:text-left">Create Your Account</h2>
+              <h2 className="text-2xl md:text-3xl font-light text-text-main mb-2 tracking-[0.1em] transition-colors text-center lg:text-left">Create Your Account</h2>
               <p className="text-sidebar-text-muted font-medium transition-colors text-center lg:text-left text-sm">Complete the enrollment form below</p>
             </div>
 
@@ -200,7 +200,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Legal Full Name</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Legal Full Name</label>
                   <div className="relative group">
                     <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
@@ -216,7 +216,7 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
                   <div className="relative group">
                     <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
@@ -234,7 +234,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Role Select */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">System Role</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">System Role</label>
                   <div className="relative group">
                     <ShieldCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors z-20" />
                     <select
@@ -252,7 +252,7 @@ export default function RegisterPage() {
 
                 {/* Access ID */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Access ID (PREFIX-YYYY-NNN)</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Access ID (PREFIX-YYYY-NNN)</label>
                   <div className="relative group">
                     <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
@@ -275,7 +275,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
                   <div className="relative group">
                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
@@ -298,7 +298,7 @@ export default function RegisterPage() {
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm Password</label>
+                  <label className="text-xs font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm Password</label>
                   <div className="relative group">
                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input
@@ -323,7 +323,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-sky-500 text-white font-black rounded-2xl py-5 flex items-center justify-center gap-2 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-50 text-xl uppercase tracking-tight group"
+                className="w-full bg-sky-500 text-white font-light rounded-2xl py-5 flex items-center justify-center gap-2 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.01] transition-all disabled:opacity-50 text-xl uppercase tracking-widest group"
               >
                 {loading ? <Loader2 size={24} className="animate-spin" /> : <>ENROLL IN PLATFORM <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" /></>}
               </button>
@@ -333,7 +333,7 @@ export default function RegisterPage() {
               <p className="text-sidebar-text-muted text-sm font-semibold transition-colors">
                 Already registered? <Link to="/login" className="text-sky-500 hover:underline">Return to Sign In</Link>
               </p>
-              <div className="flex items-center gap-2 text-sidebar-text-muted/50 text-[10px] font-black uppercase tracking-tighter transition-colors">
+              <div className="flex items-center gap-2 text-sidebar-text-muted/50 text-[10px] font-light uppercase tracking-widest transition-colors">
                 <ShieldCheck size={12} className="text-sky-400" />
                 HIPAA COMPLIANT SECURE GATEWAY
               </div>

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
-import type { UserProfile, UserRole, ProfileStats } from '../lib/supabaseClient';
+import type { UserProfile, UserRole, ProfileStats } from '../types/database';
 
 /**
  * Normalizes a role string to snake_case for DB constraints.
@@ -44,7 +44,7 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
       })
       .eq('user_id', user.id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error('[ProfileService] Error updating profile:', updateError);
@@ -72,7 +72,7 @@ export async function ensureUserProfile(user: any, rawRole: string): Promise<{ d
     .from('system_users')
     .insert(newProfile)
     .select()
-    .single();
+    .maybeSingle();
 
   if (createError) {
     console.error('[ProfileService] Error creating profile:', createError);
@@ -157,7 +157,7 @@ export async function updateUserProfile(updates: Partial<UserProfile>): Promise<
     .update(updates)
     .eq('user_id', user.id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('[ProfileService] Error updating profile:', error);
@@ -188,7 +188,18 @@ export async function getProfileStats(profile: UserProfile): Promise<ProfileStat
       const { count: reports } = await supabase.from('patient_monitoring_logs').select('*', { count: 'exact', head: true }).eq('caregiver_id', profile.user_id);
       const { data: lastReport } = await supabase.from('patient_monitoring_logs').select('recorded_at').eq('caregiver_id', profile.user_id).order('recorded_at', { ascending: false }).limit(1).maybeSingle();
       
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const { count: weeklyReports } = await supabase
+        .from('patient_monitoring_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('caregiver_id', profile.user_id)
+        .gte('recorded_at', startOfWeek.toISOString());
+      
       stats.total_reports = reports || 0;
+      stats.reports_this_week = weeklyReports || 0;
       stats.last_report_date = lastReport?.recorded_at;
     } else if (profile.role === 'admin') {
       // Admin Stats
@@ -203,4 +214,29 @@ export async function getProfileStats(profile: UserProfile): Promise<ProfileStat
   }
 
   return stats;
+}
+
+/**
+ * Fetches the patient assigned to a caregiver.
+ */
+export async function getAssignedPatient(userId: string) {
+  const { data: assignment, error: assignError } = await supabase
+    .from('caregiver_patient_assignments')
+    .select('patient_id')
+    .eq('caregiver_id', userId)
+    .maybeSingle();
+
+  if (assignError || !assignment) return null;
+
+  const { data, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('patient_id', assignment.patient_id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[ProfileService] Error fetching assigned patient:', error);
+    return null;
+  }
+  return data;
 }

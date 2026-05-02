@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   Activity,
   FileText,
-  Video,
+  Phone,
   Bell,
   LogOut,
   User,
@@ -31,7 +31,7 @@ export default function DashboardPlaceholder() {
     { icon: <Activity size={24} />, title: 'Real-Time Monitoring', desc: 'Live vitals dashboard for assigned patients', soon: false },
     { icon: <FileText size={24} />, title: 'Automated Reports', desc: 'Schedule and submit caregiver data reports', soon: false },
     { icon: <Bell size={24} />, title: 'Alert System', desc: 'Visual & audio emergency notifications', soon: false },
-    { icon: <Video size={24} />, title: 'Video Conferencing', desc: 'WebRTC consultation with medical practitioners', soon: true },
+    { icon: <Phone size={24} />, title: 'Cellular Consult', desc: 'Secure phone consultation with medical practitioners', soon: false },
   ]
 
   return (
@@ -60,8 +60,8 @@ export default function DashboardPlaceholder() {
             Alerts
           </button>
           <button className="nav-item">
-            <Video size={20} />
-            Video Call
+          <Phone size={20} />
+            Contact
           </button>
         </nav>
         <button className="nav-item nav-item--signout" onClick={handleSignOut}>

@@ -1,16 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mail, Lock, ArrowRight, Stethoscope, Heart,
-  Shield, Activity, Radio, Fingerprint,
+  Shield, Activity, Radio, Fingerprint, ArrowLeft,
+  Info, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import {
-  AuthBackground, BantayanLogo, AuthInput,
-  AuthButton, AuthError, AuthNodeFooter,
+  AuthBackground, BantayanLogo, AuthNodeFooter,
 } from '../../components/auth/AuthComponents';
 import { healthWorkerLogin, getCurrentSession } from '../../services/authService';
 import { ensureUserProfile } from '../../services/profileService';
+
+// Sub-component: RoleChip
+const RoleChip = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => (
+  <motion.div
+    initial={false}
+    animate={{
+      borderColor: active ? 'rgba(0, 209, 255, 0.6)' : 'rgba(0, 209, 255, 0.15)',
+      backgroundColor: active ? 'rgba(0, 209, 255, 0.1)' : 'transparent',
+      boxShadow: active ? '0 0 15px rgba(0, 209, 255, 0.1)' : 'none',
+    }}
+    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] tracking-wider uppercase transition-colors
+      ${active ? 'text-cyan-400' : 'text-slate-500'}`}
+  >
+    <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
+    {label}
+  </motion.div>
+);
+
+// Sub-component: FooterBadge
+const FooterBadge = ({ icon: Icon, label }: { icon: any, label: string }) => (
+  <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-slate-500 uppercase">
+    <Icon className="w-3 h-3" strokeWidth={1.5} />
+    {label}
+  </div>
+);
 
 const HealthWorkerLoginPage = () => {
   const navigate = useNavigate();
@@ -21,8 +47,12 @@ const HealthWorkerLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
+  const [isHintExpanded, setIsHintExpanded] = useState(false);
 
-  // Check if already logged in
+  // Live Role Detection
+  const isCaregiver = accessId.toUpperCase().startsWith('CG');
+  const isPractitioner = accessId.toUpperCase().startsWith('MP');
+
   useEffect(() => {
     const checkSession = async () => {
       const session = await getCurrentSession();
@@ -40,9 +70,8 @@ const HealthWorkerLoginPage = () => {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!accessId.trim()) {
-      setError('Please enter your Access ID (e.g., CG-0001 or MP-0001).');
+      setError('Please enter your Access ID.');
       return;
     }
     if (!email.trim()) {
@@ -54,7 +83,6 @@ const HealthWorkerLoginPage = () => {
       return;
     }
 
-    // Basic Access ID format check
     const idPattern = /^(CG|MP|ADMIN)-\d{3,4}$/i;
     if (!idPattern.test(accessId.trim().toUpperCase())) {
       setError('Invalid Access ID format. Expected: CG-XXXX or MP-XXXX');
@@ -62,25 +90,20 @@ const HealthWorkerLoginPage = () => {
     }
 
     setLoading(true);
-
     const result = await healthWorkerLogin(accessId, email, password);
 
     if (result.success) {
-      // Ensure profile is created/updated
       await ensureUserProfile(result.user, result.role);
-
-      // Redirect based on role
       navigate(result.redirectTo || '/');
     } else {
       setError(result.error || 'Authentication failure.');
     }
-
     setLoading(false);
   };
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000814] flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -91,171 +114,231 @@ const HealthWorkerLoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4">
+    <div className="min-h-screen relative flex items-center justify-center p-4 bg-[#000814] overflow-hidden">
       <AuthBackground variant="default" />
 
+      {/* TOP HEADER: BACK BUTTON & NODE STATUS */}
+      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+        <button
+          onClick={() => navigate('/')}
+          style={{ minHeight: '44px' }}
+          className="group flex items-center gap-2 px-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl
+                     text-[11px] tracking-wider text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all"
+        >
+          <motion.div
+            animate={{ x: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+            className="group-hover:mr-1 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+          </motion.div>
+          <span className="hidden sm:inline">BACK</span>
+        </button>
+
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
+          <span className="text-[9px] tracking-[0.2em] text-emerald-400 uppercase font-light">
+            Node Connected — Encrypted Channel
+          </span>
+        </div>
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
         className="relative z-10 w-full max-w-md"
       >
         {/* ===== MAIN LOGIN CARD ===== */}
-        <div className="rounded-3xl border border-slate-700/50 bg-slate-900/70 
-                        backdrop-blur-2xl shadow-2xl shadow-black/50 overflow-hidden">
-
-          {/* Top accent line */}
-          <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500" />
-
-          <div className="p-8 space-y-7">
+        <div className="rounded-[2.5rem] border border-white/10 bg-[#000814]/80 backdrop-blur-xl shadow-2xl shadow-black/80 overflow-hidden">
+          
+          <div className="p-8 space-y-5">
             {/* Logo & Title */}
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3">
               <div className="flex justify-center">
-                <BantayanLogo size="large" />
+                <BantayanLogo size="small" /> {/* Logo should be 44px equivalent via size prop or style */}
+                <div style={{ height: '44px' }} /> {/* Spacer to ensure logo area is compact */}
               </div>
 
-              <div className="space-y-2">
-                <h1 className="text-xl font-black tracking-tight text-white">
+              <div className="space-y-1">
+                <h1 className="text-lg font-light tracking-[0.2em] text-white uppercase">
                   Health Worker Portal
                 </h1>
-                <p className="text-xs tracking-[0.2em] text-slate-400 uppercase">
+                <p className="text-[10px] tracking-widest text-slate-500 uppercase font-light">
                   Barangay Bantayan Care Network
                 </p>
               </div>
 
-              {/* Role Indicators */}
-              <div className="flex items-center justify-center gap-4 pt-1">
-                <div className="flex items-center gap-1.5 text-[10px] tracking-wider text-cyan-400/70 uppercase">
-                  <Stethoscope className="w-3 h-3" />
-                  Practitioner
-                </div>
-                <div className="w-1 h-1 rounded-full bg-slate-600" />
-                <div className="flex items-center gap-1.5 text-[10px] tracking-wider text-cyan-400/70 uppercase">
-                  <Heart className="w-3 h-3" />
-                  Caregiver
-                </div>
+              {/* Role Indicators: Live Detection */}
+              <div className="flex items-center justify-center gap-3 pt-1">
+                <RoleChip icon={Stethoscope} label="Practitioner" active={isPractitioner} />
+                <RoleChip icon={Heart} label="Caregiver" active={isCaregiver} />
               </div>
             </div>
 
-            {/* Connection Status */}
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
-              <span className="text-[10px] tracking-[0.2em] text-emerald-400/70 uppercase font-medium">
-                Node Connected — Encrypted Channel
-              </span>
-            </div>
-
-            {/* Error Display */}
-            <AuthError message={error} onDismiss={() => setError('')} />
+            {/* Error Display: Animated Banner */}
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-red-500/20 bg-red-500/10 backdrop-blur-xl text-red-400 text-[11px] font-light">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                    <p className="flex-1">{error}</p>
+                    <button onClick={() => setError('')} className="hover:text-white transition-colors">
+                      <ArrowRight className="w-4 h-4 rotate-45" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* ACCESS ID — NEW FIELD */}
-              <AuthInput
-                icon={<Fingerprint className="w-3.5 h-3.5 text-cyan-500" />}
-                label="Access ID"
-                type="text"
-                value={accessId}
-                onChange={(e: any) => setAccessId(e.target.value.toUpperCase())}
-                placeholder="CG-0001 or MP-0001"
-                disabled={loading}
-                autoComplete="off"
-              />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* ACCESS ID */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between px-1">
+                  <label className="text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
+                    <Fingerprint className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
+                    Access ID
+                  </label>
+                  <button 
+                    type="button"
+                    onClick={() => setIsHintExpanded(!isHintExpanded)}
+                    className="p-1 hover:text-cyan-400 text-slate-500 transition-colors"
+                  >
+                    <Info className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                </div>
+                
+                <div className="relative group">
+                  <input
+                    type="text"
+                    value={accessId}
+                    onChange={(e) => setAccessId(e.target.value.toUpperCase())}
+                    placeholder="CG-0001 or MP-0001"
+                    disabled={loading}
+                    autoComplete="off"
+                    style={{ minHeight: '44px' }}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
+                               focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light"
+                  />
+                </div>
 
-              {/* Access ID Help Text */}
-              <div className="flex items-start gap-2 px-1 -mt-3">
-                <Shield className="w-3 h-3 text-slate-500 mt-0.5 flex-shrink-0" />
-                <p className="text-[10px] text-slate-500 leading-relaxed">
-                  Your Access ID was assigned by the system administrator during enrollment. 
-                  Format: <span className="text-cyan-400/60 font-mono">CG-XXXX</span> for Caregivers, 
-                  <span className="text-cyan-400/60 font-mono"> MP-XXXX</span> for Practitioners.
-                </p>
+                <AnimatePresence>
+                  {isHintExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-3 mt-1 rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-[10px] text-slate-400 font-light leading-relaxed">
+                        <Shield className="w-3 h-3 text-cyan-500/50 inline mr-2 mb-0.5" strokeWidth={1.5} />
+                        Your Access ID was assigned by the system administrator during enrollment. 
+                        Format: <span className="text-cyan-400">CG-XXXX</span> for Caregivers, 
+                        <span className="text-cyan-400"> MP-XXXX</span> for Practitioners.
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Subtle divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-slate-700/50" />
-                <span className="text-[9px] tracking-[0.3em] text-slate-600 uppercase">
-                  Credentials
-                </span>
-                <div className="flex-1 h-px bg-slate-700/50" />
+              {/* EMAIL ADDRESS */}
+              <div className="space-y-1.5">
+                <label className="px-1 text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your registered email"
+                  disabled={loading}
+                  autoComplete="email"
+                  style={{ minHeight: '44px' }}
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
+                             focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light"
+                />
               </div>
 
-              <AuthInput
-                icon={<Mail className="w-3.5 h-3.5 text-cyan-500" />}
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e: any) => setEmail(e.target.value)}
-                placeholder="Enter your registered email"
-                disabled={loading}
-                autoComplete="email"
-              />
+              {/* PASSWORD */}
+              <div className="space-y-1.5">
+                <label className="px-1 text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    disabled={loading}
+                    autoComplete="current-password"
+                    style={{ minHeight: '44px' }}
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
+                               focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:text-cyan-400 text-slate-500 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.5} /> : <Eye className="w-4 h-4" strokeWidth={1.5} />}
+                  </button>
+                </div>
+              </div>
 
-              <AuthInput
-                icon={<Lock className="w-3.5 h-3.5 text-cyan-500" />}
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e: any) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+              <button
+                type="submit"
                 disabled={loading}
-                autoComplete="current-password"
-                showPasswordToggle
-                showPassword={showPassword}
-                onTogglePassword={() => setShowPassword(!showPassword)}
-              />
-
-              <AuthButton loading={loading}>
-                Sign In to Portal
-                <ArrowRight className="w-4 h-4" />
-              </AuthButton>
+                style={{ minHeight: '44px' }}
+                className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 p-[1px] transition-all hover:shadow-[0_0_20px_rgba(0,209,255,0.3)] disabled:opacity-50"
+              >
+                <div className="w-full h-full bg-[#000814] rounded-[11px] flex items-center justify-center gap-3 text-[11px] tracking-[0.2em] text-white uppercase font-normal group-hover:bg-transparent transition-all">
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      Sign In to Portal
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.5} />
+                    </>
+                  )}
+                </div>
+              </button>
             </form>
 
-            {/* Info Text */}
-            <div className="text-center space-y-1.5">
-              <p className="text-[11px] text-slate-500">
-                Your role is automatically detected from your Access ID.
-              </p>
-              <p className="text-[11px] text-slate-500">
-                Contact your administrator if you don't have an Access ID.
+            {/* Support Text */}
+            <div className="text-center py-2">
+              <p className="text-[10px] text-slate-600 font-light tracking-wide">
+                Secure node-to-node encryption active.
               </p>
             </div>
           </div>
 
-          {/* Bottom Features Bar */}
-          <div className="border-t border-slate-700/50 bg-slate-900/40 px-8 py-4">
+          {/* Bottom Features Strip */}
+          <div className="border-t border-white/5 bg-white/[0.02] px-8 py-3.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-slate-500 uppercase">
-                <Fingerprint className="w-3 h-3" />
-                ID Verified
-              </div>
-              <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-slate-500 uppercase">
-                <Activity className="w-3 h-3" />
-                Real-Time Sync
-              </div>
-              <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-slate-500 uppercase">
-                <Radio className="w-3 h-3" />
-                Encrypted
-              </div>
+              <FooterBadge icon={CheckCircle2} label="ID Verified" />
+              <div className="w-px h-3 bg-white/10" />
+              <FooterBadge icon={Activity} label="Real-Time" />
+              <div className="w-px h-3 bg-white/10" />
+              <FooterBadge icon={Radio} label="Encrypted" />
             </div>
           </div>
         </div>
 
-        {/* Node Footer */}
-        <div className="mt-6">
+        {/* System Node Footer */}
+        <div className="mt-8 opacity-40 hover:opacity-100 transition-opacity">
           <AuthNodeFooter variant="default" />
-        </div>
-
-        {/* Back to Landing */}
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => navigate('/')}
-            className="text-[11px] tracking-wider text-slate-500 hover:text-cyan-400 
-                       transition-colors uppercase"
-          >
-            ← Back to BantayanCare
-          </button>
         </div>
       </motion.div>
     </div>
@@ -263,3 +346,4 @@ const HealthWorkerLoginPage = () => {
 };
 
 export default HealthWorkerLoginPage;
+

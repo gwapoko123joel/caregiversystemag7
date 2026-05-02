@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
           <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
              <Heart size={24} className="text-white fill-white" />
           </div>
-          <span className="font-black tracking-tight text-lg hidden md:block text-text-main uppercase">BantayanCare</span>
+          <span className="font-light tracking-[0.2em] text-lg hidden md:block text-text-main uppercase">BantayanCare</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
             'Medical Consults',
             'Emergency Resources'
           ].map((item) => (
-            <button key={item} className="flex items-center gap-1 text-sm font-black uppercase tracking-widest text-sidebar-text-muted hover:text-text-main transition-colors group">
+            <button key={item} className="flex items-center gap-1 text-sm font-light uppercase tracking-[0.1em] text-sidebar-text-muted hover:text-text-main transition-colors group">
               {item} <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
             </button>
           ))}
@@ -57,12 +57,12 @@ const LandingPage: React.FC = () => {
           >
             {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
-          <button className="px-6 py-2.5 text-xs font-black uppercase tracking-widest border border-card-border rounded-full bg-card hover:bg-card/80 transition-colors text-sidebar-text-muted hover:text-text-main">
+          <button className="px-6 py-2.5 text-xs font-light uppercase tracking-widest border border-card-border rounded-full bg-card hover:bg-card/80 transition-colors text-sidebar-text-muted hover:text-text-main">
             Contact Support
           </button>
           <button 
             onClick={() => navigate('/login')}
-            className="group px-6 py-2.5 text-xs font-black uppercase tracking-widest bg-sky-500 text-white rounded-full hover:shadow-[0_0_30px_rgba(0,186,255,0.5)] transition-all flex items-center gap-2"
+            className="group px-6 py-2.5 text-xs font-light uppercase tracking-widest bg-sky-500 text-white rounded-full hover:shadow-[0_0_30px_rgba(0,186,255,0.5)] transition-all flex items-center gap-2"
           >
             Log In <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </button>
@@ -90,7 +90,7 @@ const LandingPage: React.FC = () => {
                       <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg">
                          <Heart size={20} className="text-white fill-white" />
                       </div>
-                      <span className="font-black uppercase tracking-tight text-text-main">BantayanCare</span>
+                      <span className="font-light uppercase tracking-[0.2em] text-text-main">BantayanCare</span>
                    </div>
                    <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-card border border-card-border rounded-xl">
                       <X size={20} />
@@ -104,7 +104,7 @@ const LandingPage: React.FC = () => {
                      'Medical Consults',
                      'Emergency Resources'
                    ].map((item) => (
-                     <button key={item} className="w-full text-left text-lg font-black uppercase tracking-widest text-sidebar-text-muted hover:text-sky-500 transition-colors py-2 border-b border-card-border/50">
+                     <button key={item} className="w-full text-left text-lg font-light uppercase tracking-widest text-sidebar-text-muted hover:text-sky-500 transition-colors py-2 border-b border-card-border/50">
                         {item}
                      </button>
                    ))}
@@ -113,7 +113,7 @@ const LandingPage: React.FC = () => {
                 <div className="mt-auto space-y-4">
                    <button 
                      onClick={() => navigate('/login')}
-                     className="w-full py-5 bg-sky-500 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-500/20 active:scale-95 transition-all text-sm"
+                     className="w-full py-5 bg-sky-500 text-white font-light uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-500/20 active:scale-95 transition-all text-sm"
                    >
                      Access Dashboard
                    </button>
@@ -131,7 +131,7 @@ const LandingPage: React.FC = () => {
         
         {/* Left Side */}
         <div className="max-w-2xl animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-xs font-black tracking-widest uppercase mb-8 transition-colors">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-xs font-light tracking-widest uppercase mb-8 transition-colors">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
@@ -150,7 +150,7 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <button 
               onClick={() => navigate('/login')}
-              className="group px-8 py-4 bg-sky-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.02] transition-all text-sm uppercase tracking-widest"
+              className="group px-8 py-4 bg-sky-500 text-white font-light rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.02] transition-all text-sm uppercase tracking-widest"
             >
               SIGN IN AS HEALTH WORKER <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </button>
@@ -198,9 +198,9 @@ const LandingPage: React.FC = () => {
                     <div className="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-500">
                       <Clock size={18} />
                     </div>
-                    <span className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">NEXT CHECK-IN</span>
+                    <span className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">NEXT CHECK-IN</span>
                  </div>
-                 <div className="text-2xl font-black tracking-tight text-text-main">14:20 <span className="text-xs text-sky-500 font-bold uppercase ml-1">PM</span></div>
+                 <div className="text-2xl font-light tracking-[0.1em] text-text-main">14:20 <span className="text-xs text-sky-500 font-bold uppercase ml-1">PM</span></div>
               </div>
             </div>
 
@@ -208,7 +208,7 @@ const LandingPage: React.FC = () => {
             <div className="absolute -bottom-[5%] left-1/2 -translate-x-1/2 z-30">
                <div className="p-4 rounded-2xl bg-card/90 backdrop-blur-2xl border border-card-border min-w-[200px] shadow-xl dark:shadow-2xl transition-all">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">Patient Vitals Trend</span>
+                    <span className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Patient Vitals Trend</span>
                     <div className="flex gap-1">
                       <div className="w-1 h-1 bg-sky-500 rounded-full" />
                       <div className="w-1 h-1 bg-sky-500 opacity-40 rounded-full" />
@@ -233,11 +233,11 @@ const LandingPage: React.FC = () => {
                         {i%2===0 ? <Users size={12} className="text-sidebar-text-muted" /> : <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
                     ))}
-                    <div className="w-8 h-8 rounded-full border-2 border-card bg-card backdrop-blur-md flex items-center justify-center text-[10px] font-black text-text-main shadow-sm">+12</div>
+                    <div className="w-8 h-8 rounded-full border-2 border-card bg-card backdrop-blur-md flex items-center justify-center text-[10px] font-light text-text-main shadow-sm">+12</div>
                   </div>
                   <div className="px-2 py-1 bg-card/60 backdrop-blur-sm border border-card-border rounded flex items-center gap-2 shadow-sm transition-all">
                      <div className="w-1.5 h-1.5 bg-sky-500 rounded-full animate-pulse" />
-                     <span className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-tighter">4 CAREGIVERS ACTIVE</span>
+                     <span className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">4 CAREGIVERS ACTIVE</span>
                   </div>
                </div>
             </div>
@@ -246,7 +246,7 @@ const LandingPage: React.FC = () => {
             <div className="absolute top-[40%] left-[15%] z-40 animate-bounce">
                <div className="px-3 py-1.5 rounded-full flex items-center gap-2 node-urgent transition-all border-none">
                   <Activity size={14} className="text-current" />
-                  <span className="text-xs font-black italic text-current">! BP-145</span>
+                  <span className="text-xs font-light text-current">! BP-145</span>
                </div>
             </div>
 

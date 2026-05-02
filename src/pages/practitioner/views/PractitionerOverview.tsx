@@ -44,15 +44,15 @@ export default function PractitionerOverview({
               </div>
               <div className="flex-1 space-y-4 w-full">
                  <div className="text-center md:text-left">
-                    <h3 className="text-lg md:text-2xl font-black text-sky-500 uppercase tracking-tighter italic leading-none">Critical Emergency Detected</h3>
+                    <h3 className="text-lg md:text-2xl font-light text-sky-500 uppercase tracking-[0.1em] leading-none">Critical Emergency Detected</h3>
                     <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-2">{criticalAlerts.length} nodes reporting breaches</p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {criticalAlerts.slice(0, 4).map(a => (
                       <div key={a.id} className="flex items-center justify-between bg-card p-4 rounded-2xl border border-card-border group/alert hover:border-sky-500/30 transition-all shadow-sm">
                          <div>
-                            <div className="text-xs font-black text-text-main uppercase">{a.patient_name}</div>
-                            <div className="text-[10px] font-bold text-sky-500/60 uppercase italic tracking-tighter mt-1">{a.vitals}</div>
+                            <div className="text-xs font-light text-text-main uppercase">{a.patient_name}</div>
+                            <div className="text-[10px] font-bold text-sky-500/60 uppercase tracking-tighter mt-1">{a.vitals}</div>
                          </div>
                          <button 
                            onClick={() => initiateCall(undefined, a.patient_name)} 
@@ -84,8 +84,8 @@ export default function PractitionerOverview({
                  <stat.icon size={24} className="md:w-7 md:h-7" />
               </div>
               <div className="flex-1 min-w-0">
-                 <div className="text-[9px] md:text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest mb-1 leading-none truncate">{stat.label}</div>
-                 <div className="text-2xl md:text-3xl font-black italic tracking-tighter text-text-main">{stat.val}</div>
+                 <div className="text-[9px] md:text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest mb-1 leading-none truncate">{stat.label}</div>
+                 <div className="text-2xl md:text-3xl font-light tracking-[0.1em] text-text-main">{stat.val}</div>
               </div>
               <ChevronRight size={16} className="text-sidebar-text-muted transition-transform group-hover:translate-x-1" />
            </Link>
@@ -98,16 +98,16 @@ export default function PractitionerOverview({
             <Activity size={240} className="text-sky-500" />
          </div>
          <div className="relative z-10 max-w-xl space-y-4 md:space-y-6">
-            <h4 className="text-[10px] md:text-xs font-black text-sky-500 uppercase tracking-[0.3em]">Operational Readiness</h4>
-            <h2 className="text-2xl md:text-4xl font-black text-text-main uppercase italic tracking-tight leading-tight">Barangay Bantayan Monitoring Hub</h2>
+            <h4 className="text-[10px] md:text-xs font-light text-sky-500 uppercase tracking-[0.3em]">Operational Readiness</h4>
+            <h2 className="text-2xl md:text-4xl font-light text-text-main uppercase tracking-[0.1em] leading-tight">Barangay Bantayan Monitoring Hub</h2>
             <p className="text-xs md:text-sm font-medium text-sidebar-text-muted leading-relaxed">
                The regional network is currently processing synchronized telemetry from all deployed caregiver nodes. Ensure all breaches are verified via secure consultation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-               <Link to="/dashboard/practitioner/feed" className="w-full sm:w-auto px-8 py-4 bg-sky-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20 text-center">
+               <Link to="/dashboard/practitioner/feed" className="w-full sm:w-auto px-8 py-4 bg-sky-500 text-white font-light uppercase text-[10px] tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20 text-center">
                   Access Live Feed
                </Link>
-               <Link to="/dashboard/practitioner/alerts" className="w-full sm:w-auto px-8 py-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-card-border text-text-main font-black uppercase text-[10px] tracking-widest rounded-2xl transition-all text-center">
+               <Link to="/dashboard/practitioner/alerts" className="w-full sm:w-auto px-8 py-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-card-border text-text-main font-light uppercase text-[10px] tracking-widest rounded-2xl transition-all text-center">
                   Open Alert Center
                </Link>
             </div>

@@ -12,7 +12,7 @@ import {
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
-import type { Profile } from '../../../lib/supabaseClient'
+import type { Profile } from '../../../types/database'
 import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 /**

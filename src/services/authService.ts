@@ -11,7 +11,7 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
       .from('system_users')
       .select('*')
       .eq('access_id', accessId.trim().toUpperCase())
-      .single();
+      .maybeSingle();
 
     if (lookupError || !userRecord) {
       return {
@@ -116,7 +116,7 @@ export async function adminGovernanceLogin(accessId: string, email: string, pass
       .from('system_users')
       .select('user_id, access_id, role, email, status, is_active')
       .eq('access_id', accessId.trim().toUpperCase())
-      .single();
+      .maybeSingle();
 
     if (checkError || !adminCheck) {
       // Log failed attempt
@@ -251,20 +251,29 @@ export async function signOut() {
 // GET CURRENT SESSION
 // ============================================
 export async function getCurrentSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) return null;
 
-  const { data: userData } = await supabase
-    .from('system_users')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .single();
+    const { data: userData, error: userError } = await supabase
+      .from('system_users')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
 
-  return {
-    session,
-    user: session.user,
-    role: userData?.role || null,
-    accessId: userData?.access_id || null,
-    fullName: userData?.full_name || '',
-  };
+    if (userError) {
+      console.error('[AuthService] Profile fetch error during session check:', userError);
+    }
+
+    return {
+      session,
+      user: session.user,
+      role: userData?.role || null,
+      accessId: userData?.access_id || null,
+      fullName: userData?.full_name || '',
+    };
+  } catch (err) {
+    console.error('[AuthService] Unexpected error in getCurrentSession:', err);
+    return null;
+  }
 }

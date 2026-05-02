@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import type { User, Session } from '@supabase/supabase-js'
-import type { Profile } from '../lib/supabaseClient'
+import type { Profile } from '../types/database'
 import type { SignUpData } from '../types/auth'
 import { AuthContext } from './AuthContextDefinition'
 import { ensureUserProfile, ensureAndGetProfile } from '../services/profileService'
-import type { UserProfile } from '../lib/supabaseClient'
+import type { UserProfile } from '../types/database'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
