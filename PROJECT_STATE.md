@@ -42,3 +42,13 @@
 - No 400 errors in console  
 - No more than 5 network requests on dashboard load
 - system_users view can be dropped at the end
+
+
+
+## ✅ Recently Completed
+
+### [Today's Date] — Phase B: profileService.ts Refactored
+- Replaced 10 system_users references with caregivers
+- All profile-fetch operations now use real schema
+- Caregiver and admin login still work
+- AuthContext-related 400 errors remain (Phase C)
