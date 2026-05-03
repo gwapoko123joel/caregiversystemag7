@@ -2,15 +2,15 @@ import { supabase } from '../lib/supabaseClient';
 
 // ============================================
 // HEALTH WORKER LOGIN (Caregiver + Practitioner)
-// Now includes Access ID verification
+// Verifies Access ID + Email + Password against caregivers table
 // ============================================
 export async function healthWorkerLogin(accessId: string, email: string, password: string) {
   try {
-    // Step 1: Verify Access ID exists in system_users
+    // Step 1: Verify Access ID exists in caregivers
     const { data: userRecord, error: lookupError } = await supabase
-      .from('system_users')
+      .from('caregivers')
       .select('*')
-      .eq('access_id', accessId.trim().toUpperCase())
+      .eq('unique_access_id', accessId.trim().toUpperCase())
       .maybeSingle();
 
     if (lookupError || !userRecord) {
@@ -31,7 +31,7 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
     }
 
     // Step 3: Verify the email matches the Access ID
-    if (userRecord.email.toLowerCase() !== email.trim().toLowerCase()) {
+    if (!userRecord.email || userRecord.email.toLowerCase() !== email.trim().toLowerCase()) {
       return {
         success: false,
         error: 'The email address does not match the registered Access ID. Please verify your credentials.',
@@ -39,25 +39,16 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
       };
     }
 
-    // Step 4: Check account status
-    if (userRecord.status !== 'authorized') {
-      return {
-        success: false,
-        error: `Your account status is "${userRecord.status}". Contact your administrator for access.`,
-        code: 'NOT_AUTHORIZED',
-      };
-    }
-
-    // Step 5: Check if account is active
+    // Step 4: Check if account is active (primary authorization gate)
     if (!userRecord.is_active) {
       return {
         success: false,
-        error: 'Your account has been deactivated. Contact your administrator.',
-        code: 'DEACTIVATED',
+        error: 'Your account has been deactivated or is pending approval. Contact your administrator.',
+        code: 'NOT_ACTIVE',
       };
     }
 
-    // Step 6: Authenticate with Supabase Auth
+    // Step 5: Authenticate with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
@@ -71,17 +62,27 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
       };
     }
 
-    // Step 7: Verify the auth user matches the system_users record
-    // Update user_id in system_users if it's a first-time link
-    if (!userRecord.user_id || userRecord.user_id !== authData.user.id) {
-      const { error: linkError } = await supabase
-        .from('system_users')
-        .update({ user_id: authData.user.id })
-        .eq('access_id', accessId.trim().toUpperCase());
+    // Step 6: Verify the auth user UID matches the caregivers record ID
+    // In caregivers, id IS the auth UID — no separate user_id column needed
+    if (userRecord.id !== authData.user.id) {
+      // Sign them back out — UID mismatch is a security concern
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        error: 'Account integrity check failed. Contact your administrator.',
+        code: 'UID_MISMATCH',
+      };
+    }
 
-      if (linkError) {
-        console.error('Failed to link user_id:', linkError);
-      }
+    // Step 7: Update last_login_at (best-effort, non-blocking)
+    // Wrapped in try/catch because triggers may restrict this — failure is non-fatal
+    try {
+      await supabase
+        .from('caregivers')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', authData.user.id);
+    } catch (updateErr) {
+      console.warn('[AuthService] Could not update last_login_at:', updateErr);
     }
 
     // Step 8: Success
@@ -89,7 +90,7 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
       success: true,
       user: authData.user,
       role: userRecord.role,
-      accessId: userRecord.access_id,
+      accessId: userRecord.unique_access_id,
       fullName: userRecord.full_name,
       redirectTo: userRecord.role === 'medical_practitioner'
         ? '/dashboard/practitioner'
@@ -108,18 +109,19 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
 
 // ============================================
 // ADMIN GOVERNANCE LOGIN (Admin Only)
+// Verifies Access ID + Email + Password against caregivers table
+// All attempts logged to admin_login_attempts
 // ============================================
 export async function adminGovernanceLogin(accessId: string, email: string, password: string) {
   try {
     // Step 1: Verify Access ID exists and belongs to an admin
     const { data: adminCheck, error: checkError } = await supabase
-      .from('system_users')
-      .select('user_id, access_id, role, email, status, is_active')
-      .eq('access_id', accessId.trim().toUpperCase())
+      .from('caregivers')
+      .select('id, unique_access_id, role, email, is_active, full_name')
+      .eq('unique_access_id', accessId.trim().toUpperCase())
       .maybeSingle();
 
     if (checkError || !adminCheck) {
-      // Log failed attempt
       await logAdminAttempt(email, accessId, false, 'Invalid Access ID');
       return {
         success: false,
@@ -139,7 +141,7 @@ export async function adminGovernanceLogin(accessId: string, email: string, pass
     }
 
     // Step 3: Verify the email matches the access ID
-    if (adminCheck.email.toLowerCase() !== email.trim().toLowerCase()) {
+    if (!adminCheck.email || adminCheck.email.toLowerCase() !== email.trim().toLowerCase()) {
       await logAdminAttempt(email, accessId, false, 'Email mismatch');
       return {
         success: false,
@@ -148,22 +150,13 @@ export async function adminGovernanceLogin(accessId: string, email: string, pass
       };
     }
 
-    // Step 4: Check account status
-    if (adminCheck.status !== 'authorized') {
-      await logAdminAttempt(email, accessId, false, `Account status: ${adminCheck.status}`);
-      return {
-        success: false,
-        error: `Governance account status: "${adminCheck.status}". Contact super admin.`,
-        code: 'NOT_AUTHORIZED',
-      };
-    }
-
+    // Step 4: Check if account is active (primary authorization gate)
     if (!adminCheck.is_active) {
-      await logAdminAttempt(email, accessId, false, 'Account deactivated');
+      await logAdminAttempt(email, accessId, false, 'Account deactivated or not active');
       return {
         success: false,
-        error: 'This governance account has been deactivated.',
-        code: 'DEACTIVATED',
+        error: 'This governance account has been deactivated or is not active.',
+        code: 'NOT_ACTIVE',
       };
     }
 
@@ -182,28 +175,37 @@ export async function adminGovernanceLogin(accessId: string, email: string, pass
       };
     }
 
-    // Step 6: Verify the auth user matches the system_users record
-    // Update user_id in system_users if it's a first-time link
-    if (!adminCheck.user_id || adminCheck.user_id !== authData.user.id) {
-      const { error: linkError } = await supabase
-        .from('system_users')
-        .update({ user_id: authData.user.id })
-        .eq('access_id', accessId.trim().toUpperCase());
-
-      if (linkError) {
-        console.error('Failed to link admin user_id:', linkError);
-      }
+    // Step 6: Verify the auth user UID matches the caregivers record ID
+    if (adminCheck.id !== authData.user.id) {
+      await supabase.auth.signOut();
+      await logAdminAttempt(email, accessId, false, 'UID mismatch');
+      return {
+        success: false,
+        error: 'Account integrity check failed. This attempt has been logged.',
+        code: 'UID_MISMATCH',
+      };
     }
 
-    // Step 7: Log successful login
+    // Step 7: Update last_login_at (best-effort, non-blocking)
+    try {
+      await supabase
+        .from('caregivers')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', authData.user.id);
+    } catch (updateErr) {
+      console.warn('[AuthService] Could not update admin last_login_at:', updateErr);
+    }
+
+    // Step 8: Log successful login
     await logAdminAttempt(email, accessId, true, '');
 
-    // Step 8: Success
+    // Step 9: Success
     return {
       success: true,
       user: authData.user,
       role: 'admin',
-      accessId: adminCheck.access_id,
+      accessId: adminCheck.unique_access_id,
+      fullName: adminCheck.full_name,
       redirectTo: '/dashboard/admin',
     };
 
@@ -255,10 +257,11 @@ export async function getCurrentSession() {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) return null;
 
+    // In caregivers, id IS the auth UID — query directly by id
     const { data: userData, error: userError } = await supabase
-      .from('system_users')
+      .from('caregivers')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('id', session.user.id)
       .maybeSingle();
 
     if (userError) {
@@ -269,7 +272,7 @@ export async function getCurrentSession() {
       session,
       user: session.user,
       role: userData?.role || null,
-      accessId: userData?.access_id || null,
+      accessId: userData?.unique_access_id || null,
       fullName: userData?.full_name || '',
     };
   } catch (err) {
