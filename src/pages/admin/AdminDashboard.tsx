@@ -77,13 +77,20 @@ function AdminLayout() {
 
   const loadUsers = useCallback(async () => {
     const { data, error: fetchErr } = await supabase
-      .from('system_users')
+      .from('caregivers')
       .select('*')
       .order('status', { ascending: false })
       .order('created_at', { ascending: false })
-    
+
     if (fetchErr) throw fetchErr
-    setUsers((data ?? []) as any[])
+
+    // Add backward-compat access_id alias from unique_access_id
+    const usersWithAlias = (data ?? []).map((u: any) => ({
+      ...u,
+      access_id: u.unique_access_id,
+    }))
+
+    setUsers(usersWithAlias as any[])
   }, [])
 
   const loadLogs = useCallback(async () => {
@@ -92,7 +99,7 @@ function AdminLayout() {
       .select('*')
       .order('timestamp', { ascending: false })
       .limit(100)
-    
+
     if (fetchErr) throw fetchErr
     setLogs((data ?? []) as ActivityLog[])
   }, [])
@@ -103,10 +110,10 @@ function AdminLayout() {
       supabase.from('patient_monitoring_logs').select('log_id', { count: 'exact', head: true }).gte('recorded_at', today.toISOString()),
       supabase.from('alerts').select('alert_id', { count: 'exact', head: true }).eq('alert_type', 'emergency'),
     ])
-    
+
     if (er1) throw er1
     if (er2) throw er2
-    
+
     setHealth(prev => ({ ...prev, reportsToday: reports ?? 0, criticalAlerts: critical ?? 0 }))
   }, [])
 
@@ -153,10 +160,10 @@ function AdminLayout() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
       <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
-      
+
       <div className="flex-1 flex flex-col min-h-screen">
         <MobileHeader onLogoutClick={() => setShowLogoutModal(true)} />
-        
+
         <main className="flex-1 flex flex-col relative overflow-hidden">
           {/* Background Gradients */}
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
@@ -206,8 +213,8 @@ function AdminLayout() {
       </div>
 
       <BottomNav />
-      
-      <LogoutModal 
+
+      <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleConfirmLogout}

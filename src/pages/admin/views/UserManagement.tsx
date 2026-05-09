@@ -1,13 +1,7 @@
 import { useState } from 'react'
-import { 
-  Search, 
-  Plus, 
-  KeyRound, 
-  RefreshCw,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
-  Clock
+import {
+  Search, Plus, KeyRound, RefreshCw,
+  MoreVertical, CheckCircle2, XCircle, Clock
 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
@@ -31,17 +25,17 @@ function generateAccessId(role: string): string {
 
 export default function UserManagement() {
   const { users, user, profile, loadUsers, loadLogs, isLoading } = useOutletContext<AdminDashboardContextType>()
-  
+
   // State
   const [searchUser, setSearchUser] = useState('')
   const [showAddUser, setShowAddUser] = useState(false)
-  const [newUser, setNewUser] = useState({ 
-    full_name: '', 
-    email: '', 
-    role: 'caregiver' as Profile['role'], 
-    access_id: '' 
+  const [newUser, setNewUser] = useState({
+    full_name: '',
+    email: '',
+    role: 'caregiver' as Profile['role'],
+    access_id: ''
   })
-  
+
   const [editingId, setEditingId] = useState<{ id: string, value: string } | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
@@ -49,18 +43,15 @@ export default function UserManagement() {
   // Handlers
   async function handleUpdateStatus(userId: string, newStatus: Profile['status']) {
     setUpdatingStatus(userId)
-    
-    const payload: Partial<Profile> = { status: newStatus }
-    let generatedId = ''
 
-    if (newStatus === 'authorized') {
-      const targetUser = users.find(u => u.id === userId)
-      generatedId = generateAccessId(targetUser?.role || 'caregiver')
-      payload.access_id = generatedId
+    // Build payload: only update status and is_active
+    const payload: Record<string, any> = {
+      status: newStatus,
+      is_active: newStatus === 'authorized',
     }
 
     const { error } = await supabase
-      .from('system_users')
+      .from('caregivers')
       .update(payload)
       .eq('id', userId)
 
@@ -69,24 +60,28 @@ export default function UserManagement() {
         user_id: user?.id,
         user_type: profile?.role ?? 'admin',
         action: 'UPDATE_USER_STATUS',
-        details: { target_user: userId, status: newStatus, assigned_id: generatedId || undefined }
+        details: { target_user: userId, status: newStatus }
       })
       await loadUsers()
       await loadLogs()
+    } else {
+      console.error("Failed to update status:", error)
+      alert("Error updating status: " + error.message) // Added alert so we can see if it fails!
     }
+
     setUpdatingStatus(null)
   }
 
   async function handleReissueId(userId: string) {
     if (!confirm('Are you sure you want to REISSUE the Access ID? The old ID will be invalidated immediately.')) return
-    
+
     setProcessingId(userId)
     const targetUser = users.find(u => u.id === userId)
     const newId = generateAccessId(targetUser?.role || 'caregiver')
 
     const { error } = await supabase
-      .from('system_users')
-      .update({ access_id: newId })
+      .from('caregivers')
+      .update({ unique_access_id: newId })
       .eq('id', userId)
 
     if (!error) {
@@ -105,11 +100,11 @@ export default function UserManagement() {
   async function handleManualIdUpdate() {
     const currentEdit = editingId
     if (!currentEdit) return
-    
+
     setProcessingId(currentEdit.id)
     const { error } = await supabase
-      .from('system_users')
-      .update({ access_id: currentEdit.value.trim().toUpperCase() })
+      .from('caregivers')
+      .update({ unique_access_id: currentEdit.value.trim().toUpperCase() })
       .eq('id', currentEdit.id)
 
     if (!error) {
@@ -129,17 +124,26 @@ export default function UserManagement() {
   }
 
   async function handleProvisionUser() {
-    if (!newUser.full_name || !newUser.email) {
-      alert('Please provide full name and email.')
+    if (!newUser.full_name) {
+      alert('Please provide full name.')
       return
     }
 
+    // Split full_name into first_name + last_name (caregivers requires both NOT NULL)
+    const nameParts = newUser.full_name.trim().split(/\s+/)
+    const first_name = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts[0] || 'Unknown'
+    const last_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '-'
+
     const { error } = await supabase
-      .from('system_users')
+      .from('caregivers')
       .insert({
-        ...newUser,
-        access_id: generateAccessId(newUser.role),
-        status: 'pending'
+        first_name,
+        last_name,
+        email: newUser.email || null, // Allow empty email initially
+        role: newUser.role,
+        unique_access_id: generateAccessId(newUser.role),
+        is_active: false,         // pending approval
+        status: 'pending',
       })
 
     if (!error) {
@@ -151,7 +155,7 @@ export default function UserManagement() {
     }
   }
 
-  const filteredUsers = (users as any[]).filter(u => 
+  const filteredUsers = (users as any[]).filter(u =>
     u.full_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.access_id?.toLowerCase().includes(searchUser.toLowerCase())
@@ -181,16 +185,16 @@ export default function UserManagement() {
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search personnel by name, email, or ID..." 
+          <input
+            type="text"
+            placeholder="Search personnel by name, email, or ID..."
             className="w-full pl-12 pr-6 py-4 bg-card border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm shadow-sm placeholder:text-sidebar-text-muted/50"
             value={searchUser}
             onChange={(e) => setSearchUser(e.target.value)}
           />
         </div>
 
-        <button 
+        <button
           onClick={() => setShowAddUser(true)}
           className="w-full md:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
         >
@@ -201,7 +205,7 @@ export default function UserManagement() {
       <div className="bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm transition-colors">
         {/* Users Table (Desktop) */}
         {filteredUsers.length === 0 ? (
-          <EmptyState 
+          <EmptyState
             title="Personnel Not Found"
             message={searchUser ? `No results for "${searchUser}" across the administrative node.` : "No personnel have been provisioned in the system yet."}
             onRetry={loadUsers}
@@ -224,94 +228,93 @@ export default function UserManagement() {
                     <td className="px-6 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center font-black text-sky-500 text-lg border border-card-border uppercase">
-                          {u.full_name?.[0] || u.email?.[0]}
+                          {u.full_name?.[0] || u.email?.[0] || '?'}
                         </div>
                         <div>
                           <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.full_name || 'Unnamed User'}</div>
-                          <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email}</div>
+                          <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email || 'Unregistered'}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-6">
-                        <div className="flex items-center gap-3">
-                           {editingId?.id === u.id ? (
-                             <div className="flex items-center gap-2">
-                               <input 
-                                 className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-sky-500 shadow-inner w-32 focus:outline-none"
-                                 value={editingId?.value || ''}
-                                 onChange={(e) => {
-                                   if (editingId) {
-                                     setEditingId({ id: editingId.id, value: e.target.value.toUpperCase() })
-                                   }
-                                 }}
-                                 autoFocus
-                                 onKeyDown={(e) => e.key === 'Enter' && handleManualIdUpdate()}
-                               />
-                               <button 
-                                 onClick={handleManualIdUpdate}
-                                 className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
-                               >
-                                 <CheckCircle2 size={16} />
-                               </button>
-                               <button 
-                                 onClick={() => setEditingId(null)}
-                                 className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                               >
-                                 <XCircle size={16} />
-                               </button>
-                             </div>
-                           ) : (
-                             <>
-                               <code 
-                                 className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm cursor-pointer hover:bg-sky-500/10 transition-all"
-                                 onClick={() => setEditingId({ id: u.id, value: u.access_id || '' })}
-                                 title="Click to edit Access ID"
-                               >
-                                 {u.access_id ?? 'UNINITIALIZED'}
-                               </code>
-                               <button 
-                                 disabled={processingId === u.id}
-                                 onClick={() => handleReissueId(u.id)}
-                                 title="Reissue Security Token"
-                                 className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
-                               >
-                                  {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                               </button>
-                             </>
-                           )}
-                        </div>
+                      <div className="flex items-center gap-3">
+                        {editingId?.id === u.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-sky-500 shadow-inner w-32 focus:outline-none"
+                              value={editingId?.value || ''}
+                              onChange={(e) => {
+                                if (editingId) {
+                                  setEditingId({ id: editingId.id, value: e.target.value.toUpperCase() })
+                                }
+                              }}
+                              autoFocus
+                              onKeyDown={(e) => e.key === 'Enter' && handleManualIdUpdate()}
+                            />
+                            <button
+                              onClick={handleManualIdUpdate}
+                              className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
+                            >
+                              <CheckCircle2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                            >
+                              <XCircle size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <code
+                              className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm cursor-pointer hover:bg-sky-500/10 transition-all"
+                              onClick={() => setEditingId({ id: u.id, value: u.access_id || '' })}
+                              title="Click to edit Access ID"
+                            >
+                              {u.access_id ?? 'UNINITIALIZED'}
+                            </code>
+                            <button
+                              disabled={processingId === u.id}
+                              onClick={() => handleReissueId(u.id)}
+                              title="Reissue Security Token"
+                              className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
+                            >
+                              {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-6">
-                        <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${
-                          u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                          'bg-red-500/10 text-red-500 border-red-500/20'
+                      <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                            'bg-red-500/10 text-red-500 border-red-500/20'
                         }`}>
-                           {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
-                           {u.status}
-                        </div>
+                        {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
+                        {u.status}
+                      </div>
                     </td>
                     <td className="px-6 py-6 text-right">
-                       <div className="flex justify-end gap-2">
-                         {u.role !== 'admin' && (
-                           <div className="relative">
-                             <select 
-                               className="bg-card border border-card-border rounded-xl px-3 py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none transition-all appearance-none text-right cursor-pointer pr-2 shadow-sm dark:shadow-none"
-                               value={u.status} 
-                               onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])} 
-                               disabled={updatingStatus === u.id}
-                             >
-                               <option value="pending">Pending</option>
-                               <option value="authorized">Authorize</option>
-                               <option value="revoked">Revoke</option>
-                               <option value="suspended">Suspend</option>
-                             </select>
-                           </div>
-                         )}
-                         <button className="p-2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                           <MoreVertical size={16} />
-                         </button>
-                       </div>
+                      <div className="flex justify-end gap-2">
+                        {u.role !== 'admin' && (
+                          <div className="relative">
+                            <select
+                              className="bg-card border border-card-border rounded-xl px-3 py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none transition-all appearance-none text-right cursor-pointer pr-2 shadow-sm dark:shadow-none"
+                              value={u.status}
+                              onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])}
+                              disabled={updatingStatus === u.id}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="authorized">Authorize</option>
+                              <option value="revoked">Revoke</option>
+                              <option value="suspended">Suspend</option>
+                            </select>
+                          </div>
+                        )}
+                        <button className="p-2 text-sidebar-text-muted hover:text-text-main transition-colors">
+                          <MoreVertical size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -323,63 +326,61 @@ export default function UserManagement() {
         {/* Users Card List (Mobile) */}
         {!isLoading && filteredUsers.length > 0 && (
           <div className="md:hidden space-y-4 p-4">
-             {filteredUsers.map(u => (
-               <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
-                  <div className="flex items-start justify-between mb-4">
-                     <div>
-                        <div className="text-base font-black text-text-main uppercase tracking-tight">{u.full_name}</div>
-                        <div className="text-xs text-sidebar-text-muted">{u.email}</div>
-                     </div>
-                     <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${
-                        u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' : 
-                        u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
+            {filteredUsers.map(u => (
+              <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="text-base font-black text-text-main uppercase tracking-tight">{u.full_name}</div>
+                    <div className="text-xs text-sidebar-text-muted">{u.email}</div>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' :
+                      u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
                         'bg-slate-100 dark:bg-white/5 text-sidebar-text-muted'
-                     }`}>{u.role.replace('_', ' ')}</span>
+                    }`}>{u.role.replace('_', ' ')}</span>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
+                    <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
+                      {u.access_id ?? 'UNINITIALIZED'}
+                    </code>
+                    <div className="flex gap-1">
+                      <button
+                        disabled={processingId === u.id}
+                        onClick={() => handleReissueId(u.id)}
+                        className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
+                      >
+                        {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
-                     <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
-                        <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
-                          {u.access_id ?? 'UNINITIALIZED'}
-                        </code>
-                        <div className="flex gap-1">
-                          <button 
-                            disabled={processingId === u.id}
-                            onClick={() => handleReissueId(u.id)}
-                            className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
-                          >
-                             {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                          </button>
-                        </div>
-                     </div>
-
-                     <div className="flex items-center justify-between">
-                        <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${
-                          u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                  <div className="flex items-center justify-between">
+                    <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                           'bg-red-500/10 text-red-500 border-red-500/20'
-                        }`}>
-                           {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
-                           {u.status}
-                        </div>
+                      }`}>
+                      {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
+                      {u.status}
+                    </div>
 
-                        {u.role !== 'admin' && (
-                           <select 
-                             className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted active:scale-95 transition-all appearance-none cursor-pointer"
-                             value={u.status} 
-                             onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])} 
-                             disabled={updatingStatus === u.id}
-                           >
-                             <option value="pending">Pending</option>
-                             <option value="authorized">Authorize</option>
-                             <option value="revoked">Revoke</option>
-                             <option value="suspended">Suspend</option>
-                           </select>
-                        )}
-                     </div>
+                    {u.role !== 'admin' && (
+                      <select
+                        className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted active:scale-95 transition-all appearance-none cursor-pointer"
+                        value={u.status}
+                        onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])}
+                        disabled={updatingStatus === u.id}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="authorized">Authorize</option>
+                        <option value="revoked">Revoke</option>
+                        <option value="suspended">Suspend</option>
+                      </select>
+                    )}
                   </div>
-               </div>
-             ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -391,57 +392,57 @@ export default function UserManagement() {
           <div className="relative w-full max-w-lg bg-card border border-card-border rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-300 transition-colors">
             <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2 transition-colors">Provision New Personnel</h3>
             <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">Grant secure node access to credentials</p>
-            
+
             <div className="space-y-4">
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Full Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
-                    placeholder="e.g. Maria Santos"
-                    value={newUser.full_name}
-                    onChange={(e) => setNewUser({...newUser, full_name: e.target.value})}
-                  />
-               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Full Name</label>
+                <input
+                  type="text"
+                  className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                  placeholder="e.g. Maria Santos"
+                  value={newUser.full_name}
+                  onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
+                />
+              </div>
 
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Email Instance</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
-                    placeholder="name@bantayancare.com"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  />
-               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Email Instance (Optional)</label>
+                <input
+                  type="email"
+                  className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
+                  placeholder="name@bantayancare.com (Optional)"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                />
+              </div>
 
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Network Role</label>
-                  <select 
-                    className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm appearance-none cursor-pointer transition-colors"
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({...newUser, role: e.target.value as any})}
-                  >
-                    <option value="caregiver">Caregiver — Field Operations</option>
-                    <option value="medical_practitioner">Medical Practitioner — Clinical Node</option>
-                    <option value="admin">Administrator — Network Governance</option>
-                  </select>
-               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Network Role</label>
+                <select
+                  className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm appearance-none cursor-pointer transition-colors"
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
+                >
+                  <option value="caregiver">Caregiver — Field Operations</option>
+                  <option value="medical_practitioner">Medical Practitioner — Clinical Node</option>
+                  <option value="admin">Administrator — Network Governance</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-10">
-               <button 
-                 onClick={() => setShowAddUser(false)}
-                 className="flex-1 py-4 text-xs font-black text-sidebar-text-muted uppercase tracking-widest hover:text-text-main transition-all"
-               >
-                 Abort Provisioning
-               </button>
-               <button 
-                 onClick={handleProvisionUser}
-                 className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
-               >
-                 Commit to Network
-               </button>
+              <button
+                onClick={() => setShowAddUser(false)}
+                className="flex-1 py-4 text-xs font-black text-sidebar-text-muted uppercase tracking-widest hover:text-text-main transition-all"
+              >
+                Abort Provisioning
+              </button>
+              <button
+                onClick={handleProvisionUser}
+                className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+              >
+                Commit to Network
+              </button>
             </div>
           </div>
         </div>

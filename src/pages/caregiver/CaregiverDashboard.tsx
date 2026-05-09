@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Activity, Phone, Menu
-} from 'lucide-react'
+import { Activity, Phone, Menu } from 'lucide-react'
 import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import BottomNav from '../../components/BottomNav'
 import MobileHeader from '../../components/MobileHeader'
 import LogoutModal from '../../components/LogoutModal'
-// import VideoCallModal from '../../components/VideoCallModal'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../hooks/useAuth'
 import { useSidebar } from '../../contexts/SidebarContext'
@@ -73,7 +70,7 @@ function CaregiverLayout() {
   const loadData = useCallback(async () => {
     if (!user) return
     setLoadingPatient(true)
-    
+
     const { data: assignmentData } = await supabase
       .from('caregiver_patient_assignments')
       .select('patient_id')
@@ -89,7 +86,7 @@ function CaregiverLayout() {
 
       if (assignment) {
         setPatient(assignment)
-        const sortedLogs = [...assignment.patient_monitoring_logs].sort((a,b) => 
+        const sortedLogs = [...assignment.patient_monitoring_logs].sort((a, b) =>
           new Date(b.recorded_at!).getTime() - new Date(a.recorded_at!).getTime()
         )
         setRecentLogs(sortedLogs)
@@ -97,20 +94,18 @@ function CaregiverLayout() {
     }
     setLoadingPatient(false)
 
-    // Load medical practitioners
+    // Load medical practitioners from the directory view
     const { data: docs } = await supabase
-      .from('system_users')
-      .select('user_id, full_name, phone, availability_status, specialization')
-      .in('role', ['medical_practitioner', 'practitioner'])
-      .eq('status', 'authorized')
-    
+      .from('available_practitioners_directory')
+      .select('*')
+
     if (docs) {
-      setPractitioners(docs.map(d => ({
-        id: d.user_id,
+      setPractitioners(docs.map((d: any) => ({
+        id: d.id ?? d.user_id ?? d.caregiver_id,
         full_name: d.full_name,
-        specialty: d.specialization || 'General Practice',
-        phone: d.phone || '',
-        is_available: d.availability_status === 'available'
+        specialty: d.specialization || d.specializations || 'General Practice',
+        phone: d.phone || d.contact_number || '',
+        is_available: d.availability_status === 'available' || d.status === 'available'
       })))
     }
   }, [user])
@@ -142,7 +137,7 @@ function CaregiverLayout() {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!patient || !user) return
-    
+
     setSubmitting(true)
     setError(null)
     setSubmitSuccess(false)
@@ -231,7 +226,7 @@ function CaregiverLayout() {
 
   return (
     <>
-      <LogoutModal 
+      <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleConfirmLogout}
@@ -242,10 +237,10 @@ function CaregiverLayout() {
 
         <div className="flex-1 flex flex-col min-h-screen">
           <MobileHeader onLogoutClick={() => setShowLogoutModal(true)} />
-          
+
           <main className="flex-1 flex flex-col relative overflow-hidden transition-all duration-700">
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
-            
+
             {/* Desktop Header */}
             <header className="hidden md:flex relative z-50 px-8 py-6 items-center justify-between border-b border-card-border bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500">
               <div className="flex items-center gap-4">
@@ -259,21 +254,21 @@ function CaregiverLayout() {
                   </button>
                 )}
                 <div className="p-3 bg-sky-500/10 rounded-2xl border border-sky-500/20">
-                   <Activity size={20} className="text-sky-500" />
+                  <Activity size={20} className="text-sky-500" />
                 </div>
                 <div>
-                   <h1 className="text-2xl font-light tracking-tight uppercase  text-text-main transition-colors leading-tight">
-                      {getHeaderTitle()}
-                   </h1>
-                   <div className="flex items-center gap-2 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <p className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors leading-none">System Connected — Secure Line</p>
-                   </div>
+                  <h1 className="text-2xl font-light tracking-tight uppercase  text-text-main transition-colors leading-tight">
+                    {getHeaderTitle()}
+                  </h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <p className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors leading-none">System Connected — Secure Line</p>
+                  </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4">
-                <button 
+                <button
                   onClick={() => navigate('/dashboard/caregiver/call')}
                   className="px-6 py-3 node-urgent font-light text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
                 >
@@ -286,7 +281,7 @@ function CaregiverLayout() {
             <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto overflow-x-hidden transition-colors">
               <AnimatePresence mode="wait">
                 <PageTransition key={location.pathname}>
-                   <Outlet context={contextValue} />
+                  <Outlet context={contextValue} />
                 </PageTransition>
               </AnimatePresence>
             </div>
@@ -294,8 +289,6 @@ function CaregiverLayout() {
         </div>
         <BottomNav />
       </div>
-
-      {/* Video Call Modal removed as per requirements */}
     </>
   )
 }
@@ -323,30 +316,14 @@ import { useOutletContext } from 'react-router-dom'
 function DashboardHomeWrapper() {
   const ctx = useOutletContext<CaregiverDashboardContextType>()
   return (
-    <DashboardHome 
-      patient={ctx.patient} 
-      userProfile={ctx.userProfile}
-      loadingPatient={ctx.isLoading} 
-      recentLogs={ctx.recentLogs} 
-    />
+    <DashboardHome patient={ctx.patient} userProfile={ctx.userProfile} loadingPatient={ctx.isLoading} recentLogs={ctx.recentLogs} />
   )
 }
 
 function ReportViewWrapper() {
   const ctx = useOutletContext<CaregiverDashboardContextType>()
   return (
-    <ReportView 
-      patient={ctx.patient}
-      form={ctx.form}
-      setField={ctx.setField}
-      handleSubmit={ctx.handleSubmit}
-      submitting={ctx.submitting}
-      submitSuccess={ctx.submitSuccess}
-      error={ctx.error}
-      imagePreview={ctx.imagePreview}
-      handleImageChange={ctx.handleImageChange}
-      removeImage={ctx.removeImage}
-    />
+    <ReportView patient={ctx.patient} form={ctx.form} setField={ctx.setField} handleSubmit={ctx.handleSubmit} submitting={ctx.submitting} submitSuccess={ctx.submitSuccess} error={ctx.error} imagePreview={ctx.imagePreview} handleImageChange={ctx.handleImageChange} removeImage={ctx.removeImage} />
   )
 }
 
@@ -363,3 +340,4 @@ function PatientOnboardingFormWrapper() {
   const navigate = useNavigate()
   return <PatientOnboardingForm onBack={() => navigate('/dashboard/caregiver')} />
 }
+// --- END OF FILE ---
