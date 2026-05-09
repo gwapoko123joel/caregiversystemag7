@@ -47,6 +47,7 @@ export default function RegisterPage() {
   const [cgFirstName, setCgFirstName] = useState('')
   const [cgLastName, setCgLastName] = useState('')
   const [cgEmail, setCgEmail] = useState('')
+  const [cgBhwId, setCgBhwId] = useState('')
   const [cgPassword, setCgPassword] = useState('')
   const [cgConfirmPassword, setCgConfirmPassword] = useState('')
   const [cgShowPassword, setCgShowPassword] = useState(false)
@@ -60,6 +61,7 @@ export default function RegisterPage() {
   const [mpFirstName, setMpFirstName] = useState('')
   const [mpLastName, setMpLastName] = useState('')
   const [mpEmail, setMpEmail] = useState('')
+  const [mpPrcLicense, setMpPrcLicense] = useState('')
   const [mpPassword, setMpPassword] = useState('')
   const [mpConfirmPassword, setMpConfirmPassword] = useState('')
   const [mpShowPassword, setMpShowPassword] = useState(false)
@@ -211,6 +213,7 @@ export default function RegisterPage() {
           email: cgEmail.trim().toLowerCase(),
           role: 'caregiver',
           is_active: false,
+          bhw_id: cgBhwId.trim()
         })
 
       if (insertError) {
@@ -301,6 +304,11 @@ export default function RegisterPage() {
         setMpError(signUpError)
         return
       }
+
+      // Save the PRC License to the newly created record
+      await supabase.from('caregivers').update({ 
+        prc_license: mpPrcLicense.trim() 
+      }).eq('unique_access_id', accessId)
 
       setMpGeneratedId(accessId)
       setMpSuccess(true)
@@ -517,6 +525,14 @@ export default function RegisterPage() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">BHW ID Number (For Verification)</label>
+                      <div className="relative group">
+                        <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                        <input type="text" placeholder="e.g. BHW-2024-001" value={cgBhwId} onChange={(e) => setCgBhwId(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
@@ -608,6 +624,14 @@ export default function RegisterPage() {
                   <div className="relative group">
                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
                     <input type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">PRC License Number</label>
+                  <div className="relative group">
+                    <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                    <input type="text" placeholder="e.g. 0123456" value={mpPrcLicense} onChange={(e) => setMpPrcLicense(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
                   </div>
                 </div>
 

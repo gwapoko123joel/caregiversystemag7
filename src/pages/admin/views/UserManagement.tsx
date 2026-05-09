@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import {
   Search, Plus, KeyRound, RefreshCw,
-  MoreVertical, CheckCircle2, XCircle, Clock
+  MoreVertical, CheckCircle2, XCircle, Clock,
+  ShieldCheck
 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
@@ -233,6 +234,12 @@ export default function UserManagement() {
                         <div>
                           <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.full_name || 'Unnamed User'}</div>
                           <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email || 'Unregistered'}</div>
+                          {(u.prc_license || u.bhw_id) && (
+                            <div className="text-[10px] text-sky-400 mt-1.5 font-mono tracking-widest bg-sky-500/10 inline-flex items-center px-2 py-0.5 rounded border border-sky-500/20">
+                              <ShieldCheck size={10} className="mr-1" />
+                              {u.prc_license ? `PRC: ${u.prc_license}` : `BHW: ${u.bhw_id}`}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -332,6 +339,12 @@ export default function UserManagement() {
                   <div>
                     <div className="text-base font-black text-text-main uppercase tracking-tight">{u.full_name}</div>
                     <div className="text-xs text-sidebar-text-muted">{u.email}</div>
+                    {(u.prc_license || u.bhw_id) && (
+                      <div className="text-[10px] text-sky-400 mt-1.5 font-mono tracking-widest bg-sky-500/10 inline-flex items-center px-2 py-0.5 rounded border border-sky-500/20">
+                        <ShieldCheck size={10} className="mr-1" />
+                        {u.prc_license ? `PRC: ${u.prc_license}` : `BHW: ${u.bhw_id}`}
+                      </div>
+                    )}
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' :
                       u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
