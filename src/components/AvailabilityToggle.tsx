@@ -163,6 +163,12 @@ export default function AvailabilityToggle() {
         .eq('caregiver_id', user.id);
 
       if (!error) {
+        // SYNC: Also update the duty_status in the caregivers table for the real-time directory
+        await supabase
+          .from('caregivers')
+          .update({ duty_status: newStatus })
+          .eq('id', user.id);
+
         await supabase.from('activity_logs').insert({
           user_id: user.id,
           user_type: 'medical_practitioner',

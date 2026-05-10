@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import {
   LayoutDashboard,
   FileText,
@@ -16,7 +17,8 @@ import {
   UserPlus,
   PanelLeftClose,
   PanelLeftOpen,
-  X
+  X,
+  Map
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -25,7 +27,6 @@ import { ProfileDropdown } from './profile/ProfileDropdown';
 import type { UserRole } from '../types/database';
 
 interface SidebarProps {
-  alertCount?: number;
   onLogoutClick: () => void;
 }
 
@@ -71,6 +72,7 @@ const NAV: Record<UserRole, NavItem[]> = {
     { icon: <ShieldCheck size={20} strokeWidth={1.5} />,     label: 'System Access',  path: '/dashboard/admin/verification' },
     { icon: <Activity size={20} strokeWidth={1.5} />,        label: 'System Audit',   path: '/dashboard/admin/logs' },
     { icon: <Cpu size={20} strokeWidth={1.5} />,             label: 'Health Console', path: '/dashboard/admin/health' },
+    { icon: <Map size={20} strokeWidth={1.5} />,             label: 'Health Profile', path: '/dashboard/admin/analytics' },
   ],
 };
 
@@ -81,10 +83,33 @@ const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'System Admin',
 };
 
-export default function Sidebar({ alertCount = 0, onLogoutClick }: SidebarProps) {
+export default function Sidebar({ onLogoutClick }: SidebarProps) {
   const { profile, userProfile } = useAuth();
   const location = useLocation();
   const { isCollapsed, isMobileHidden, isDesktop, toggleCollapse, setMobileHidden } = useSidebar();
+  const [alertCount, setAlertCount] = useState(0);
+
+  useEffect(() => {
+    const getUnresolvedCount = async () => {
+      const { count, error } = await supabase
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_resolved', false);
+
+      if (!error) setAlertCount(count || 0);
+    };
+
+    getUnresolvedCount();
+
+    // Listen for real-time changes
+    const channel = supabase.channel('sidebar-alerts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => {
+        getUnresolvedCount();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const role = userProfile?.role || profile?.role || 'caregiver';
   const navItems = NAV[role as UserRole] ?? NAV.caregiver;

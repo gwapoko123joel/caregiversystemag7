@@ -15,15 +15,18 @@ import PageTransition from '../../components/PageTransition'
 import DashboardHome from './views/DashboardHome'
 import ReportView from './views/ReportView'
 import HistoryView from './views/HistoryView'
+import PatientHistory from './views/PatientHistory'
 import ProfilePage from '../ProfilePage'
 import EmergencyView from './views/EmergencyView'
 import AvailableDoctorsView from './views/AvailableDoctorsView'
 import PatientOnboardingForm from './views/PatientOnboardingForm'
+import SubmitReport from './views/SubmitReport'
 
 import type { Patient, PatientMonitoringLog } from '../../types/database'
 
 export interface CaregiverDashboardContextType {
   patient: Patient | null
+  assignedPatients: Patient[]
   userProfile: any | null
   isLoading: boolean
   recentLogs: PatientMonitoringLog[]
@@ -46,6 +49,7 @@ function CaregiverLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [patient, setPatient] = useState<Patient | null>(null)
+  const [assignedPatients, setAssignedPatients] = useState<Patient[]>([])
   const [recentLogs, setRecentLogs] = useState<PatientMonitoringLog[]>([])
   const [loadingPatient, setLoadingPatient] = useState(true)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
@@ -71,22 +75,26 @@ function CaregiverLayout() {
     if (!user) return
     setLoadingPatient(true)
 
-    const { data: assignmentData } = await supabase
+    const { data: assignments } = await supabase
       .from('caregiver_patient_assignments')
       .select('patient_id')
       .eq('caregiver_id', user.id)
-      .maybeSingle()
 
-    if (assignmentData) {
-      const { data: assignment } = await supabase
+    if (assignments && assignments.length > 0) {
+      const patientIds = assignments.map(a => a.patient_id)
+      const { data: patientList } = await supabase
         .from('patients')
         .select('*, patient_monitoring_logs(*)')
-        .eq('patient_id', assignmentData.patient_id)
-        .maybeSingle()
+        .in('patient_id', patientIds)
 
-      if (assignment) {
-        setPatient(assignment)
-        const sortedLogs = [...assignment.patient_monitoring_logs].sort((a, b) =>
+      if (patientList) {
+        setAssignedPatients(patientList)
+        // Keep 'patient' as the first one for backward compatibility or featured display
+        setPatient(patientList[0])
+        
+        // Consolidate logs from all patients for the dashboard activity feed
+        const allLogs = patientList.flatMap(p => p.patient_monitoring_logs || [])
+        const sortedLogs = allLogs.sort((a, b) =>
           new Date(b.recorded_at!).getTime() - new Date(a.recorded_at!).getTime()
         )
         setRecentLogs(sortedLogs)
@@ -200,6 +208,7 @@ function CaregiverLayout() {
 
   const contextValue: CaregiverDashboardContextType = {
     patient,
+    assignedPatients,
     userProfile: userProfile,
     isLoading: loadingPatient,
     recentLogs,
@@ -316,20 +325,22 @@ import { useOutletContext } from 'react-router-dom'
 function DashboardHomeWrapper() {
   const ctx = useOutletContext<CaregiverDashboardContextType>()
   return (
-    <DashboardHome patient={ctx.patient} userProfile={ctx.userProfile} loadingPatient={ctx.isLoading} recentLogs={ctx.recentLogs} />
+    <DashboardHome 
+      patient={ctx.patient} 
+      assignedPatients={ctx.assignedPatients}
+      userProfile={ctx.userProfile} 
+      loadingPatient={ctx.isLoading} 
+      recentLogs={ctx.recentLogs} 
+    />
   )
 }
 
 function ReportViewWrapper() {
-  const ctx = useOutletContext<CaregiverDashboardContextType>()
-  return (
-    <ReportView patient={ctx.patient} form={ctx.form} setField={ctx.setField} handleSubmit={ctx.handleSubmit} submitting={ctx.submitting} submitSuccess={ctx.submitSuccess} error={ctx.error} imagePreview={ctx.imagePreview} handleImageChange={ctx.handleImageChange} removeImage={ctx.removeImage} />
-  )
+  return <SubmitReport />
 }
 
 function HistoryViewWrapper() {
-  const ctx = useOutletContext<CaregiverDashboardContextType>()
-  return <HistoryView logs={ctx.recentLogs} />
+  return <PatientHistory />
 }
 
 function EmergencyCallWrapper() {

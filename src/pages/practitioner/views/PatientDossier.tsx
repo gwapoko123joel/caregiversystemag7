@@ -7,8 +7,12 @@ import {
   ZoomIn, 
   Zap, 
   X,
-  ChevronLeft
+  ChevronLeft,
+  ShieldCheck,
+  Send
 } from 'lucide-react'
+import { supabase } from '../../../lib/supabaseClient'
+import { useAuth } from '../../../hooks/useAuth'
 import type { PatientWithLogs } from '../PractitionerDashboard'
 import { useNavigate } from 'react-router-dom'
 
@@ -21,8 +25,38 @@ export default function PatientDossier({
   patient,
   initiateCall
 }: PatientDossierProps) {
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [magnifiedImage, setMagnifiedImage] = useState<string | null>(null)
+  
+  // Clinical Intervention State
+  const [instruction, setInstruction] = useState('')
+  const [isSending, setIsSending] = useState(false)
+
+  async function sendInstruction() {
+    if (!instruction.trim() || !user) return
+    setIsSending(true)
+
+    try {
+      const { error } = await supabase
+        .from('clinical_instructions')
+        .insert({
+          patient_id: parseInt(patient.patient_id.toString()),
+          doctor_id: user.id,
+          instruction_text: instruction.trim(),
+          urgency_level: 'routine'
+        })
+
+      if (error) throw error
+      setInstruction('')
+      alert("Instruction dispatched to Caregiver node.")
+    } catch (err) {
+      console.error(err)
+      alert("Failed to send instruction.")
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   return (
     <div className="animate-in slide-in-from-right-8 duration-500 space-y-6">
@@ -167,6 +201,48 @@ export default function PatientDossier({
                </div>
             </div>
          </div>
+      </div>
+
+      {/* ── CLINICAL INTERVENTION ── */}
+      <div className="bg-sky-500/5 border border-sky-500/10 rounded-[32px] md:rounded-[40px] p-8 md:p-12 shadow-sm relative overflow-hidden transition-all hover:bg-sky-500/[0.08]">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 blur-[80px] rounded-full pointer-events-none" />
+        
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+            <ShieldCheck size={24} />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-text-main uppercase tracking-tight">Clinical Intervention</h3>
+            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1">Issue formal instructions to field staff</p>
+          </div>
+        </div>
+
+        <div className="relative group mb-6">
+          <textarea 
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            placeholder="e.g. Patient BP is elevated. Administer maintenance meds and re-check in 1 hour..."
+            className="w-full bg-card border border-card-border rounded-2xl p-6 text-sm text-text-main focus:outline-none focus:border-sky-500/50 min-h-[120px] transition-all resize-none shadow-sm placeholder:text-sidebar-text-muted/50"
+          />
+          <div className="absolute bottom-4 right-4 text-[9px] font-black text-sidebar-text-muted/50 uppercase tracking-widest">
+            {instruction.length} Characters
+          </div>
+        </div>
+
+        <button 
+          onClick={sendInstruction}
+          disabled={isSending || !instruction.trim()}
+          className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl shadow-sky-500/20 active:scale-[0.98] group"
+        >
+          {isSending ? (
+            "Dispatching Instructions..."
+          ) : (
+            <>
+              <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              Send Clinical Order
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

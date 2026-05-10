@@ -22,6 +22,7 @@ import SecurityOverview from './views/SecurityOverview'
 import PractitionerVerificationView from './views/PractitionerVerificationView'
 import PatientVerificationView from './views/PatientVerificationView'
 import PatientManagementView from './views/PatientManagementView'
+import HealthAnalytics from './views/HealthAnalytics'
 import ProfilePage from '../ProfilePage'
 
 export interface AdminDashboardContextType {
@@ -108,7 +109,7 @@ function AdminLayout() {
     const today = new Date(); today.setHours(0, 0, 0, 0)
     const [{ count: reports, error: er1 }, { count: critical, error: er2 }] = await Promise.all([
       supabase.from('patient_monitoring_logs').select('log_id', { count: 'exact', head: true }).gte('recorded_at', today.toISOString()),
-      supabase.from('alerts').select('alert_id', { count: 'exact', head: true }).eq('alert_type', 'emergency'),
+      supabase.from('alerts').select('alert_id', { count: 'exact', head: true }).eq('is_resolved', false),
     ])
 
     if (er1) throw er1
@@ -155,6 +156,9 @@ function AdminLayout() {
   } else if (location.pathname.includes('/patients/roster')) {
     title = "Patient Roster"
     subTitle = "Global Health Registry Management"
+  } else if (location.pathname.includes('/analytics')) {
+    title = "Barangay Health Profile"
+    subTitle = "Population Health Coordination • Dumaguete City"
   }
 
   return (
@@ -235,6 +239,7 @@ export default function AdminDashboard() {
         <Route path="verification" element={<PractitionerVerificationView />} />
         <Route path="patients/verification" element={<PatientVerificationView />} />
         <Route path="patients/roster" element={<PatientManagementView />} />
+        <Route path="analytics" element={<HealthAnalytics />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard/admin" replace />} />
       </Route>

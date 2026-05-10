@@ -106,36 +106,33 @@ function PractitionerLayout() {
       })
       setPatients(processedPatients);
 
-      const allLogs = processedPatients.flatMap(p => 
-         (p.patient_monitoring_logs || []).map(l => ({
-            ...l,
-            patient_name: `${p.first_name} ${p.last_name}`,
-            caregiver_name: Array.isArray(l.caregivers) 
-              ? (l.caregivers[0] ? `${l.caregivers[0].first_name} ${l.caregivers[0].last_name}` : 'Unknown')
-              : (l.caregivers ? `${(l.caregivers as any).first_name} ${(l.caregivers as any).last_name}` : 'Unknown')
-         }))
-      );
-      
-      const newAlerts = allLogs
-        .filter((r: any) => r.physical_status === 'critical' || r.physical_status === 'warning')
-        .map((r: any) => ({
-          id: r.log_id,
-          patient_name: r.patient_name,
-          status: r.physical_status,
-          time: new Date(r.recorded_at).toLocaleString('en-PH', { timeStyle: 'short' }),
-          vitals: [
-            r.vital_signs?.blood_pressure && `BP ${r.vital_signs.blood_pressure}`,
-            r.vital_signs?.heart_rate && `${r.vital_signs.heart_rate} BPM`,
-            r.vital_signs?.oxygen_saturation && `SpO2 ${r.vital_signs.oxygen_saturation}%`,
-          ].filter(Boolean).join(' · '),
+      // Fetch actual unresolved alerts from the table
+      const { data: alertData } = await supabase
+        .from('alerts')
+        .select(`
+          *,
+          patient:patients(*)
+        `)
+        .eq('is_resolved', false)
+        .order('created_at', { ascending: false });
+
+      if (alertData) {
+        const mappedAlerts = alertData.map((a: any) => ({
+          id: a.alert_id,
+          patient_name: `${a.patient?.first_name} ${a.patient?.last_name}`,
+          status: a.severity,
+          time: new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          vitals: a.description,
           dismissed: false,
-        }))
-      
-      const urgentCount = newAlerts.filter((a: AlertItem) => a.status === 'critical' && !a.dismissed).length
-      if (urgentCount > lastAlertCount.current) playAlert()
-      
-      setAlerts(newAlerts)
-      lastAlertCount.current = urgentCount
+          patient_id: a.patient_id
+        }));
+
+        const urgentCount = mappedAlerts.filter((a: AlertItem) => a.status === 'critical').length
+        if (urgentCount > lastAlertCount.current) playAlert()
+        
+        setAlerts(mappedAlerts)
+        lastAlertCount.current = urgentCount
+      }
     }
     setIsLoading(false)
   }, [playAlert])
@@ -143,9 +140,8 @@ function PractitionerLayout() {
   useEffect(() => {
     loadData()
     const channel = supabase
-      .channel('practitioner-logs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'patient_monitoring_logs' }, (payload: any) => {
-        if ((payload.new as PatientMonitoringLog).physical_status === 'critical') playAlert()
+      .channel('practitioner-alerts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => {
         loadData()
       }).subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -204,7 +200,7 @@ function PractitionerLayout() {
       />
 
       <div className="flex flex-col md:flex-row min-h-screen font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
-        <Sidebar alertCount={alertCount} onLogoutClick={() => setShowLogoutModal(true)} />
+        <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
 
         <div className="flex-1 flex flex-col min-h-screen">
           <MobileHeader onLogoutClick={() => setShowLogoutModal(true)} />
