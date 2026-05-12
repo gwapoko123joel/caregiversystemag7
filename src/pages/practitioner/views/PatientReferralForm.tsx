@@ -11,6 +11,7 @@ import {
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
 import { motion } from 'framer-motion';
+import ReferralSlip from './ReferralSlip';
 
 interface PatientReferralFormProps {
   onBack: () => void;
@@ -28,8 +29,29 @@ export default function PatientReferralForm({ onBack }: PatientReferralFormProps
     phone: '',
     address: 'Barangay Bantayan',
     clinicalNotes: '',
-    urgency: 'routine'
+    urgency: 'routine',
+    targetFacility: 'Dumaguete City Proper (Public/Private Hospital)',
+    vitals: {
+      blood_pressure: '',
+      heart_rate: '',
+      oxygen_saturation: '',
+      temperature: ''
+    }
   });
+
+  const [generatedReferral, setGeneratedReferral] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (user) {
+      supabase
+        .from('caregivers')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => setUserProfile(data));
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +70,7 @@ export default function PatientReferralForm({ onBack }: PatientReferralFormProps
           phone_number: formData.phone,
           address: formData.address,
           registration_status: 'pending_verification',
-          registered_by: user.id, // Registered by practitioner
+          registered_by: user.id,
           rejection_reason: `REFERRAL [${formData.urgency.toUpperCase()}]: ${formData.clinicalNotes}`
         })
         .select()
@@ -56,20 +78,35 @@ export default function PatientReferralForm({ onBack }: PatientReferralFormProps
 
       if (patientError) throw patientError;
 
-      // 2. Log Activity
+      // 2. Create formal referral record
+      const { data: referral, error: referralError } = await supabase
+        .from('patient_referrals')
+        .insert({
+          patient_id: patient.patient_id,
+          doctor_id: user.id,
+          target_facility: formData.targetFacility,
+          reason_for_referral: formData.clinicalNotes,
+          urgency_level: formData.urgency,
+          vitals_at_referral: formData.vitals
+        })
+        .select()
+        .single();
+
+      if (referralError) throw referralError;
+
+      // 3. Log Activity
       await supabase.from('activity_logs').insert({
         user_id: user.id,
         user_type: 'practitioner',
         action: 'patient_referral_submitted',
         details: { 
           patient_id: patient.patient_id, 
-          name: `${formData.firstName} ${formData.lastName}`, 
-          urgency: formData.urgency 
+          referral_id: referral.referral_id,
+          name: `${formData.firstName} ${formData.lastName}`
         }
       });
 
-      setSuccess(true);
-      setTimeout(() => onBack(), 3000);
+      setGeneratedReferral(referral);
     } catch (err: any) {
       console.error('[PatientReferralForm] Error:', err);
       setError(err.message || 'Failed to submit referral');
@@ -77,6 +114,20 @@ export default function PatientReferralForm({ onBack }: PatientReferralFormProps
       setLoading(false);
     }
   };
+
+  if (generatedReferral) {
+    return (
+      <ReferralSlip 
+        data={generatedReferral} 
+        patient={{ first_name: formData.firstName, last_name: formData.lastName }} 
+        doctor={userProfile || { last_name: 'Practitioner', prc_license: 'PENDING' }} 
+        onBack={() => {
+          setGeneratedReferral(null);
+          onBack();
+        }} 
+      />
+    );
+  }
 
   if (success) {
     return (
@@ -157,15 +208,59 @@ export default function PatientReferralForm({ onBack }: PatientReferralFormProps
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Residence Catchment</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Target Facility</label>
               <div className="relative">
                 <MapPin size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600" />
                 <input 
                   required
-                  value={formData.address}
-                  onChange={e => setFormData({...formData, address: e.target.value})}
+                  value={formData.targetFacility}
+                  onChange={e => setFormData({...formData, targetFacility: e.target.value})}
                   className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white placeholder:text-slate-800 focus:border-sky-500/50 outline-none transition-all font-light"
-                  placeholder="Barangay Bantayan, Dumaguete"
+                  placeholder="e.g. Silliman Medical Center / NOPH"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white flex items-center gap-2">
+              <Activity size={16} className="text-emerald-500" /> Vital Signs Snapshot
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest ml-1">BP (Sys/Dia)</label>
+                <input 
+                  value={formData.vitals.blood_pressure}
+                  onChange={e => setFormData({...formData, vitals: {...formData.vitals, blood_pressure: e.target.value}})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-emerald-500/50"
+                  placeholder="120/80"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest ml-1">HR (BPM)</label>
+                <input 
+                  value={formData.vitals.heart_rate}
+                  onChange={e => setFormData({...formData, vitals: {...formData.vitals, heart_rate: e.target.value}})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-emerald-500/50"
+                  placeholder="72"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest ml-1">SpO2 (%)</label>
+                <input 
+                  value={formData.vitals.oxygen_saturation}
+                  onChange={e => setFormData({...formData, vitals: {...formData.vitals, oxygen_saturation: e.target.value}})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-emerald-500/50"
+                  placeholder="98"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest ml-1">Temp (°C)</label>
+                <input 
+                  value={formData.vitals.temperature}
+                  onChange={e => setFormData({...formData, vitals: {...formData.vitals, temperature: e.target.value}})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-emerald-500/50"
+                  placeholder="36.5"
                 />
               </div>
             </div>

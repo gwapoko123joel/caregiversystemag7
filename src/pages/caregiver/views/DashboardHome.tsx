@@ -56,6 +56,31 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
     setOrders(data || []);
   };
 
+  async function handleAcknowledgeOrder(instructionId: string) {
+    try {
+      const { error } = await supabase
+        .from('clinical_instructions')
+        .update({ status: 'completed' }) // Mark as done
+        .eq('instruction_id', instructionId);
+
+      if (error) throw error;
+
+      // Refresh orders list locally
+      fetchOrders();
+      
+      // Optional: Log this action for the Admin's Audit Trail
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'caregiver',
+        action: 'ORDER_ACKNOWLEDGED',
+        details: { instruction_id: instructionId }
+      });
+
+    } catch (err: any) {
+      console.error("Acknowledgment failed:", err.message);
+    }
+  }
+
   // 2. Fetch Online Doctors
   const fetchOnlineDoctors = async () => {
     const { data } = await supabase
@@ -207,10 +232,50 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
                 <p className="text-[10px] text-center opacity-30 uppercase font-black py-4">No Active Orders</p>
               ) : (
                 orders.map((order) => (
-                  <div key={order.instruction_id} className="p-4 bg-sky-500/5 border-l-4 border-sky-500 rounded-r-2xl">
-                    <p className="text-[9px] font-black text-sky-500 uppercase mb-1">FOR: {order.patient?.first_name}</p>
-                    <p className="text-[11px] text-text-main leading-relaxed mb-2 italic">"{order.instruction_text}"</p>
-                    <p className="text-[8px] font-black text-sidebar-text-muted uppercase">— Dr. {order.doctor?.last_name}</p>
+                  <div 
+                    key={order.instruction_id} 
+                    className={`p-4 rounded-r-2xl border-l-4 transition-all ${
+                      order.status === 'completed' 
+                        ? 'bg-emerald-500/5 border-emerald-500 opacity-60' 
+                        : 'bg-sky-500/5 border-sky-500'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={`text-[9px] font-black uppercase tracking-widest ${
+                        order.status === 'completed' ? 'text-emerald-500' : 'text-sky-500'
+                      }`}>
+                        FOR: {order.patient?.first_name}
+                      </span>
+                      {order.status === 'completed' ? (
+                        <span className="text-[8px] font-black text-emerald-500 uppercase flex items-center gap-1">
+                          <ShieldCheck size={10} /> COMPLETED
+                        </span>
+                      ) : (
+                        <span className="text-[8px] text-sidebar-text-muted">
+                          {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-[11px] text-text-main leading-relaxed mb-3 italic">
+                      "{order.instruction_text}"
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-[8px] font-black text-sidebar-text-muted uppercase">
+                        — Dr. {order.doctor?.last_name}
+                      </div>
+                      
+                      {/* ONLY SHOW BUTTON IF NOT COMPLETED */}
+                      {order.status !== 'completed' && (
+                        <button 
+                          onClick={() => handleAcknowledgeOrder(order.instruction_id)}
+                          className="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-sky-500/20"
+                        >
+                          Acknowledge Task
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

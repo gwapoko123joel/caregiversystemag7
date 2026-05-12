@@ -3,7 +3,7 @@ import {
   ArrowLeft, User, Activity, Calendar, 
   MapPin, Heart, Wind, Thermometer, 
   Droplet, FileText, Clock, AlertCircle,
-  Loader2, Plus, ChevronRight
+  Loader2, Plus, ChevronRight, TrendingUp, TrendingDown, Minus
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
@@ -48,6 +48,34 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
       default: return 'text-slate-500 bg-slate-500/10 border-slate-500/20'
     }
   }
+
+  // --- TREND CALCULATION LOGIC ---
+  const getTrend = (key: string) => {
+    if (logs.length < 2) return null;
+    
+    const current = logs[0].vital_signs[key];
+    const previous = logs[1].vital_signs[key];
+
+    if (key === 'blood_pressure') {
+      const currSys = parseInt(current?.split('/')[0] || '0');
+      const prevSys = parseInt(previous?.split('/')[0] || '0');
+      if (currSys > prevSys + 5) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currSys < prevSys - 5) return { type: 'down', color: 'text-emerald-500', label: 'Improving', icon: <TrendingDown size={14} /> };
+      return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+    }
+
+    const currVal = parseFloat(current || '0');
+    const prevVal = parseFloat(previous || '0');
+
+    if (key === 'oxygen_saturation') {
+      if (currVal > prevVal) return { type: 'up', color: 'text-emerald-500', label: 'Improving', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal) return { type: 'down', color: 'text-rose-500', label: 'Declining', icon: <TrendingDown size={14} /> };
+    } else { // Heart Rate, Temp
+      if (currVal > prevVal + 3) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal - 3) return { type: 'down', color: 'text-emerald-500', label: 'Lowering', icon: <TrendingDown size={14} /> };
+    }
+    return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
@@ -131,6 +159,36 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
             </div>
           ) : (
             <div className="grid gap-4">
+              {/* --- VITAL SIGNS TREND HUD --- */}
+              {logs.length >= 2 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 animate-in slide-in-from-top-4 duration-700">
+                  <div className="bg-sky-500/5 border border-sky-500/10 rounded-[28px] p-6 flex items-center justify-between">
+                    <div>
+                      <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Systolic Trend</p>
+                      <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('blood_pressure')?.color}`}>
+                        {getTrend('blood_pressure')?.icon} {getTrend('blood_pressure')?.label}
+                      </h4>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[14px] font-mono text-text-main font-bold">{logs[1].vital_signs.blood_pressure} → {logs[0].vital_signs.blood_pressure}</p>
+                      <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">Last 2 Readings</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[28px] p-6 flex items-center justify-between">
+                    <div>
+                      <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Oxygen Stability</p>
+                      <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('oxygen_saturation')?.color}`}>
+                        {getTrend('oxygen_saturation')?.icon} {getTrend('oxygen_saturation')?.label}
+                      </h4>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[14px] font-mono text-text-main font-bold">{logs[1].vital_signs.oxygen_saturation}% → {logs[0].vital_signs.oxygen_saturation}%</p>
+                      <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">O2 Saturation</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               {logs.map((log) => (
                 <div key={log.log_id} className="bg-card border border-card-border rounded-[24px] p-6 hover:border-sky-500/30 transition-all group shadow-sm">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

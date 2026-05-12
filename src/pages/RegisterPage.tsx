@@ -58,6 +58,9 @@ export default function RegisterPage() {
   const [cgSuccess, setCgSuccess] = useState(false)
 
   // ── Practitioner State ──
+  const [mpStep, setMpStep] = useState<CaregiverStep>(1)
+  const [mpAccessId, setMpAccessId] = useState('')
+  const [mpVerifiedInfo, setMpVerifiedInfo] = useState<CaregiverVerifiedInfo | null>(null)
   const [mpFirstName, setMpFirstName] = useState('')
   const [mpLastName, setMpLastName] = useState('')
   const [mpEmail, setMpEmail] = useState('')
@@ -66,6 +69,7 @@ export default function RegisterPage() {
   const [mpConfirmPassword, setMpConfirmPassword] = useState('')
   const [mpShowPassword, setMpShowPassword] = useState(false)
   const [mpShowConfirm, setMpShowConfirm] = useState(false)
+  const [mpVerifying, setMpVerifying] = useState(false)
   const [mpSubmitting, setMpSubmitting] = useState(false)
   const [mpError, setMpError] = useState<string | null>(null)
   const [mpSuccess, setMpSuccess] = useState(false)
@@ -186,42 +190,28 @@ export default function RegisterPage() {
       // Delay to allow the auth session to propagate before hitting RLS policies
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Step B1: Delete the placeholder row
-      const { error: deleteError } = await supabase
+      // Step B: Update the provisioned row with the real Auth UID and profile details
+      const { error: updateError } = await supabase
         .from('caregivers')
-        .delete()
-        .eq('unique_access_id', cgVerifiedInfo.unique_access_id)
-        .is('email', null) // Safety: only delete unregistered rows
-
-      if (deleteError) {
-        console.error('[Register] STEP B1 DELETE FAILED:', JSON.stringify(deleteError))
-        await supabase.auth.signOut()
-        setCgError(`Step B1 failed: ${deleteError.message} (code: ${deleteError.code})`)
-        return
-      }
-
-      console.log('[Register] Step B1 delete succeeded, proceeding to insert...')
-
-      // Step B2: Insert the real caregivers row with auth UID
-      const { error: insertError } = await supabase
-        .from('caregivers')
-        .insert({
-          id: authData.user.id,
-          unique_access_id: cgVerifiedInfo.unique_access_id,
+        .update({
+          id: authData.user.id,           // Overwrite temporary UUID with real Auth UID
+          email: cgEmail.trim().toLowerCase(),
           first_name: cgFirstName.trim(),
           last_name: cgLastName.trim(),
-          email: cgEmail.trim().toLowerCase(),
-          role: 'caregiver',
+          bhw_id: cgBhwId.trim(),
           is_active: false,
-          bhw_id: cgBhwId.trim()
+          status: 'pending'               // Wait for final admin authorization
         })
+        .eq('unique_access_id', cgVerifiedInfo.unique_access_id)
 
-      if (insertError) {
-        console.error('[Register] STEP B2 INSERT FAILED:', JSON.stringify(insertError))
+      if (updateError) {
+        console.error('[Register] STEP B UPDATE FAILED:', JSON.stringify(updateError))
         await supabase.auth.signOut()
-        setCgError(`Step B2 failed: ${insertError.message} (code: ${insertError.code})`)
+        setCgError(`Step B failed: ${updateError.message} (code: ${updateError.code})`)
         return
       }
+
+      console.log('[Register] Step B update succeeded')
 
       // Step C: Log the registration
       await supabase.from('activity_logs').insert({
@@ -245,7 +235,59 @@ export default function RegisterPage() {
   }
 
   // ─────────────────────────────────────────────
-  // PRACTITIONER: Single Form Submit
+  // PRACTITIONER: STEP 1 — Verify Access ID
+  // ─────────────────────────────────────────────
+  async function handlePractitionerVerify(e: FormEvent) {
+    e.preventDefault()
+    setMpError(null)
+
+    const trimmedId = mpAccessId.trim().toUpperCase()
+    if (!trimmedId) {
+      setMpError('Please enter your Access ID.')
+      return
+    }
+
+    setMpVerifying(true)
+    try {
+      const { data, error } = await supabase
+        .from('caregivers')
+        .select('id, unique_access_id, role, is_active, email, first_name, last_name')
+        .eq('unique_access_id', trimmedId)
+        .maybeSingle()
+
+      if (error) {
+        setMpError('Verification failed. Please try again.')
+        return
+      }
+
+      if (!data) {
+        setMpError('Access ID not found. Please contact your Barangay Admin.')
+        return
+      }
+
+      if (data.role !== 'medical_practitioner') {
+        setMpError('This Access ID is not assigned to a Practitioner account.')
+        return
+      }
+
+      if (data.email) {
+        setMpError('This Access ID is already registered. Please sign in instead.')
+        return
+      }
+
+      // ✅ Valid — move to Step 2
+      setMpVerifiedInfo(data)
+      if (data.first_name) setMpFirstName(data.first_name)
+      if (data.last_name) setMpLastName(data.last_name)
+      setMpStep(2)
+
+    } finally {
+      setMpVerifying(false)
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // PRACTITIONER: STEP 2 — Complete Registration
   // ─────────────────────────────────────────────
   async function handlePractitionerRegister(e: FormEvent) {
     e.preventDefault()
@@ -267,52 +309,73 @@ export default function RegisterPage() {
       setMpError('Passwords do not match.')
       return
     }
+    if (!mpVerifiedInfo) {
+      setMpError('Session expired. Please verify your Access ID again.')
+      setMpStep(1)
+      return
+    }
 
     setMpSubmitting(true)
     try {
-      // Generate a unique MP access ID
-      let accessId = ''
-      for (let i = 0; i < 5; i++) {
-        const candidate = generateMPAccessId()
-        const { data: existing } = await supabase
-          .from('caregivers')
-          .select('id')
-          .eq('unique_access_id', candidate)
-          .maybeSingle()
-
-        if (!existing) {
-          accessId = candidate
-          break
-        }
-      }
-
-      if (!accessId) {
-        setMpError('Could not generate a unique Access ID. Please try again.')
-        return
-      }
-
-      // Use the signUp() from AuthContext — creates auth + caregivers row
-      const { error: signUpError } = await signUp({
+      // Step A: Create Supabase auth account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: mpEmail.trim().toLowerCase(),
         password: mpPassword,
-        full_name: `${mpFirstName.trim()} ${mpLastName.trim()}`,
-        role: 'medical_practitioner',
-        access_id: accessId,
+        options: {
+          data: {
+            full_name: `${mpFirstName.trim()} ${mpLastName.trim()}`,
+            role: 'medical_practitioner',
+            access_id: mpVerifiedInfo.unique_access_id,
+          }
+        }
       })
 
-      if (signUpError) {
-        setMpError(signUpError)
+      if (authError) {
+        setMpError(`Authentication failed: ${authError.message}`)
         return
       }
 
-      // Save the PRC License to the newly created record
-      await supabase.from('caregivers').update({ 
-        prc_license: mpPrcLicense.trim() 
-      }).eq('unique_access_id', accessId)
+      if (!authData.user) {
+        setMpError('Registration failed. Please try again.')
+        return
+      }
 
-      setMpGeneratedId(accessId)
+      // Delay to allow the auth session to propagate
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Step B: Update the provisioned row with the real Auth UID and clinical details
+      const { error: updateError } = await supabase
+        .from('caregivers')
+        .update({
+          id: authData.user.id,
+          email: mpEmail.trim().toLowerCase(),
+          first_name: mpFirstName.trim(),
+          last_name: mpLastName.trim(),
+          prc_license: mpPrcLicense.trim(),
+          is_active: false,
+          status: 'pending'
+        })
+        .eq('unique_access_id', mpVerifiedInfo.unique_access_id)
+
+      if (updateError) {
+        await supabase.auth.signOut()
+        setMpError(`Profile update failed: ${updateError.message}`)
+        return
+      }
+
+      // Step C: Log the registration
+      await supabase.from('activity_logs').insert({
+        user_id: authData.user.id,
+        user_type: 'medical_practitioner',
+        action: 'REGISTER',
+        details: { access_id: mpVerifiedInfo.unique_access_id }
+      })
+
+      setMpGeneratedId(mpVerifiedInfo.unique_access_id)
       setMpSuccess(true)
 
+    } catch (err: any) {
+      setMpError(`Unexpected error: ${err.message}`)
     } finally {
       setMpSubmitting(false)
     }
@@ -583,90 +646,158 @@ export default function RegisterPage() {
             {/* PRACTITIONER TAB                          */}
             {/* ══════════════════════════════════════════ */}
             {activeTab === 'medical_practitioner' && (
-              <form onSubmit={handlePractitionerRegister} className="space-y-5">
-                <div className="text-center mb-6">
-                  <div className="w-14 h-14 bg-sky-500/10 border border-sky-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Stethoscope size={24} className="text-sky-400" />
+              <div>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${mpStep >= 1 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
+                    }`}>
+                    {mpStep > 1 ? <CheckCircle2 size={14} /> : '1'}
                   </div>
-                  <h2 className="text-lg font-light text-text-main uppercase tracking-[0.15em] mb-2">
-                    Practitioner Registration
-                  </h2>
+                  <div className={`flex-1 h-px transition-all ${mpStep > 1 ? 'bg-sky-500' : 'bg-card-border'}`} />
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${mpStep >= 2 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
+                    }`}>
+                    2
+                  </div>
+                  <div className="flex-1 text-right">
+                    <span className="text-[10px] text-sidebar-text-muted uppercase tracking-widest font-light">
+                      {mpStep === 1 ? 'Verify ID' : 'Clinical Profile'}
+                    </span>
+                  </div>
                 </div>
 
-                {mpError && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                    <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                    <span className="text-sm text-red-400 font-light">{mpError}</span>
-                  </div>
+                {mpStep === 1 && (
+                  <form onSubmit={handlePractitionerVerify} className="space-y-6">
+                    <div className="text-center mb-6">
+                      <div className="w-14 h-14 bg-sky-500/10 border border-sky-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <KeyRound size={24} className="text-sky-400" />
+                      </div>
+                      <h2 className="text-lg font-light text-text-main uppercase tracking-[0.15em] mb-2">
+                        Practitioner Access
+                      </h2>
+                    </div>
+
+                    {mpError && (
+                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                        <span className="text-sm text-red-400 font-light">{mpError}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <div className="relative group">
+                        <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                        <input
+                          type="text"
+                          placeholder="e.g. MP-1234"
+                          value={mpAccessId}
+                          onChange={(e) => setMpAccessId(e.target.value.toUpperCase())}
+                          className="w-full bg-primary/50 border border-card-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light tracking-widest uppercase"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={mpVerifying || !mpAccessId.trim()}
+                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm"
+                    >
+                      {mpVerifying ? <Loader2 size={18} className="animate-spin" /> : 'Verify Practitioner ID'}
+                    </button>
+                  </form>
                 )}
 
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">First Name</label>
-                    <div className="relative group">
-                      <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                      <input type="text" value={mpFirstName} onChange={(e) => setMpFirstName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Last Name</label>
-                    <div className="relative group">
-                      <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                      <input type="text" value={mpLastName} onChange={(e) => setMpLastName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
-                  <div className="relative group">
-                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                    <input type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">PRC License Number</label>
-                  <div className="relative group">
-                    <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                    <input type="text" placeholder="e.g. 0123456" value={mpPrcLicense} onChange={(e) => setMpPrcLicense(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
-                    <div className="relative group">
-                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                      <input type={mpShowPassword ? 'text' : 'password'} value={mpPassword} onChange={(e) => setMpPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                      <button type="button" onClick={() => setMpShowPassword(!mpShowPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                        {mpShowPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {mpStep === 2 && mpVerifiedInfo && (
+                  <form onSubmit={handlePractitionerRegister} className="space-y-5">
+                    <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+                      <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-[10px] text-emerald-400 uppercase tracking-widest font-light">Credential Verified</p>
+                        <code className="text-sm text-emerald-300 font-mono tracking-widest">
+                          {mpVerifiedInfo.unique_access_id}
+                        </code>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setMpStep(1); setMpVerifiedInfo(null); setMpError(null) }}
+                        className="text-[10px] text-sidebar-text-muted hover:text-sky-400 uppercase tracking-widest font-light transition-colors"
+                      >
+                        Change
                       </button>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm</label>
-                    <div className="relative group">
-                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                      <input type={mpShowConfirm ? 'text' : 'password'} value={mpConfirmPassword} onChange={(e) => setMpConfirmPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                      <button type="button" onClick={() => setMpShowConfirm(!mpShowConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                        {mpShowConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={mpSubmitting}
-                  className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm mt-2"
-                >
-                  {mpSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>REGISTER AS PRACTITIONER <ArrowRight size={18} /></>}
-                </button>
-              </form>
+                    {mpError && (
+                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                        <span className="text-sm text-red-400 font-light">{mpError}</span>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">First Name</label>
+                        <div className="relative group">
+                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                          <input type="text" value={mpFirstName} onChange={(e) => setMpFirstName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Last Name</label>
+                        <div className="relative group">
+                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                          <input type="text" value={mpLastName} onChange={(e) => setMpLastName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
+                      <div className="relative group">
+                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                        <input type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">PRC License Number</label>
+                      <div className="relative group">
+                        <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                        <input type="text" placeholder="e.g. 0123456" value={mpPrcLicense} onChange={(e) => setMpPrcLicense(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
+                        <div className="relative group">
+                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                          <input type={mpShowPassword ? 'text' : 'password'} value={mpPassword} onChange={(e) => setMpPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                          <button type="button" onClick={() => setMpShowPassword(!mpShowPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
+                            {mpShowPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm</label>
+                        <div className="relative group">
+                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
+                          <input type={mpShowConfirm ? 'text' : 'password'} value={mpConfirmPassword} onChange={(e) => setMpConfirmPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
+                          <button type="button" onClick={() => setMpShowConfirm(!mpShowConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
+                            {mpShowConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={mpSubmitting}
+                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm mt-2"
+                    >
+                      {mpSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>REGISTER AS PRACTITIONER <ArrowRight size={18} /></>}
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
 
           </div>

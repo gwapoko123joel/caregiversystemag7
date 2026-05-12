@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Search, Plus, KeyRound, RefreshCw,
   MoreVertical, CheckCircle2, XCircle, Clock,
-  ShieldCheck
+  ShieldCheck, Loader2
 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
@@ -14,14 +14,9 @@ import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
  * Generate a random 4-digit number for access IDs.
  */
 function generateAccessId(role: string): string {
-  const prefixMap: Record<string, string> = {
-    admin: 'ADMIN',
-    medical_practitioner: 'MP',
-    caregiver: 'CG'
-  }
-  const prefix = prefixMap[role] || 'USR'
-  const randomNum = Math.floor(1000 + Math.random() * 9000)
-  return `${prefix}-${randomNum}`
+  const prefix = role === 'caregiver' ? 'CG' : 'MP';
+  const random = Math.floor(1000 + Math.random() * 9000); // 4 random digits
+  return `${prefix}-${random}`;
 }
 
 export default function UserManagement() {
@@ -40,6 +35,7 @@ export default function UserManagement() {
   const [editingId, setEditingId] = useState<{ id: string, value: string } | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   // Handlers
   async function handleUpdateStatus(userId: string, newStatus: Profile['status']) {
@@ -73,29 +69,35 @@ export default function UserManagement() {
     setUpdatingStatus(null)
   }
 
-  async function handleReissueId(userId: string) {
-    if (!confirm('Are you sure you want to REISSUE the Access ID? The old ID will be invalidated immediately.')) return
+  async function handleRotateKey(userId: string, role: string, name: string) {
+    const newId = generateAccessId(role)
+
+    if (!confirm(`Rotate Access Key for ${name}?\n\nNew Key will be: ${newId}\nThe old key will stop working immediately.`)) return
 
     setProcessingId(userId)
-    const targetUser = users.find(u => u.id === userId)
-    const newId = generateAccessId(targetUser?.role || 'caregiver')
+    try {
+      const { error } = await supabase
+        .from('caregivers')
+        .update({ unique_access_id: newId })
+        .eq('id', userId)
 
-    const { error } = await supabase
-      .from('caregivers')
-      .update({ unique_access_id: newId })
-      .eq('id', userId)
+      if (error) throw error
 
-    if (!error) {
       await supabase.from('activity_logs').insert({
         user_id: user?.id,
         user_type: profile?.role ?? 'admin',
-        action: 'REISSUE_ACCESS_ID',
-        details: { target_user: userId, new_id: newId }
+        action: 'KEY_ROTATION',
+        details: { target_user: name, new_token: newId }
       })
+
+      alert("Key rotated successfully.")
       await loadUsers()
       await loadLogs()
+    } catch (err: any) {
+      alert("Rotation failed: " + err.message)
+    } finally {
+      setProcessingId(null)
     }
-    setProcessingId(null)
   }
 
   async function handleManualIdUpdate() {
@@ -124,35 +126,45 @@ export default function UserManagement() {
     setProcessingId(null)
   }
 
-  async function handleProvisionUser() {
+  async function handleIssueNewKey() {
     if (!newUser.full_name) {
       alert('Please provide full name.')
       return
     }
 
-    // Split full_name into first_name + last_name (caregivers requires both NOT NULL)
+    setSubmitting(true)
+    const newAccessId = generateAccessId(newUser.role)
+
+    // Split full_name into first_name + last_name (caregivers table requires both)
     const nameParts = newUser.full_name.trim().split(/\s+/)
     const first_name = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts[0] || 'Unknown'
     const last_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '-'
 
-    const { error } = await supabase
-      .from('caregivers')
-      .insert({
-        first_name,
-        last_name,
-        email: newUser.email || null, // Allow empty email initially
-        role: newUser.role,
-        unique_access_id: generateAccessId(newUser.role),
-        is_active: false,         // pending approval
-        status: 'pending',
-      })
+    try {
+      const { error } = await supabase
+        .from('caregivers')
+        .insert({
+          first_name,
+          last_name,
+          email: newUser.email.trim() || null, 
+          role: newUser.role,
+          unique_access_id: newAccessId,
+          status: 'pending',
+          is_active: false
+        })
 
-    if (!error) {
-      setShowAddUser(false)
+      if (error) throw error
+
+      alert(`ACCESS KEY ISSUED\n\nPersonnel: ${newUser.full_name}\nKey: ${newAccessId}\n\nProvide this key to the staff member to complete registration.`);
+      
       setNewUser({ full_name: '', email: '', role: 'caregiver' as Profile['role'], access_id: '' })
+      setShowAddUser(false)
       await loadUsers()
-    } else {
-      alert(error.message)
+      
+    } catch (err: any) {
+      alert("Issue failed: " + err.message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -199,7 +211,7 @@ export default function UserManagement() {
           onClick={() => setShowAddUser(true)}
           className="w-full md:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
         >
-          <Plus size={18} /> Provision Personnel
+          <Plus size={18} /> Issue Access Key
         </button>
       </div>
 
@@ -282,11 +294,11 @@ export default function UserManagement() {
                             </code>
                             <button
                               disabled={processingId === u.id}
-                              onClick={() => handleReissueId(u.id)}
-                              title="Reissue Security Token"
+                              onClick={() => handleRotateKey(u.id, u.role, u.full_name)}
+                              title="Regenerate Key"
                               className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
                             >
-                              {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                              {processingId === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
                             </button>
                           </>
                         )}
@@ -360,10 +372,10 @@ export default function UserManagement() {
                     <div className="flex gap-1">
                       <button
                         disabled={processingId === u.id}
-                        onClick={() => handleReissueId(u.id)}
+                        onClick={() => handleRotateKey(u.id, u.role, u.full_name)}
                         className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
                       >
-                        {processingId === u.id ? <RefreshCw size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                        {processingId === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
                       </button>
                     </div>
                   </div>
@@ -403,8 +415,8 @@ export default function UserManagement() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowAddUser(false)} />
           <div className="relative w-full max-w-lg bg-card border border-card-border rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-300 transition-colors">
-            <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2 transition-colors">Provision New Personnel</h3>
-            <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">Grant secure node access to credentials</p>
+            <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2 transition-colors">Issue Access Key</h3>
+            <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">GRANT SECURE NETWORK ACCESS TO NEW STAFF</p>
 
             <div className="space-y-4">
               <div className="space-y-2">
@@ -451,10 +463,11 @@ export default function UserManagement() {
                 Abort Provisioning
               </button>
               <button
-                onClick={handleProvisionUser}
-                className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+                onClick={handleIssueNewKey}
+                disabled={submitting}
+                className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
               >
-                Commit to Network
+                {submitting ? <Loader2 className="animate-spin mx-auto" /> : 'Commit to Network'}
               </button>
             </div>
           </div>

@@ -68,13 +68,13 @@ const PatientCard: React.FC<PatientCardProps> = ({
                 onClick={() => onVerify?.(patient)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-cyan/20 border border-brand-cyan/30 text-brand-cyan rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-brand-cyan/30 transition-all"
               >
-                <ShieldCheck size={14} /> Approve
+                <ShieldCheck size={14} /> APPROVE
               </button>
               <button 
                 onClick={() => onReject?.(patient)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-500/20 transition-all"
               >
-                <XCircle size={14} /> Reject
+                <XCircle size={14} /> REJECT
               </button>
             </>
           ) : (
@@ -83,7 +83,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
                 onClick={() => onViewDetails?.(patient)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
               >
-                Details <ArrowRight size={14} />
+                DETAILS →
               </button>
               {onReassign && (
                 <button 

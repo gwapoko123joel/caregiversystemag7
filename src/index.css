@@ -191,3 +191,24 @@ button { font-family: inherit; }
 .page-transition {
   animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@media print {
+  /* Hide the sidebar and the dashboard background */
+  .no-print, 
+  aside, 
+  nav, 
+  button {
+    display: none !important;
+  }
+
+  /* Ensure the white document fills the page */
+  .max-w-4xl {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: white !important;
+  }
+}

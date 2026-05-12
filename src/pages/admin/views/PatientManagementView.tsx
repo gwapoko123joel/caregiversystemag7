@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   ArrowRightLeft, 
@@ -11,6 +12,7 @@ import PatientCard from '../../../components/patients/PatientCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function PatientManagementView() {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [caregivers, setCaregivers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,45 @@ export default function PatientManagementView() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // 1. Handle Patient Approval
+  async function handleApprove(patientId: number) {
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update({ status: 'active' }) // Changes 'pending' to 'active'
+        .eq('patient_id', patientId);
+
+      if (error) throw error;
+      
+      alert("Patient record authorized and active.");
+      window.location.reload(); 
+    } catch (err: any) {
+      alert("Error approving: " + err.message);
+    }
+  }
+
+  // 2. Handle Patient Rejection
+  async function handleReject(patientId: number) {
+    if (confirm("Are you sure you want to reject and remove this patient record?")) {
+      try {
+        const { error } = await supabase
+          .from('patients')
+          .delete()
+          .eq('patient_id', patientId);
+
+        if (error) throw error;
+        window.location.reload();
+      } catch (err: any) {
+        alert("Error rejecting: " + err.message);
+      }
+    }
+  }
+
+  // 3. Handle View Details
+  function handleViewDetails(patientId: number) {
+    navigate(`/dashboard/admin/patient/${patientId}`);
+  }
 
   const handleReassign = async () => {
     if (!selectedPatient || !newCaregiverId) return;
@@ -134,6 +175,9 @@ export default function PatientManagementView() {
             <PatientCard 
               key={patient.patient_id} 
               patient={patient}
+              onViewDetails={() => handleViewDetails(patient.patient_id)}
+              onVerify={() => handleApprove(patient.patient_id)}
+              onReject={() => handleReject(patient.patient_id)}
               onReassign={() => {
                 setSelectedPatient(patient);
                 setShowReassignModal(true);

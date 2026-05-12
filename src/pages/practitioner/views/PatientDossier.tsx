@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   User, 
   Calendar, 
@@ -9,7 +9,10 @@ import {
   X,
   ChevronLeft,
   ShieldCheck,
-  Send
+  Send,
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
@@ -32,6 +35,24 @@ export default function PatientDossier({
   // Clinical Intervention State
   const [instruction, setInstruction] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [orders, setOrders] = useState<any[]>([])
+
+  async function fetchOrders() {
+    const { data } = await supabase
+      .from('clinical_instructions')
+      .select(`
+        *,
+        doctor:caregivers!doctor_id (last_name)
+      `)
+      .eq('patient_id', parseInt(patient.patient_id.toString()))
+      .order('created_at', { ascending: false })
+    
+    setOrders(data || [])
+  }
+
+  useEffect(() => {
+    fetchOrders()
+  }, [patient.patient_id])
 
   async function sendInstruction() {
     if (!instruction.trim() || !user) return
@@ -49,6 +70,7 @@ export default function PatientDossier({
 
       if (error) throw error
       setInstruction('')
+      fetchOrders() // Refresh list
       alert("Instruction dispatched to Caregiver node.")
     } catch (err) {
       console.error(err)
@@ -57,6 +79,35 @@ export default function PatientDossier({
       setIsSending(false)
     }
   }
+
+  // --- TREND CALCULATION LOGIC ---
+  const getTrend = (key: string) => {
+    const logs = patient.patient_monitoring_logs;
+    if (logs.length < 2) return null;
+    
+    const current = logs[0].vital_signs[key];
+    const previous = logs[1].vital_signs[key];
+
+    if (key === 'blood_pressure') {
+      const currSys = parseInt(current?.split('/')[0] || '0');
+      const prevSys = parseInt(previous?.split('/')[0] || '0');
+      if (currSys > prevSys + 5) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currSys < prevSys - 5) return { type: 'down', color: 'text-emerald-500', label: 'Improving', icon: <TrendingDown size={14} /> };
+      return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+    }
+
+    const currVal = parseFloat(current || '0');
+    const prevVal = parseFloat(previous || '0');
+
+    if (key === 'oxygen_saturation') {
+      if (currVal > prevVal) return { type: 'up', color: 'text-emerald-500', label: 'Improving', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal) return { type: 'down', color: 'text-rose-500', label: 'Declining', icon: <TrendingDown size={14} /> };
+    } else { // Heart Rate, Temp
+      if (currVal > prevVal + 3) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal - 3) return { type: 'down', color: 'text-emerald-500', label: 'Lowering', icon: <TrendingDown size={14} /> };
+    }
+    return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+  };
 
   return (
     <div className="animate-in slide-in-from-right-8 duration-500 space-y-6">
@@ -107,6 +158,41 @@ export default function PatientDossier({
                <Phone size={18} /> Initiate Remote Consult
             </button>
          </div>
+
+         {/* --- VITAL SIGNS TREND HUD --- */}
+         {patient.patient_monitoring_logs.length >= 2 && (
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 animate-in slide-in-from-top-4 duration-700 relative z-10">
+             <div className="bg-sky-500/5 border border-sky-500/10 rounded-[28px] p-6 flex items-center justify-between">
+               <div>
+                 <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Systolic Trend</p>
+                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('blood_pressure')?.color}`}>
+                   {getTrend('blood_pressure')?.icon} {getTrend('blood_pressure')?.label}
+                 </h4>
+               </div>
+               <div className="text-right">
+                 <p className="text-[14px] font-mono text-text-main font-bold">
+                   {patient.patient_monitoring_logs[1].vital_signs.blood_pressure} → {patient.patient_monitoring_logs[0].vital_signs.blood_pressure}
+                 </p>
+                 <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">Last 2 Readings</p>
+               </div>
+             </div>
+
+             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[28px] p-6 flex items-center justify-between">
+               <div>
+                 <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Oxygen Stability</p>
+                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('oxygen_saturation')?.color}`}>
+                   {getTrend('oxygen_saturation')?.icon} {getTrend('oxygen_saturation')?.label}
+                 </h4>
+               </div>
+               <div className="text-right">
+                 <p className="text-[14px] font-mono text-text-main font-bold">
+                   {patient.patient_monitoring_logs[1].vital_signs.oxygen_saturation}% → {patient.patient_monitoring_logs[0].vital_signs.oxygen_saturation}%
+                 </p>
+                 <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">O2 Saturation</p>
+               </div>
+             </div>
+           </div>
+         )}
 
          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 relative z-10">
             
@@ -243,6 +329,38 @@ export default function PatientDossier({
             </>
           )}
         </button>
+      </div>
+
+      {/* ── ORDER HISTORY ── */}
+      <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-8 md:p-12 shadow-sm transition-colors">
+        <h3 className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-6">Recent Dispatch History</h3>
+        <div className="space-y-4">
+          {orders.length === 0 ? (
+            <div className="py-10 text-center border border-dashed border-card-border rounded-2xl">
+              <p className="text-[10px] text-sidebar-text-muted uppercase font-black">No clinical orders found for this patient.</p>
+            </div>
+          ) : (
+            orders.map((order) => (
+              <div key={order.instruction_id} className="p-5 bg-primary/30 border border-card-border rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${order.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${order.status === 'completed' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {order.status === 'completed' ? '✓ Actioned' : '• Pending'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-main italic font-light">"{order.instruction_text}"</p>
+                  <p className="text-[8px] text-sidebar-text-muted uppercase font-black tracking-widest">
+                    Dispatched: {new Date(order.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-sky-500 uppercase">Dr. {order.doctor?.last_name}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
