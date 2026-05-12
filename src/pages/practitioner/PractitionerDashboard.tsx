@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
-  Activity, VolumeX, Volume2, Monitor, Menu
+  Activity, VolumeX, Volume2, Monitor, Menu, ShieldAlert
 } from 'lucide-react'
 import { Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
@@ -71,6 +71,7 @@ function PractitionerLayout() {
   const [isLoading, setIsLoading] = useState(true)
   const audioCtx = useRef<AudioContext | null>(null)
   const lastAlertCount = useRef(0)
+  const [activeSOS, setActiveSOS] = useState<any>(null);
 
   const playAlert = useCallback(() => {
     if (!soundEnabled) return
@@ -147,6 +148,52 @@ function PractitionerLayout() {
     return () => { supabase.removeChannel(channel) }
   }, [loadData, playAlert])
 
+  useEffect(() => {
+    // Listen for active dispatches
+    const channel = supabase.channel('global-sos')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'emergency_dispatches' }, 
+      async (payload) => {
+        const { data } = await supabase.from('patients').select('*').eq('patient_id', payload.new.patient_id).single();
+        setActiveSOS({ ...payload.new, patient: data });
+        playAlert();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'emergency_dispatches' },
+      (payload) => {
+        // If someone else responded, clear the overlay
+        if (payload.new.status === 'responding' && payload.new.responded_by !== user?.id) {
+          setActiveSOS((current: any) => 
+            current?.dispatch_id === payload.new.dispatch_id ? null : current
+          );
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [playAlert, user?.id]);
+
+  const handleSOSResponse = async (dispatchId: string) => {
+    if (!user) return;
+    try {
+      // 1. Mark as responding in DB
+      const { error } = await supabase
+        .from('emergency_dispatches')
+        .update({ 
+          status: 'responding', 
+          responded_by: user.id 
+        })
+        .eq('dispatch_id', dispatchId);
+
+      if (error) throw error;
+
+      // 2. Clear local state and navigate
+      const pid = activeSOS.patient_id;
+      setActiveSOS(null);
+      navigate(`/dashboard/practitioner/patient/${pid}`);
+    } catch (err: any) {
+      console.error("SOS Response Failed:", err.message);
+    }
+  };
+
   const dismissAlert = (id: number) => {
     setAlerts((prev) => prev.map((a) => a.id === id ? { ...a, dismissed: true } : a))
   }
@@ -198,6 +245,46 @@ function PractitionerLayout() {
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleConfirmLogout}
       />
+
+      {/* SOS EMERGENCY OVERLAY */}
+      {activeSOS && (
+        <div className="fixed inset-0 z-[9999] bg-red-600/95 backdrop-blur-xl flex items-center justify-center p-6 text-white animate-in fade-in zoom-in duration-300">
+          <div className="max-w-md w-full text-center space-y-8">
+            <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
+              <ShieldAlert size={80} />
+            </div>
+            <div>
+              <h1 className="text-5xl font-black uppercase tracking-tighter">SOS ACTIVE</h1>
+              <p className="text-xl font-medium mt-2 opacity-80">Life-Threatening Emergency Detected</p>
+            </div>
+            
+            <div className="bg-white/10 p-8 rounded-[40px] border border-white/20 shadow-2xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-60">Subject Identity</p>
+              <h2 className="text-3xl font-black uppercase">{activeSOS.patient?.first_name} {activeSOS.patient?.last_name}</h2>
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Last Known Location</p>
+                <p className="text-sm font-bold uppercase">{activeSOS.patient?.address || 'Location Not Specified'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <button 
+                onClick={() => handleSOSResponse(activeSOS.dispatch_id)}
+                className="w-full py-6 bg-white text-red-600 rounded-3xl font-black uppercase tracking-widest text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
+              >
+                I AM RESPONDING NOW
+              </button>
+              
+              <button 
+                onClick={() => setActiveSOS(null)}
+                className="text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity"
+              >
+                Dismiss Alert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row min-h-screen font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
         <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />

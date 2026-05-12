@@ -53,6 +53,9 @@ export default function AlertCenter() {
       .eq('alert_id', alertId);
 
     if (!error) {
+      // 2. NEW: Reset Patient status to active now that the doctor has seen them
+      await supabase.from('patients').update({ status: 'active' }).eq('patient_id', patientId);
+
       // Go straight to the patient to give them orders!
       navigate(`/dashboard/practitioner/patient/${patientId}`);
     }

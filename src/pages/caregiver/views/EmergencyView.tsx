@@ -12,11 +12,35 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { Link, useOutletContext } from 'react-router-dom'
+import { AlertCircle, Loader2, ShieldAlert, Navigation } from 'lucide-react'
+import { useAuth } from '../../../hooks/useAuth'
 
 export default function EmergencyView() {
-  const { patient } = useOutletContext<any>()
+  const { user } = useAuth()
+  const { patient, assignedPatients } = useOutletContext<any>()
   const [practitioners, setPractitioners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isDispatching, setIsDispatching] = useState(false)
+  const [sosSuccess, setSosSuccess] = useState(false)
+
+  async function triggerSOS(patientId: number) {
+    if (!user) return
+    setIsDispatching(true)
+    const { error } = await supabase.from('emergency_dispatches').insert({
+      caregiver_id: user.id,
+      patient_id: patientId,
+      status: 'active'
+    })
+
+    if (!error) {
+       setSosSuccess(true)
+       // Auto-revert success message after 5 seconds
+       setTimeout(() => setSosSuccess(false), 5000)
+    } else {
+       alert("SOS FAILED: " + error.message)
+    }
+    setIsDispatching(false)
+  }
 
   useEffect(() => {
     const fetchPractitioners = async () => {
@@ -39,26 +63,44 @@ export default function EmergencyView() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-700 slide-in-from-bottom-4 pb-20">
       
-      {/* ── 1. EMERGENCY ACTION BANNER ── */}
-      <div className="soft-card bg-red-600/10 border border-red-500/20 p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none group-hover:bg-red-600/20 transition-all duration-700" />
-         
-         <div className="flex flex-col md:flex-row items-center gap-6 relative z-10 text-center md:text-left">
-            <div className="w-16 h-16 bg-red-600 rounded-[2rem] flex items-center justify-center text-white shadow-lg shadow-red-600/40 animate-pulse-slow">
-               <AlertTriangle size={32} />
-            </div>
-            <div>
-               <h2 className="text-3xl font-light text-white uppercase tracking-widest leading-none">Life-Threatening Emergency?</h2>
-               <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-3">Immediate intervention protocol for Barangay Bantayan</p>
-            </div>
-         </div>
+      {/* ── 1. GLOBAL SOS PANIC BUTTON ── */}
+      <div className="bg-red-600/10 border border-red-500/20 p-8 rounded-[40px] text-center space-y-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none group-hover:bg-red-600/20 transition-all duration-700" />
+        
+        <div className="relative z-10">
+          <ShieldAlert size={64} className={`mx-auto text-red-600 ${isDispatching ? 'animate-spin' : 'animate-pulse'}`} />
+          <h2 className="text-3xl font-black text-text-main uppercase tracking-tighter mt-4">Global Crisis SOS</h2>
+          <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-2">Life-Threatening Emergency Protocol</p>
+          <p className="text-xs text-sidebar-text-muted mt-2 max-w-sm mx-auto">Triggering this will broadcast a red alert to all Available Doctors on the network instantly.</p>
+        </div>
+        
+        <div className="grid gap-3 mt-8 relative z-10">
+          {(assignedPatients || [patient]).filter(Boolean).map((p: any) => (
+            <button
+              key={p.patient_id}
+              disabled={isDispatching}
+              onClick={() => triggerSOS(p.patient_id)}
+              className="w-full py-6 bg-red-600 hover:bg-red-500 disabled:bg-slate-800 text-white rounded-3xl font-black uppercase tracking-widest transition-all shadow-xl shadow-red-500/20 active:scale-95 flex items-center justify-center gap-3 group/btn"
+            >
+              {isDispatching ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                <>
+                  <AlertCircle size={20} className="group-hover/btn:animate-bounce" />
+                  PANIC SOS: {p.first_name} {p.last_name}
+                </>
+              )}
+            </button>
+          ))}
+        </div>
 
-         <a 
-           href="tel:911"
-           className="w-full md:w-auto px-10 py-5 bg-red-600 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-red-600/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 relative z-10"
-         >
-            <Phone size={20} className="fill-current" /> Dial 911 Now
-         </a>
+        {sosSuccess && (
+          <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl animate-in zoom-in duration-300">
+            <p className="text-emerald-500 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+              <ShieldCheck size={16} /> SOS BROADCASTED TO DOCTORS
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── 2. PATIENT CONTEXT (FOR CALLER) ── */}

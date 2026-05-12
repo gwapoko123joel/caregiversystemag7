@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
@@ -29,6 +29,20 @@ export default function SubmitReport() {
   const [error, setError] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  // --- LOCAL STORAGE DRAFT SAFETY ---
+  useEffect(() => {
+    if (!patient) return;
+    const draft = localStorage.getItem(`draft_notes_${patient.patient_id}`);
+    if (draft) setField('notes', draft);
+  }, [patient?.patient_id]);
+
+  const handleNoteChange = (text: string) => {
+    setField('notes', text);
+    if (patient) {
+      localStorage.setItem(`draft_notes_${patient.patient_id}`, text);
+    }
+  };
 
   const setField = (key: string, val: any) => setForm(prev => ({ ...prev, [key]: val }))
 
@@ -113,9 +127,24 @@ export default function SubmitReport() {
         if (alertError) {
           alert("DATABASE REJECTED ALERT: " + alertError.message);
         }
+
+        // NEW: Update the Master Patient Table so everyone sees the emergency
+        await supabase
+          .from('patients')
+          .update({ status: isCritical ? 'critical' : 'warning' })
+          .eq('patient_id', patient.patient_id);
+      } else {
+        // If the report is stable, make sure the patient is marked active/green
+        await supabase
+          .from('patients')
+          .update({ status: 'active' })
+          .eq('patient_id', patient.patient_id);
       }
 
       setSubmitSuccess(true)
+      // Clear draft ONLY on successful submit
+      if (patient) localStorage.removeItem(`draft_notes_${patient.patient_id}`);
+      
       // Redirect slightly slower so the user sees the success message
       setTimeout(() => navigate('/dashboard/caregiver/history'), 2500)
 
@@ -126,7 +155,6 @@ export default function SubmitReport() {
       setSubmitting(false)
     }
   }
-
   // 5. If no patient is selected, show a "Select Patient" state
   if (!patient) {
     return (
@@ -160,6 +188,7 @@ export default function SubmitReport() {
       imagePreview={imagePreview}
       handleImageChange={handleImageChange}
       removeImage={removeImage}
+      handleNoteChange={handleNoteChange}
     />
   )
 }

@@ -36,6 +36,7 @@ export interface AdminDashboardContextType {
     authStatus: string
     pushService: string
   }
+  performance: any[]
   loadUsers: () => Promise<void>
   loadLogs: () => Promise<void>
   loadSystemData: () => Promise<void>
@@ -62,12 +63,13 @@ function AdminLayout() {
     reportsToday: 0, criticalAlerts: 0, serverUptime: '99.98%',
     dbStatus: 'Operational', authStatus: 'Operational', pushService: 'Active',
   })
+  const [performance, setPerformance] = useState<any[]>([])
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
-      await Promise.all([loadUsers(), loadLogs(), loadSystemData()])
+      await Promise.all([loadUsers(), loadLogs(), loadSystemData(), loadPerformance()])
     } catch (err: any) {
       setError(err.message || 'Synchronization failed.')
       console.error(err)
@@ -117,13 +119,24 @@ function AdminLayout() {
 
     setHealth(prev => ({ ...prev, reportsToday: reports ?? 0, criticalAlerts: critical ?? 0 }))
   }, [])
+  
+  const loadPerformance = useCallback(async () => {
+    const { data, error: fetchErr } = await supabase
+      .from('caregiver_performance_summary')
+      .select('*')
+      .order('total_reports', { ascending: false })
+      .limit(5)
+
+    if (fetchErr) throw fetchErr
+    setPerformance(data ?? [])
+  }, [])
 
   useEffect(() => {
     loadData()
   }, [loadData])
 
   const contextValue: AdminDashboardContextType = {
-    users, logs, health, loadUsers, loadLogs, loadSystemData, loadData, user, profile, isLoading, error
+    users, logs, health, performance, loadUsers, loadLogs, loadSystemData, loadData, user, profile, isLoading, error
   }
 
   const handleConfirmLogout = async () => {

@@ -12,12 +12,15 @@ import {
   Send,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  CheckCircle2,
+  AlertOctagon
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
 import type { PatientWithLogs } from '../PractitionerDashboard'
 import { useNavigate } from 'react-router-dom'
+import { calculateAge } from '../../../utils/medical'
 
 interface PatientDossierProps {
   patient: PatientWithLogs
@@ -36,6 +39,18 @@ export default function PatientDossier({
   const [instruction, setInstruction] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [orders, setOrders] = useState<any[]>([])
+  const [activeDispatch, setActiveDispatch] = useState<any>(null)
+
+  async function fetchSOS() {
+    const { data } = await supabase
+      .from('emergency_dispatches')
+      .select('*')
+      .eq('patient_id', parseInt(patient.patient_id.toString()))
+      .eq('status', 'responding')
+      .single()
+    
+    setActiveDispatch(data || null)
+  }
 
   async function fetchOrders() {
     const { data } = await supabase
@@ -52,6 +67,7 @@ export default function PatientDossier({
 
   useEffect(() => {
     fetchOrders()
+    fetchSOS()
   }, [patient.patient_id])
 
   async function sendInstruction() {
@@ -77,6 +93,28 @@ export default function PatientDossier({
       alert("Failed to send instruction.")
     } finally {
       setIsSending(false)
+    }
+  }
+
+  async function handleResolveSOS(dispatchId: string) {
+    const summary = prompt("Enter a brief resolution summary (e.g., Patient stabilized, transported to NOPH):");
+    if (!summary) return;
+
+    try {
+      await supabase
+        .from('emergency_dispatches')
+        .update({ 
+          status: 'resolved', 
+          resolution_notes: summary,
+          resolved_at: new Date().toISOString() 
+        })
+        .eq('dispatch_id', dispatchId);
+        
+      alert("Emergency Protocol Closed. Summary filed to Audit Trail.");
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to resolve SOS.");
     }
   }
 
@@ -134,6 +172,27 @@ export default function PatientDossier({
          <span className="text-text-main transition-colors">Return to Stream</span>
       </button>
 
+      {/* SOS RESOLUTION BANNER */}
+      {activeDispatch && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+              <AlertOctagon size={24} className="animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-emerald-500 uppercase tracking-tight">Active Crisis Response</h3>
+              <p className="text-[10px] font-bold text-emerald-600/60 uppercase tracking-widest mt-1">You are currently handling an SOS for this patient</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => handleResolveSOS(activeDispatch.dispatch_id)}
+            className="w-full md:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95"
+          >
+            <CheckCircle2 size={16} /> Resolve Crisis Protocol
+          </button>
+        </div>
+      )}
+
       <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 md:p-8 lg:p-12 relative overflow-hidden shadow-sm dark:shadow-none transition-colors">
          <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/5 blur-[100px] rounded-full pointer-events-none" />
          
@@ -146,7 +205,11 @@ export default function PatientDossier({
                <div className="space-y-2">
                   <h2 className="text-2xl md:text-4xl font-light text-text-main  tracking-tight transition-colors">{patient.first_name} {patient.last_name}</h2>
                   <div className="flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 pt-2">
-                     <div className="flex items-center gap-2 text-sidebar-text-muted font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-colors"><Calendar size={14} className="text-sidebar-text-muted/50" /> {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '—'}</div>
+                     <div className="flex items-center gap-2 text-sidebar-text-muted font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-colors">
+                        <Calendar size={14} className="text-sidebar-text-muted/50" /> 
+                        {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : '—'} 
+                        <span className="text-sky-500 ml-1">({calculateAge(patient.date_of_birth)})</span>
+                     </div>
                      <div className="flex items-center gap-2 text-sidebar-text-muted font-bold uppercase text-[9px] md:text-[10px] tracking-widest transition-colors"><MapPin size={14} className="text-sidebar-text-muted/50" /> {patient.address}</div>
                   </div>
                </div>

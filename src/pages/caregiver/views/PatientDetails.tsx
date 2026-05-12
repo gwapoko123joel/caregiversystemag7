@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
+import { calculateAge } from '../../../utils/medical'
 
 interface PatientDetailsProps {
   patient: any
@@ -107,8 +108,11 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
               <div className="flex items-center gap-3 text-left">
                 <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500"><Calendar size={16} /></div>
                 <div>
-                  <p className="text-[9px] font-black text-sidebar-text-muted uppercase tracking-widest leading-none">Date of Birth</p>
-                  <p className="text-xs font-bold text-text-main mt-1">{patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-[9px] font-black text-sidebar-text-muted uppercase tracking-widest leading-none">Date of Birth / Age</p>
+                  <p className="text-xs font-bold text-text-main mt-1">
+                    {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'} 
+                    <span className="text-sky-500 ml-2">({calculateAge(patient.date_of_birth)})</span>
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-left">

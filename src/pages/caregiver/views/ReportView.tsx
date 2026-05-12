@@ -36,6 +36,7 @@ interface ReportViewProps {
   imagePreview: string | null
   handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void
   removeImage: () => void
+  handleNoteChange: (text: string) => void
 }
 
 // Validation Helpers
@@ -79,7 +80,8 @@ export default function ReportView({
   error,
   imagePreview,
   handleImageChange,
-  removeImage
+  removeImage,
+  handleNoteChange
 }: ReportViewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -200,7 +202,7 @@ export default function ReportView({
           <textarea 
             placeholder="Enter notes about patient's condition..."
             value={form.notes}
-            onChange={e => setField('notes', e.target.value)}
+            onChange={e => handleNoteChange(e.target.value)}
             className="w-full bg-card border border-card-border rounded-2xl p-5 text-sm font-medium text-text-main focus:outline-none focus:border-sky-500/50 min-h-[120px] transition-all"
           />
         </div>

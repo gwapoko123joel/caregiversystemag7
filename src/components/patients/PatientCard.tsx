@@ -2,6 +2,7 @@ import React from 'react';
 import { User, MapPin, Calendar, ClipboardList, ArrowRight, UserPlus, ShieldCheck, XCircle } from 'lucide-react';
 import type { Patient } from '../../types/database';
 import PatientStatusBadge from './PatientStatusBadge';
+import { calculateAge } from '../../utils/medical';
 
 interface PatientCardProps {
   patient: Patient;
@@ -21,8 +22,6 @@ const PatientCard: React.FC<PatientCardProps> = ({
   showActions = true 
 }) => {
   const fullName = `${patient.first_name} ${patient.last_name}`;
-  const birthDate = patient.date_of_birth ? new Date(patient.date_of_birth) : null;
-  const age = birthDate ? new Date().getFullYear() - birthDate.getFullYear() : 'N/A';
 
   return (
     <div className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,209,255,0.1)]">
@@ -35,7 +34,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
             <h3 className="text-lg font-light tracking-[0.1em] text-white uppercase">{fullName}</h3>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                <Calendar size={10} /> {age} Years Old
+                <Calendar size={10} /> {calculateAge(patient.date_of_birth)}
               </span>
               <span className="text-slate-700">•</span>
               <span className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">

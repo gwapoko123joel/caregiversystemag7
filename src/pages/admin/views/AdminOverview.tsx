@@ -1,11 +1,11 @@
-import { Users, Activity, ShieldAlert, Server, Zap, ArrowUpRight, TrendingUp, MoreVertical, RefreshCw } from 'lucide-react'
+import { Users, Activity, ShieldAlert, Server, Zap, ArrowUpRight, TrendingUp, MoreVertical, RefreshCw, BarChart3 } from 'lucide-react'
 import { useOutletContext, Link } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { ActivityLog } from '../../../types/database'
 import { SkeletonCard, SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 export default function AdminOverview() {
-  const { users, logs, health, isLoading, error, loadData } = useOutletContext<AdminDashboardContextType>()
+  const { users, logs, health, performance, isLoading, error, loadData } = useOutletContext<AdminDashboardContextType>()
 
   const handleRetry = () => {
     loadData()
@@ -170,6 +170,42 @@ export default function AdminOverview() {
                ))
              )}
           </div>
+        </div>
+      </div>
+
+      {/* Personnel Accountability: Node Performance */}
+      <div className="bg-card border border-card-border rounded-[40px] p-8 shadow-sm">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-1.5 h-8 bg-sky-500 rounded-full" />
+          <h3 className="text-xl font-black text-text-main uppercase tracking-tight">Personnel Node Performance</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {isLoading ? (
+            [1,2,3].map(i => <div key={i} className="h-32 bg-slate-100/50 dark:bg-white/5 rounded-[32px] animate-pulse" />)
+          ) : performance.length === 0 ? (
+            <div className="col-span-full py-12 text-center text-xs font-black text-sidebar-text-muted uppercase tracking-widest italic opacity-50">Zero performance data recorded.</div>
+          ) : (
+            performance.map((staff) => (
+              <div key={staff.caregiver_id} className="p-5 bg-primary/10 border border-card-border rounded-[32px] hover:border-sky-500/30 transition-all group">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-sm font-black text-text-main uppercase group-hover:text-sky-500 transition-colors">{staff.full_name}</p>
+                    <p className="text-[10px] text-sidebar-text-muted font-bold uppercase tracking-widest">{staff.unique_access_id}</p>
+                  </div>
+                  <div className="bg-sky-500/10 text-sky-500 px-3 py-1 rounded-full text-[10px] font-black border border-sky-500/20">
+                    {staff.total_reports} REPORTS
+                  </div>
+                </div>
+                <div className="border-t border-card-border pt-3 mt-3 flex items-center gap-2">
+                  <RefreshCw size={12} className="text-sidebar-text-muted" />
+                  <p className="text-[9px] text-sidebar-text-muted font-bold uppercase">
+                    Last Active: {staff.last_report_sent ? new Date(staff.last_report_sent).toLocaleDateString() : 'Never'}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
