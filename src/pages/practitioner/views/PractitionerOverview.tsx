@@ -6,8 +6,11 @@ import {
   Phone, 
   Activity, 
   ChevronRight,
-  User
+  User,
+  ShieldCheck,
+  XCircle
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
@@ -36,52 +39,105 @@ export default function PractitionerOverview({
   criticalAlerts,
   initiateCall
 }: PractitionerOverviewProps) {
-  const [activePersonnel, setActivePersonnel] = useState<any[]>([]);
-
-  const fetchActivePersonnel = async () => {
-    const { data } = await supabase
-      .from('caregivers')
-      .select('id, full_name, duty_status, unique_access_id')
-      .eq('role', 'caregiver')
-      .eq('duty_status', 'on_duty'); // Only show BHWs who are currently working
-
-    setActivePersonnel(data || []);
-  };
+  const [activeBHWs, setActiveBHWs] = useState<any[]>([]);
+  const [selectedNode, setSelectedNode] = useState<any>(null);
 
   useEffect(() => {
-    fetchActivePersonnel();
+    const fetchActiveBHWs = async () => {
+      const { data } = await supabase
+        .from('caregivers')
+        .select('id, full_name, unique_access_id, duty_status, phone_number')
+        .eq('role', 'caregiver')
+        .eq('duty_status', 'on_duty');
+      setActiveBHWs(data || []);
+    };
 
-    // REAL-TIME: Listen for BHWs toggling their "On Duty" switch
-    const channel = supabase
-      .channel('active-fleet-monitor')
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'caregivers' }, 
-        () => fetchActivePersonnel()
-      )
+    fetchActiveBHWs();
+    
+    // Real-time listener for shift changes
+    const channel = supabase.channel('bhw-presence')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'caregivers' }, fetchActiveBHWs)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  const stats = {
+    totalPatients: patientsCount,
+    pendingAlerts: alertCount,
+    totalLogs: totalAlerts
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 slide-in-from-bottom-4">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-12">
+      {/* ── TOP LEVEL: LIVE PERSONNEL NODES ── */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-6 px-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_#10b981]" />
+          <h3 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Live Personnel Nodes</h3>
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            {activeBHWs.length} Online
+          </span>
+        </div>
+
+        {/* Responsive Grid for Nodes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {activeBHWs.length === 0 ? (
+            <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] bg-slate-900/20">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Scanning for active field signals...</p>
+            </div>
+          ) : (
+            activeBHWs.map((bhw) => (
+              <button 
+                key={bhw.id} 
+                onClick={() => setSelectedNode(bhw)}
+                className="group relative bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-[28px] p-5 flex flex-col items-start gap-4 hover:border-sky-500/50 hover:bg-slate-900/80 transition-all text-left shadow-2xl active:scale-95"
+              >
+                {/* Status Indicator */}
+                <div className="absolute top-5 right-5">
+                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
+                </div>
+
+                <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all">
+                  <User size={24} />
+                </div>
+
+                <div>
+                  <p className="text-sm font-black text-white uppercase tracking-tight leading-none group-hover:text-sky-400 transition-colors">
+                    {bhw.full_name}
+                  </p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mt-2 tracking-widest">
+                    Node: {bhw.unique_access_id}
+                  </p>
+                </div>
+
+                <div className="w-full pt-4 border-t border-white/5 flex items-center justify-between">
+                   <span className="text-[8px] font-black text-slate-600 uppercase">Field Operations</span>
+                   <ChevronRight size={14} className="text-slate-700 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
       {/* ── EMERGENCY BANNER ── */}
       {criticalAlerts.length > 0 && (
         <div className="relative p-1 bg-gradient-to-r from-sky-500/50 to-slate-900/50 rounded-[32px] overflow-hidden group shadow-[0_0_40px_rgba(0,229,255,0.2)] animate-pulse">
-           <div className="bg-card/90 backdrop-blur-md rounded-[28px] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 border border-card-border">
+           <div className="bg-slate-900/90 backdrop-blur-md rounded-[28px] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 border border-white/5">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-sky-500/20 rounded-full flex items-center justify-center text-sky-500 animate-bounce">
                  <ShieldAlert size={24} className="md:w-8 md:h-8" />
               </div>
               <div className="flex-1 space-y-4 w-full">
                  <div className="text-center md:text-left">
                     <h3 className="text-lg md:text-2xl font-light text-sky-500 uppercase tracking-[0.1em] leading-none">Critical Emergency Detected</h3>
-                    <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-2">{criticalAlerts.length} nodes reporting breaches</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">{criticalAlerts.length} nodes reporting breaches</p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {criticalAlerts.slice(0, 4).map(a => (
-                      <div key={a.id} className="flex items-center justify-between bg-card p-4 rounded-2xl border border-card-border group/alert hover:border-sky-500/30 transition-all shadow-sm">
+                      <div key={a.id} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-white/5 group/alert hover:border-sky-500/30 transition-all shadow-sm">
                          <div>
-                            <div className="text-xs font-light text-text-main uppercase">{a.patient_name}</div>
+                            <div className="text-xs font-light text-white uppercase">{a.patient_name}</div>
                             <div className="text-[10px] font-bold text-sky-500/60 uppercase tracking-tighter mt-1">{a.vitals}</div>
                          </div>
                          <button 
@@ -98,91 +154,121 @@ export default function PractitionerOverview({
         </div>
       )}
 
-      {/* ── STATS GRID ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-         {[
-           { label: 'Network Roster', val: patientsCount, icon: Users, color: 'text-sky-500', bg: 'bg-sky-500/10', path: '/dashboard/practitioner/feed' },
-           { label: 'Pending Response', val: alertCount, icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10', path: '/dashboard/practitioner/alerts' },
-           { label: 'Telemetry Flow', val: totalAlerts, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', path: '/dashboard/practitioner/history' },
-         ].map((stat, i) => (
-           <Link 
-             key={i} 
-             to={stat.path}
-             className="p-6 md:p-8 bg-card border border-card-border rounded-[24px] md:rounded-[32px] flex items-center gap-5 md:gap-6 group hover:border-sky-500/20 transition-all text-left shadow-sm active:scale-95"
-           >
-              <div className={`w-12 h-12 md:w-14 md:h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform flex-shrink-0`}>
-                 <stat.icon size={24} className="md:w-7 md:h-7" />
-              </div>
-              <div className="flex-1 min-w-0">
-                 <div className="text-[9px] md:text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest mb-1 leading-none truncate">{stat.label}</div>
-                 <div className="text-2xl md:text-3xl font-light tracking-[0.1em] text-text-main">{stat.val}</div>
-              </div>
-              <ChevronRight size={16} className="text-sidebar-text-muted transition-transform group-hover:translate-x-1" />
-           </Link>
-         ))}
-      </div>
-
-      {/* ── NETWORK HEALTH SUMMARY ── */}
-      <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-8 md:p-12 overflow-hidden relative shadow-sm dark:shadow-none">
-         <div className="absolute top-1/2 right-12 -translate-y-1/2 opacity-5 pointer-events-none hidden md:block">
-            <Activity size={240} className="text-sky-500" />
-         </div>
-         <div className="relative z-10 max-w-xl space-y-4 md:space-y-6">
-            <h4 className="text-[10px] md:text-xs font-light text-sky-500 uppercase tracking-[0.3em]">Operational Readiness</h4>
-            <h2 className="text-2xl md:text-4xl font-light text-text-main uppercase tracking-[0.1em] leading-tight">Barangay Bantayan Monitoring Hub</h2>
-            <p className="text-xs md:text-sm font-medium text-sidebar-text-muted leading-relaxed">
-               The regional network is currently processing synchronized telemetry from all deployed caregiver nodes. Ensure all breaches are verified via secure consultation.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-               <Link to="/dashboard/practitioner/feed" className="w-full sm:w-auto px-8 py-4 bg-sky-500 text-white font-light uppercase text-[10px] tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20 text-center">
-                  Access Live Feed
-               </Link>
-               <Link to="/dashboard/practitioner/alerts" className="w-full sm:w-auto px-8 py-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-card-border text-text-main font-light uppercase text-[10px] tracking-widest rounded-2xl transition-all text-center">
-                  Open Alert Center
-               </Link>
-            </div>
-         </div>
-      </div>
-
-      {/* ── ACTIVE FIELD FLEET ── */}
-      <div className="bg-card border border-card-border rounded-[32px] p-6 md:p-8 shadow-sm">
-        <div className="flex justify-between items-center mb-6 md:mb-8">
-          <div>
-            <h3 className="text-[10px] md:text-xs font-black text-sidebar-text-muted uppercase tracking-[0.2em]">Active Field Fleet</h3>
-            <p className="text-[8px] md:text-[10px] font-bold text-emerald-500 uppercase mt-0.5 tracking-widest">Live Personnel Presence</p>
+      {/* ── SECTION 1: GLOBAL TELEMETRY HUD ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/dashboard/practitioner/feed" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-sky-500/30 active:scale-95">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Network Roster</p>
+            <Users className="text-sky-500 group-hover:scale-110 transition-transform" size={20} />
           </div>
-          <div className="bg-emerald-500/10 px-4 py-2 rounded-full text-[9px] md:text-[10px] font-black text-emerald-500 border border-emerald-500/20">
-            {activePersonnel.length} NODES ONLINE
+          <h3 className="text-4xl font-black text-white">{stats.totalPatients}</h3>
+          <p className="text-[9px] text-slate-500 font-bold uppercase mt-2">Active Synchronized Nodes</p>
+        </Link>
+
+        <Link to="/dashboard/practitioner/alerts" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-amber-500/30 active:scale-95">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Pending Response</p>
+            <Zap className="text-amber-500 group-hover:animate-pulse" size={20} />
+          </div>
+          <h3 className="text-4xl font-black text-white">{stats.pendingAlerts}</h3>
+          <p className="text-[9px] text-amber-500/70 font-bold uppercase mt-2">Awaiting Practitioner Action</p>
+        </Link>
+
+        <Link to="/dashboard/practitioner/history" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-emerald-500/30 active:scale-95">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Telemetry Flow</p>
+            <TrendingUp className="text-emerald-500" size={20} />
+          </div>
+          <h3 className="text-4xl font-black text-white">{stats.totalLogs}</h3>
+          <p className="text-[9px] text-emerald-500/70 font-bold uppercase mt-2">Total System Handshakes</p>
+        </Link>
+      </div>
+
+      {/* ── SECTION 2: OPERATIONAL HUB ── */}
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+        {/* Background Graphic */}
+        <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none hidden lg:block">
+          <Activity size={240} strokeWidth={1} className="text-sky-500" />
+        </div>
+        
+        <div className="max-w-2xl relative z-10">
+          <p className="text-sky-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Operational Readiness</p>
+          <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-6">
+            Barangay Bantayan <br /> Monitoring Hub
+          </h2>
+          <p className="text-slate-400 text-sm leading-relaxed mb-10 max-w-lg">
+            The regional network is currently processing synchronized telemetry from all deployed caregiver nodes. 
+            Ensure all breaches are verified via secure consultation.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link to="/dashboard/practitioner/feed" className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 text-center">
+              Access Live Feed
+            </Link>
+            <Link to="/dashboard/practitioner/alerts" className="px-10 py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 text-center">
+              Open Alert Center
+            </Link>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activePersonnel.length === 0 ? (
-            <div className="col-span-full py-12 text-center border-2 border-dashed border-card-border rounded-3xl opacity-40">
-              <p className="text-[10px] font-black uppercase tracking-widest text-sidebar-text-muted">No Caregivers Currently On-Duty</p>
-            </div>
-          ) : (
-            activePersonnel.map((staff) => (
-              <div key={staff.id} className="p-5 bg-primary/20 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-sky-500/30 transition-all shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full absolute -top-0.5 -right-0.5 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.6)] z-10" />
-                    <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 transition-colors group-hover:bg-sky-500/20">
-                      <User size={20} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-text-main uppercase tracking-tight">{staff.full_name}</p>
-                    <p className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-tighter mt-0.5">
-                      ID: {staff.unique_access_id || 'FIELD-NODE'} • Status: Active
-                    </p>
-                  </div>
+      {/* ── PERSONNEL INTEL OVERLAY ── */}
+      <AnimatePresence>
+        {selectedNode && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelectedNode(null)}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+            
+            {/* Modal */}
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg bg-[#020617] border border-white/10 rounded-[40px] p-8 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                 <ShieldCheck size={160} />
+              </div>
+
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-20 h-20 bg-sky-500/10 rounded-[2rem] flex items-center justify-center text-sky-500 border border-sky-500/20">
+                  <User size={40} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tight">{selectedNode.full_name}</h3>
+                  <p className="text-sky-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Authorized Field Node • {selectedNode.unique_access_id}</p>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </div>
+
+              <div className="space-y-4 mb-8">
+                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[9px] font-black text-slate-500 uppercase mb-1">Current Assignment</p>
+                    <p className="text-sm text-white font-medium">Monitoring Barangay Bantayan - Sector A</p>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                    <a href={`tel:${selectedNode.phone_number}`} className="p-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex flex-col items-center gap-2 transition-all group">
+                       <Phone size={20} className="group-hover:rotate-12 transition-transform" />
+                       <span className="text-[9px] font-black uppercase">Voice Consultation</span>
+                    </a>
+                    <button onClick={() => setSelectedNode(null)} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl flex flex-col items-center gap-2 transition-all">
+                       <XCircle size={20} />
+                       <span className="text-[9px] font-black uppercase">Close Intel</span>
+                    </button>
+                 </div>
+              </div>
+
+              <p className="text-[8px] text-center text-slate-600 font-bold uppercase tracking-widest">
+                Node Identity Verified via BantayanCare Security Protocol
+              </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

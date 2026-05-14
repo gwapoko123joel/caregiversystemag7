@@ -3,7 +3,9 @@ import {
   Search, 
   Activity, 
   Image as ImageIcon, 
-  ArrowUpRight 
+  ArrowUpRight,
+  User,
+  MapPin
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { PatientWithLogs } from '../PractitionerDashboard'
@@ -62,44 +64,38 @@ export default function PatientFeed({ patients, loading }: PatientFeedProps) {
                     <Link 
                       key={p.patient_id} 
                       to={`/dashboard/practitioner/patient/${p.patient_id}`}
-                      className="relative group bg-card border border-card-border rounded-[32px] overflow-hidden hover:border-sky-500/30 transition-all duration-500 cursor-pointer flex flex-col shadow-card-harmonized hover:shadow-harmonized dark:shadow-none"
+                      className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 hover:border-sky-500/30 transition-all cursor-pointer group shadow-2xl block"
                     >
-                       <div className="h-40 bg-card border-b border-card-border relative overflow-hidden flex-shrink-0 transition-colors">
-                          {latestLog?.image_url ? (
-                            <img src={latestLog.image_url} alt="Thumbnail" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
-                          ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-sidebar-text-muted transition-colors">
-                               <ImageIcon size={32} className="mb-2" />
-                            </div>
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-card to-transparent flex items-end justify-between transition-colors">
-                             <div className={`px-3 py-1 bg-card/90 backdrop-blur-md rounded-full border border-card-border text-[9px] font-light uppercase tracking-widest flex items-center gap-2 transition-colors ${latestLog?.physical_status === 'critical' ? 'node-urgent border-none px-3 py-1' : ''}`}>
-                                <Activity size={10} className={latestLog?.physical_status === 'critical' ? 'text-current animate-pulse' : 'text-sky-500'} />
-                                <span className={latestLog?.physical_status === 'critical' ? 'text-current' : 'text-text-main'}>{latestLog ? latestLog.physical_status : 'NO DATA'}</span>
-                             </div>
-                          </div>
-                       </div>
-                       
-                       <div className="p-5 md:p-6 flex-1 flex flex-col">
-                          <div className="flex justify-between items-start mb-4">
-                             <div>
-                                <h3 className="text-base md:text-lg font-light text-text-main tracking-tight leading-none transition-colors">{p.first_name} {p.last_name}</h3>
-                                <div className="text-[8px] md:text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-2 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">PT-{p.patient_id.toString().padStart(4, '0')}</div>
-                             </div>
-                             <div className="w-8 h-8 rounded-full border border-card-border flex items-center justify-center text-sidebar-text-muted group-hover:bg-sky-500 group-hover:text-white group-hover:border-transparent transition-all shadow-xl shadow-sky-500/10 active:scale-95">
-                                <ArrowUpRight size={14} />
-                             </div>
-                          </div>
-                          <div className="mt-auto space-y-2">
-                             <div className="flex justify-between text-[9px] md:text-[10px] font-light uppercase tracking-widest border-t border-card-border pt-4 transition-colors">
-                                <span className="text-sidebar-text-muted transition-colors">Last Sync</span>
-                                <span className="text-text-main font-mono transition-colors">{latestLog ? new Date(latestLog.recorded_at).toLocaleTimeString([], {timeStyle:'short'}) : '—'}</span>
-                             </div>
-                          </div>
-                       </div>
+                      <div className="flex justify-between items-start mb-8">
+                        <div className="w-14 h-14 bg-white/5 rounded-3xl flex items-center justify-center text-slate-500 group-hover:text-sky-500 transition-colors border border-white/5">
+                          <User size={28} />
+                        </div>
+                        <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                          latestLog?.physical_status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                        }`}>
+                          {latestLog?.physical_status || 'NO DATA'}
+                        </div>
+                      </div>
+
+                      <h3 className="text-2xl font-black text-white uppercase tracking-tight">{p.first_name} {p.last_name}</h3>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 mb-6">PT-ID: {p.patient_id.toString().padStart(4, '0')}</p>
+
+                      <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase truncate pr-4">
+                          <MapPin size={14} className="text-sky-500 flex-shrink-0" />
+                          <span className="truncate">{p.address}</span>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                           <p className="text-[8px] text-slate-600 font-black uppercase">Last Sync</p>
+                           <p className="text-[10px] text-white font-mono">
+                             {latestLog ? new Date(latestLog.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                           </p>
+                        </div>
+                      </div>
                     </Link>
                  )
               })
+
            )}
         </div>
       </div>
