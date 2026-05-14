@@ -1,294 +1,210 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useRef } from 'react'
 import { 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle, 
-  Activity, 
-  Heart, 
-  Thermometer, 
-  Zap, 
-  Camera, 
-  X, 
-  Send, 
-  Plus,
-  ShieldCheck,
-  AlertTriangle
+  FileText, CheckCircle2, AlertCircle, Activity, 
+  Heart, Thermometer, Zap, Camera, X, Send, 
+  Plus, ShieldCheck, AlertTriangle, UserSearch, ArrowLeft,
+  Loader2
 } from 'lucide-react'
-import type { Patient } from '../../../types/database'
-
-interface ReportForm {
-  blood_pressure: string
-  heart_rate: string
-  temperature: string
-  oxygen_saturation: string
-  physical_status: 'stable' | 'warning' | 'critical'
-  notes: string
-}
-
-interface ReportViewProps {
-  patient: Patient | null
-  form: ReportForm
-  setField: <K extends keyof ReportForm>(key: K, val: ReportForm[K]) => void
-  handleSubmit: (e?: React.FormEvent) => Promise<void>
-  submitting: boolean
-  submitSuccess: boolean
-  error: string | null
-  imagePreview: string | null
-  handleImageChange: (e: ChangeEvent<HTMLInputElement>) => void
-  removeImage: () => void
-  handleNoteChange: (text: string) => void
-}
-
-// Validation Helpers
-const getBpStatus = (bp: string) => {
-  const match = bp.match(/^(\d{2,3})\/(\d{2,3})$/);
-  if (!match) return { valid: false, message: 'Format: 120/80' };
-  const sys = parseInt(match[1]);
-  const dia = parseInt(match[2]);
-  if (sys < 90 || sys > 140 || dia < 60 || dia > 90) return { valid: false, message: 'Out of normal range' };
-  return { valid: true, message: 'Normal range ✓' };
-};
-
-const getHrStatus = (hr: string) => {
-  const val = parseInt(hr);
-  if (isNaN(val)) return { valid: false, message: 'Enter BPM' };
-  if (val < 60 || val > 100) return { valid: false, message: 'Out of normal range' };
-  return { valid: true, message: 'Normal range ✓' };
-};
-
-const getTempStatus = (temp: string) => {
-  const val = parseFloat(temp);
-  if (isNaN(val)) return { valid: false, message: 'Enter °C' };
-  if (val < 36.1 || val > 37.2) return { valid: false, message: 'Out of normal range' };
-  return { valid: true, message: 'Normal range ✓' };
-};
-
-const getO2Status = (o2: string) => {
-  const val = parseInt(o2);
-  if (isNaN(val)) return { valid: false, message: 'Enter %' };
-  if (val < 95 || val > 100) return { valid: false, message: 'Critical: Below 95%' };
-  return { valid: true, message: 'Normal range ✓' };
-};
 
 export default function ReportView({
-  patient,
-  form,
-  setField,
-  handleSubmit,
-  submitting,
-  submitSuccess,
-  error,
-  imagePreview,
-  handleImageChange,
-  removeImage,
-  handleNoteChange
-}: ReportViewProps) {
+  patient, form, setField, handleSubmit, submitting, 
+  submitSuccess, error, imagePreview, handleImageChange, removeImage, onBack 
+}: any) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const bpStatus = getBpStatus(form.blood_pressure);
-  const hrStatus = getHrStatus(form.heart_rate);
-  const tempStatus = getTempStatus(form.temperature);
-  const o2Status = getO2Status(form.oxygen_saturation);
-
-  const isFormValid = form.blood_pressure && form.heart_rate && form.temperature && form.oxygen_saturation;
+  // ── No Patient State (Safety Protocol) ──
+  if (!patient) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 animate-in fade-in zoom-in duration-500 px-4 md:px-0">
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-12 text-center shadow-2xl">
+          <div className="w-20 h-20 bg-sky-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-sky-500/20">
+            <UserSearch size={40} className="text-sky-500" />
+          </div>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">No Patient Selected</h2>
+          <p className="text-sm text-slate-500 mb-10 max-w-xs mx-auto font-medium">To ensure medical accuracy, you must select a subject from your roster before transmitting telemetry.</p>
+          <button
+            onClick={onBack}
+            className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3 mx-auto"
+          >
+            <ArrowLeft size={16} /> Return to Patient Roster
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12 animate-in fade-in duration-700 slide-in-from-bottom-4">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 px-4 md:px-0">
       
-      {/* Header Section */}
-      <div className="flex items-center gap-4 px-2">
-        <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20">
-           <FileText size={24} className="text-white" />
+      {/* ── CLINICAL HEADER ── */}
+      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[40px] flex items-center justify-between shadow-2xl">
+        <div className="flex items-center gap-6">
+          <div className="w-14 h-14 bg-sky-500 rounded-3xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+             <FileText size={28} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight leading-none">Submit Telemetry</h1>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+              Field Reporter: {patient.first_name} {patient.last_name} • PT-ID: {patient.patient_id}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl md:text-2xl font-light text-text-main uppercase tracking-tight  leading-tight">Submit Report</h1>
-          <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-[0.2em] mt-0.5 opacity-70">Record patient vitals and observations</p>
+        <div className="hidden md:block text-right">
+           <div className="flex items-center gap-2 text-emerald-500">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-black uppercase">Secure Node Link</span>
+           </div>
         </div>
       </div>
 
-      {/* Success/Error Alerts */}
-      {(submitSuccess || error) && (
-        <div className={`p-4 rounded-2xl flex items-center gap-3 transition-all ${
-          submitSuccess ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border border-red-500/20 text-red-500'
-        }`}>
-          {submitSuccess ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-          <span className="text-[11px] font-light uppercase tracking-widest">{submitSuccess ? 'Update sent successfully' : error}</span>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* Patient Condition Selector */}
-        <div className="bg-card border border-card-border rounded-[32px] p-6 md:p-8 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 px-1">
-             <Activity size={16} className="text-sky-500" />
-             <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Patient Condition</label>
+        {/* ── SECTION 1: TRIAGE / CONDITION ── */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-8">
+             <Activity size={18} className="text-sky-500" />
+             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Subject Status Triage</h3>
           </div>
           
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
-            {[
-              { id: 'stable', label: 'Stable', icon: CheckCircle2, color: 'emerald', sub: 'Good' },
-              { id: 'warning', label: 'Needs Attention', icon: AlertTriangle, color: 'amber', sub: 'Warning' },
-              { id: 'critical', label: 'Critical', icon: AlertCircle, color: 'red', sub: 'Emergency' },
-            ].map(opt => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => setField('physical_status', opt.id as any)}
-                className={`flex flex-col items-center justify-center gap-2 p-4 md:p-6 rounded-3xl border-2 transition-all group ${
-                  form.physical_status === opt.id 
-                    ? `border-${opt.color}-500 bg-${opt.color}-500/10 text-${opt.color}-500 scale-[1.02] shadow-lg`
-                    : 'border-card-border text-sidebar-text-muted hover:border-sidebar-text-muted/30'
-                }`}
-              >
-                <opt.icon size={28} className={`transition-transform duration-300 ${form.physical_status === opt.id ? 'scale-110' : 'group-hover:scale-110 opacity-50'}`} />
-                <div className="text-center">
-                  <div className="text-[11px] md:text-[13px] font-light uppercase tracking-tight leading-tight">{opt.label}</div>
-                  <div className="text-[8px] md:text-[9px] font-bold opacity-60 uppercase tracking-widest mt-0.5">{opt.sub}</div>
-                </div>
-                {form.physical_status === opt.id && (
-                  <div className={`w-1.5 h-1.5 rounded-full bg-${opt.color}-500 mt-1 animate-pulse`} />
-                )}
-              </button>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <TriageButton 
+              active={form.physical_status === 'stable'} 
+              onClick={() => setField('physical_status', 'stable')}
+              label="Stable" sub="Routine" color="emerald" icon={<CheckCircle2 size={24}/>} 
+            />
+            <TriageButton 
+              active={form.physical_status === 'warning'} 
+              onClick={() => setField('physical_status', 'warning')}
+              label="Warning" sub="Observation" color="amber" icon={<AlertTriangle size={24}/>} 
+            />
+            <TriageButton 
+              active={form.physical_status === 'critical'} 
+              onClick={() => setField('physical_status', 'critical')}
+              label="Critical" sub="Emergency" color="rose" icon={<AlertCircle size={24}/>} 
+            />
           </div>
         </div>
 
-        {/* Vital Signs Grid */}
-        <div className="bg-card border border-card-border rounded-[32px] p-6 md:p-8 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2 px-1">
-             <Heart size={16} className="text-red-500" />
-             <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Vital Signs</label>
+        {/* ── SECTION 2: VITAL SIGNS (Bento Grid) ── */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-8">
+             <Heart size={18} className="text-rose-500" />
+             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Clinical Telemetry</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { label: 'Blood Pressure', val: form.blood_pressure, key: 'blood_pressure', icon: Activity, placeholder: '120/80', unit: 'mmHg', status: bpStatus },
-              { label: 'Heart Rate', val: form.heart_rate, key: 'heart_rate', icon: Heart, placeholder: '72', unit: 'BPM', status: hrStatus },
-              { label: 'Temperature', val: form.temperature, key: 'temperature', icon: Thermometer, placeholder: '36.5', unit: '°C', status: tempStatus },
-              { label: 'O₂ Saturation', val: form.oxygen_saturation, key: 'oxygen_saturation', icon: Zap, placeholder: '98', unit: '%', status: o2Status },
-            ].map(v => (
-              <div key={v.key} className="space-y-2 group">
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">{v.label}</label>
-                  <span className="text-[9px] font-bold text-sidebar-text-muted opacity-50 uppercase">{v.unit}</span>
+            <VitalInput label="Blood Pressure" unit="mmHg" icon={<Activity size={18}/>} placeholder="120/80" value={form.blood_pressure} onChange={(v: string) => setField('blood_pressure', v)} />
+            <VitalInput label="Heart Rate" unit="BPM" icon={<Heart size={18}/>} placeholder="72" value={form.heart_rate} onChange={(v: string) => setField('heart_rate', v)} />
+            <VitalInput label="Temperature" unit="°C" icon={<Thermometer size={18}/>} placeholder="36.5" value={form.temperature} onChange={(v: string) => setField('temperature', v)} />
+            <VitalInput label="O₂ Saturation" unit="%" icon={<Zap size={18}/>} placeholder="98" value={form.oxygen_saturation} onChange={(v: string) => setField('oxygen_saturation', v)} />
+          </div>
+        </div>
+
+        {/* ── SECTION 3: NOTES & VISUALS ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+           {/* Notes */}
+           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8">
+              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Clinical Observations</h3>
+              <textarea 
+                value={form.notes}
+                onChange={e => setField('notes', e.target.value)}
+                placeholder="Describe current patient condition..."
+                className="w-full bg-slate-950/50 border border-white/10 rounded-[28px] p-6 text-sm text-white focus:border-sky-500/50 transition-all outline-none min-h-[160px] resize-none font-medium placeholder:text-slate-700"
+              />
+           </div>
+
+           {/* Photo Upload */}
+           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 flex flex-col justify-between">
+              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Visual Telemetry (Optional)</h3>
+              
+              {imagePreview ? (
+                <div className="relative aspect-video rounded-[28px] overflow-hidden border border-white/10 group">
+                  <img src={imagePreview} className="w-full h-full object-cover" />
+                  <button onClick={removeImage} className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-rose-500 transition-all">
+                    <X size={16} />
+                  </button>
                 </div>
-                <div className="relative">
-                  <v.icon size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${v.val ? 'text-sky-500' : 'text-sidebar-text-muted'}`} />
-                  <input 
-                    placeholder={v.placeholder}
-                    value={v.val}
-                    onChange={e => setField(v.key as keyof ReportForm, e.target.value)}
-                    className="w-full bg-card border border-card-border rounded-2xl py-4 pl-12 pr-4 text-sm font-light text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-mono"
-                  />
-                </div>
-                {v.val && (
-                  <div className={`flex items-center gap-1.5 px-2 text-[9px] font-light uppercase tracking-wider ${v.status.valid ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {v.status.valid ? <CheckCircle2 size={10} /> : <AlertCircle size={10} />}
-                    {v.status.message}
+              ) : (
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 border-2 border-dashed border-white/5 rounded-[28px] flex flex-col items-center justify-center gap-4 hover:border-sky-500/30 hover:bg-sky-500/5 transition-all group min-h-[160px]"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-600 group-hover:text-sky-500 transition-all">
+                    <Plus size={24} />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Add Clinical Photo</p>
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                </button>
+              )}
+           </div>
         </div>
 
-        {/* Notes Section */}
-        <div className="bg-card border border-card-border rounded-[32px] p-6 md:p-8 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 px-1">
-             <FileText size={16} className="text-sky-500" />
-             <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Notes & Observations</label>
-          </div>
-          <textarea 
-            placeholder="Enter notes about patient's condition..."
-            value={form.notes}
-            onChange={e => handleNoteChange(e.target.value)}
-            className="w-full bg-card border border-card-border rounded-2xl p-5 text-sm font-medium text-text-main focus:outline-none focus:border-sky-500/50 min-h-[120px] transition-all"
-          />
-        </div>
-
-        {/* Photo Upload Section (Compact) */}
-        <div className="bg-card border border-card-border rounded-[32px] p-6 md:p-8 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between px-1">
-             <div className="flex items-center gap-2">
-                <Camera size={16} className="text-sky-500" />
-                <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Patient Photo</label>
-             </div>
-             <span className="text-[9px] font-bold text-sidebar-text-muted/50 uppercase tracking-[0.15em] ">[Optional]</span>
-          </div>
-          
-          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
-          
-          {imagePreview ? (
-            <div className="relative h-40 rounded-2xl overflow-hidden border border-card-border group shadow-lg">
-               <img src={imagePreview} alt="Patient Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-               <button 
-                 type="button"
-                 onClick={removeImage}
-                 className="absolute top-3 right-3 w-8 h-8 bg-black/80 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:text-red-500 transition-all border border-white/10"
-               >
-                  <X size={16} />
-               </button>
-               <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-                  <span className="text-[9px] font-light text-white uppercase tracking-widest">PHOTO_ATTACHED</span>
-               </div>
-            </div>
-          ) : (
-            <button 
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-6 rounded-2xl border-2 border-dashed border-card-border hover:border-sky-500/30 hover:bg-sky-500/5 flex items-center justify-center gap-4 transition-all group"
-            >
-              <div className="w-12 h-12 rounded-full bg-card border border-card-border flex items-center justify-center text-sidebar-text-muted group-hover:text-sky-500 group-hover:scale-110 transition-all">
-                <Plus size={20} />
-              </div>
-              <div className="text-left">
-                <div className="text-[11px] font-light text-sidebar-text-muted uppercase tracking-widest group-hover:text-text-main transition-colors">Click to upload or take photo</div>
-                <div className="text-[9px] font-bold text-sidebar-text-muted/40 uppercase tracking-tighter mt-0.5">JPEG, PNG up to 5MB</div>
-              </div>
-            </button>
-          )}
-        </div>
-
-        {/* Submit Button */}
+        {/* ── FINAL TRANSMISSION ── */}
         <button 
           type="submit"
-          disabled={submitting || !patient}
-          className={`w-full py-6 rounded-[32px] font-light uppercase text-lg tracking-widest flex items-center justify-center gap-3 transition-all relative overflow-hidden group shadow-2xl ${
+          disabled={submitting}
+          className={`w-full py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.3em] flex items-center justify-center gap-3 transition-all shadow-2xl ${
             form.physical_status === 'critical' 
-              ? 'bg-red-600 text-white shadow-red-500/30' 
-              : isFormValid 
-                ? 'bg-sky-500 text-white shadow-sky-500/30 active:scale-[0.98]'
-                : 'bg-sidebar-text-muted/20 text-sidebar-text-muted cursor-not-allowed'
-          }`}
+              ? 'bg-rose-600 text-white shadow-rose-500/20' 
+              : 'bg-sky-500 text-white shadow-sky-500/20'
+          } hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50`}
         >
-          {submitting ? (
-            <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              <Send size={20} className={`transition-transform duration-300 ${isFormValid ? 'group-hover:translate-x-1 group-hover:-translate-y-1' : ''}`} />
-              Submit Report
-              {isFormValid && (
-                <div className="flex items-center gap-1.5 ml-4 px-3 py-1 bg-white/20 rounded-full text-[10px] font-light">
-                   <CheckCircle2 size={12} />
-                   READY
-                </div>
-              )}
-            </>
-          )}
-          {isFormValid && (
-            <div className="absolute inset-0 bg-white/20 translate-x-full group-hover:-translate-x-full transition-transform duration-1000" />
-          )}
+          {submitting ? <Loader2 className="animate-spin" /> : <><Send size={20} /> Transmit Field Report</>}
         </button>
-
-        <div className="flex items-center justify-center gap-2 text-[9px] font-light text-sidebar-text-muted uppercase tracking-widest opacity-40">
-           <ShieldCheck size={10} />
-           Secured End-to-End Encryption
-        </div>
 
       </form>
     </div>
   )
+}
+
+// ── HELPER: TRIAGE BUTTON ──
+function TriageButton({ active, label, sub, color, icon, onClick }: any) {
+  const themes: any = {
+    emerald: 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5',
+    amber: 'border-amber-500/20 text-amber-500 bg-amber-500/5',
+    rose: 'border-rose-500/20 text-rose-500 bg-rose-500/5',
+  };
+  const activeThemes: any = {
+    emerald: 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]',
+    amber: 'border-amber-500 bg-amber-500/20 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]',
+    rose: 'border-rose-500 bg-rose-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)]',
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`p-6 rounded-[28px] border-2 transition-all flex flex-col items-center gap-3 ${active ? activeThemes[color] : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/10'}`}
+    >
+      <div className={active ? 'scale-110 transition-transform' : 'opacity-40'}>{icon}</div>
+      <div className="text-center">
+        <p className="text-sm font-black uppercase tracking-tight">{label}</p>
+        <p className="text-[8px] font-bold uppercase tracking-widest opacity-60">{sub}</p>
+      </div>
+    </button>
+  );
+}
+
+// ── HELPER: VITAL INPUT ──
+function VitalInput({ label, unit, icon, placeholder, value, onChange }: any) {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-between px-2">
+        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
+        <span className="text-[9px] font-black text-sky-500/40 uppercase tracking-widest">{unit}</span>
+      </div>
+      <div className="relative group">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors">
+          {icon}
+        </div>
+        <input 
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white font-mono text-lg outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+        />
+      </div>
+    </div>
+  );
 }
