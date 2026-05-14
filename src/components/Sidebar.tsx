@@ -14,6 +14,7 @@ import {
   LogOut,
   Heart,
   ChevronRight,
+  ChevronLeft,
   UserPlus,
   PanelLeftClose,
   PanelLeftOpen,
@@ -144,50 +145,49 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
           x: isDesktop ? 0 : (isMobileHidden ? '-100%' : '0%')
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed lg:sticky top-0 left-0 z-[100] h-screen !bg-sidebar border-r border-sidebar-border flex flex-col transition-colors duration-300 shadow-2xl lg:shadow-none overflow-hidden"
+        className="fixed lg:sticky top-0 left-0 z-[100] h-screen !bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl lg:shadow-none overflow-visible"
       >
-        <div className={`p-6 pb-4 flex flex-col gap-4 ${isCollapsed && isDesktop ? 'items-center' : ''}`}>
-          <div className={`flex items-center justify-between ${isCollapsed && isDesktop ? 'flex-col gap-4' : 'w-full'}`}>
-            <div className="flex items-center gap-3 group/logo select-none overflow-hidden">
-              <div className="min-w-[40px] w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all flex-shrink-0">
-                <Heart size={20} className="text-white fill-white" />
-              </div>
-              {!(isCollapsed && isDesktop) && (
-                <motion.span 
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  className="text-lg font-light tracking-[0.2em] text-sidebar-text uppercase whitespace-nowrap"
-                >
-                  BantayanCare
-                </motion.span>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {/* Desktop Collapse Toggle */}
-              {isDesktop && (
-                <button
-                  onClick={toggleCollapse}
-                  className="p-1.5 rounded-lg bg-card text-sidebar-text-muted transition-all border border-sidebar-border hover:border-sky-500 hover:text-sky-500 flex-shrink-0"
-                  title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-                >
-                  {isCollapsed ? <PanelLeftOpen size={16} strokeWidth={1.5} /> : <PanelLeftClose size={16} strokeWidth={1.5} />}
-                </button>
-              )}
-
-              {/* Mobile Close Button */}
-              {!isDesktop && (
-                <button
-                  onClick={() => setMobileHidden(true)}
-                  className="p-1.5 rounded-lg bg-card text-sidebar-text-muted transition-all border border-sidebar-border hover:border-sky-500 hover:text-sky-500 flex-shrink-0"
-                >
-                  <X size={16} strokeWidth={1.5} />
-                </button>
-              )}
-            </div>
+        {/* ── LOGO SECTION (Simplified) ── */}
+        <div className="flex items-center gap-3 py-8 px-6 overflow-hidden">
+          <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+            <Heart size={20} className="text-white" fill="white" />
           </div>
-          {isCollapsed && isDesktop && <div className="w-8 h-px bg-sidebar-border mx-auto" />}
+          
+          {!(isCollapsed && isDesktop) && (
+            <span className="font-black text-white uppercase tracking-tighter text-xl whitespace-nowrap">
+              Bantayan<span className="text-sky-500">Care</span>
+            </span>
+          )}
         </div>
+
+        {/* ── THE FLOATING SMART-TOGGLE ── */}
+        {isDesktop && (
+          <button 
+            onClick={toggleCollapse}
+            className={`absolute -right-4 top-1/2 -translate-y-1/2 z-[100] 
+                       w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center 
+                       shadow-[0_0_20px_rgba(14,165,233,0.6)] border-2 border-sidebar
+                       hover:scale-110 hover:bg-sky-400 active:scale-90
+                       transition-all duration-300 ease-in-out group`}
+          >
+            <div className={`transition-transform duration-500 ease-spring ${isCollapsed ? '' : 'rotate-180'}`}>
+              <ChevronRight size={18} className="text-white" />
+            </div>
+
+            {/* A tiny pulsing radar ring behind the button to make it extra noticeable */}
+            <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20 group-hover:opacity-40" />
+          </button>
+        )}
+
+        {/* Mobile Close Button (Keep at top for usability) */}
+        {!isDesktop && (
+          <button
+            onClick={() => setMobileHidden(true)}
+            className="absolute right-4 top-4 p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-500 hover:text-white lg:hidden"
+          >
+            <X size={20} />
+          </button>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide py-4">
