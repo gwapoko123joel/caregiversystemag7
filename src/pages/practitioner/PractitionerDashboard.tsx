@@ -42,6 +42,7 @@ export interface AlertItem {
 
 export interface PatientWithLogs extends Patient {
   patient_monitoring_logs: (PatientMonitoringLog & { caregiver_name?: string; caregivers?: any })[]
+  patient_referrals?: any[]
 }
 
 export interface PractitionerDashboardContextType {
@@ -97,6 +98,13 @@ function PractitionerLayout() {
         patient_monitoring_logs (
           *,
           caregivers ( first_name, last_name )
+        ),
+        patient_referrals (
+          referral_id,
+          target_facility,
+          urgency_level,
+          created_at,
+          reason_for_referral
         )
       `)
 
@@ -313,7 +321,7 @@ function PractitionerLayout() {
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-50 dark:opacity-100 transition-opacity" />
             
             {/* Desktop Header */}
-            <header className={`hidden md:flex relative z-50 px-8 py-6 items-center justify-between border-b bg-primary/80 backdrop-blur-md sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'border-sky-500/40 shadow-[0_4px_15px_rgba(0,186,255,0.1)]' : 'border-card-border'}`}>
+            <header className={`hidden md:flex relative z-50 px-8 py-6 items-center justify-between border-b backdrop-blur-xl sticky top-0 transition-all duration-500 ${alertCount > 0 ? 'bg-rose-500/10 border-rose-500/40 shadow-[0_4px_15px_rgba(239,68,68,0.1)]' : 'bg-slate-900/40 border-white/5'}`}>
               <div className="flex items-center gap-4">
                 {isCollapsed && isDesktop && (
                   <button
@@ -325,10 +333,12 @@ function PractitionerLayout() {
                   </button>
                 )}
                  <div>
-                   <h1 className="text-2xl font-light tracking-[0.2em] uppercase flex items-center gap-3 text-text-main transition-colors leading-tight">
-                      <Monitor size={20} className="text-sky-500" /> {getHeaderTitle()}
-                   </h1>
-                   <p className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
+                  <div>
+                    <h1 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3 leading-tight transition-all">
+                       <Monitor size={20} className="text-sky-500" /> {getHeaderTitle()}
+                    </h1>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
+                  </div>
                  </div>
               </div>
 
@@ -337,7 +347,7 @@ function PractitionerLayout() {
                 <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-3 rounded-xl border transition-all ${soundEnabled ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 shadow-sm' : 'bg-card border-card-border text-sidebar-text-muted shadow-sm'}`}>
                   {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                 </button>
-                <button onClick={loadData} className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-light uppercase tracking-widest transition-all shadow-sm">
+                <button onClick={loadData} className="px-6 py-3 bg-slate-900/40 hover:bg-slate-900/60 border border-white/5 rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-2xl">
                   <Activity size={16} className="text-sky-500" /> Sync Network
                 </button>
               </div>
@@ -439,13 +449,7 @@ function HistoryLogsWrapper() {
 
 function PatientDossierWrapper() {
   const ctx = useOutletContext<PractitionerDashboardContextType>()
-  const location = useLocation()
-  const patientId = location.pathname.split('/').pop()
-  const patient = ctx.patients.find(p => p.patient_id.toString() === patientId)
-  
-  if (!patient) return <div className="text-center py-20 text-sidebar-text-muted font-light uppercase tracking-widest text-xs">Patient not found in network.</div>
-  
-  return <PatientDossier patient={patient} initiateCall={ctx.initiateCall} />
+  return <PatientDossier initiateCall={ctx.initiateCall} />
 }
 
 function PatientReferralFormWrapper() {

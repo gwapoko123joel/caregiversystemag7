@@ -156,7 +156,7 @@ export default function PractitionerOverview({
 
       {/* ── SECTION 1: GLOBAL TELEMETRY HUD ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link to="/dashboard/practitioner/feed" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-sky-500/30 active:scale-95">
+        <Link to="/dashboard/practitioner/feed" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-sky-500/30">
           <div className="flex justify-between items-start mb-4">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Network Roster</p>
             <Users className="text-sky-500 group-hover:scale-110 transition-transform" size={20} />
@@ -165,7 +165,7 @@ export default function PractitionerOverview({
           <p className="text-[9px] text-slate-500 font-bold uppercase mt-2">Active Synchronized Nodes</p>
         </Link>
 
-        <Link to="/dashboard/practitioner/alerts" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-amber-500/30 active:scale-95">
+        <Link to="/dashboard/practitioner/alerts" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-amber-500/30">
           <div className="flex justify-between items-start mb-4">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Pending Response</p>
             <Zap className="text-amber-500 group-hover:animate-pulse" size={20} />
@@ -174,7 +174,7 @@ export default function PractitionerOverview({
           <p className="text-[9px] text-amber-500/70 font-bold uppercase mt-2">Awaiting Practitioner Action</p>
         </Link>
 
-        <Link to="/dashboard/practitioner/history" className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-emerald-500/30 active:scale-95">
+        <Link to="/dashboard/practitioner/history" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-emerald-500/30">
           <div className="flex justify-between items-start mb-4">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Telemetry Flow</p>
             <TrendingUp className="text-emerald-500" size={20} />
@@ -185,7 +185,7 @@ export default function PractitionerOverview({
       </div>
 
       {/* ── SECTION 2: OPERATIONAL HUB ── */}
-      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-12 relative overflow-hidden shadow-2xl">
         {/* Background Graphic */}
         <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none hidden lg:block">
           <Activity size={240} strokeWidth={1} className="text-sky-500" />
@@ -193,7 +193,7 @@ export default function PractitionerOverview({
         
         <div className="max-w-2xl relative z-10">
           <p className="text-sky-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Operational Readiness</p>
-          <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-6">
+          <h2 className="text-5xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-6">
             Barangay Bantayan <br /> Monitoring Hub
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed mb-10 max-w-lg">

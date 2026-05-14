@@ -363,8 +363,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  /**
+   * Refresh the user profile data manually.
+   */
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      currentProfileId.current = null
+      await fetchProfile(user.id)
+    }
+  }, [user, fetchProfile])
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, userProfile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, userProfile, loading, signIn, signUp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

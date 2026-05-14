@@ -196,11 +196,14 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
           )}
         
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path ||
-            (item.path !== '/dashboard/caregiver' &&
-             item.path !== '/dashboard/practitioner' &&
-             item.path !== '/dashboard/admin' &&
-             location.pathname.startsWith(item.path));
+          const isBaseDashboard = item.path.endsWith('dashboard/practitioner') || 
+                                 item.path.endsWith('dashboard/caregiver') || 
+                                 item.path.endsWith('dashboard/admin');
+
+          const isActive = isBaseDashboard
+            ? location.pathname === item.path
+            : location.pathname.startsWith(item.path) || 
+              (item.label === 'Patient Feed' && location.pathname.includes('/patient/'));
 
           const badgeCount = item.label === 'Alert Center' ? alertCount : (item.badge ?? 0);
 

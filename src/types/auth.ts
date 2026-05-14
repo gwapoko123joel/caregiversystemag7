@@ -10,6 +10,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string, accessId: string) => Promise<{ error: string | null }>
   signUp: (data: SignUpData) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
+  refreshProfile?: () => Promise<void>
 }
 
 export interface SignUpData {

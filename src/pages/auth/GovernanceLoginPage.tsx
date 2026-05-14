@@ -131,8 +131,8 @@ const GovernanceLoginPage = () => {
         className="relative z-10 w-full max-w-md"
       >
         {/* ===== GOVERNANCE LOGIN CARD ===== */}
-        <div className="rounded-3xl border border-slate-600/50 bg-slate-900/80 
-                        backdrop-blur-2xl shadow-2xl shadow-black/60 overflow-hidden">
+        <div className="rounded-[32px] border border-white/5 bg-slate-900/40 
+                        backdrop-blur-xl shadow-2xl shadow-black/60 overflow-hidden transition-all">
 
           {/* Top accent — Amber/Red for warning */}
           <div className="h-1 bg-gradient-to-r from-amber-500 via-red-500 to-amber-500" />
@@ -159,10 +159,10 @@ const GovernanceLoginPage = () => {
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-lg font-black tracking-tight text-white uppercase">
+                <h1 className="text-2xl font-black text-white uppercase tracking-tight">
                   System Governance
                 </h1>
-                <p className="text-[10px] tracking-[0.25em] text-slate-400 uppercase">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
                   Bantayan Administrative Node — Secure Access
                 </p>
               </div>

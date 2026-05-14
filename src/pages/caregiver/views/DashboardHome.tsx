@@ -14,10 +14,13 @@ import {
   Stethoscope,
   ArrowRight,
   Phone,
-  ShieldCheck
+  ShieldCheck,
+  UserPlus,
+  Monitor as MonitorIcon,
+  Bell,
+  Radio
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
 import type { Patient, PatientMonitoringLog } from '../../../types/database';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
@@ -34,6 +37,7 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [onlineDoctors, setOnlineDoctors] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [latestAnnouncement, setLatestAnnouncement] = useState<any>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [localDutyStatus, setLocalStatus] = useState(userProfile?.duty_status || 'off_duty');
@@ -88,6 +92,16 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
     setOrders(data || []);
   };
 
+  // 2. Fetch Latest Broadcast
+  const fetchNews = async () => {
+    const { data } = await supabase
+      .from('system_announcements')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (data && data[0]) setLatestAnnouncement(data[0]);
+  };
+
   async function handleAcknowledgeOrder(instructionId: string) {
     try {
       const { error } = await supabase
@@ -113,7 +127,7 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
     }
   }
 
-  // 2. Fetch Online Doctors
+  // 3. Fetch Online Doctors
   const fetchOnlineDoctors = async () => {
     const { data } = await supabase
       .from('caregivers')
@@ -127,6 +141,7 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   useEffect(() => {
     fetchOrders();
     fetchOnlineDoctors();
+    fetchNews();
 
     // REAL-TIME: Listen for updates
     const ordersChannel = supabase
@@ -139,9 +154,15 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'caregivers' }, () => fetchOnlineDoctors())
       .subscribe();
 
+    const newsChannel = supabase
+      .channel('news-stream')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'system_announcements' }, () => fetchNews())
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(doctorsChannel);
+      supabase.removeChannel(newsChannel);
     };
   }, []);
 
@@ -165,15 +186,15 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   const caregiverName = userProfile?.full_name?.split(' ')[0] || 'Caregiver';
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4 page-enter pb-10">
+    <div className="max-w-6xl mx-auto space-y-6 page-enter pb-10">
 
       {/* GREETING */}
-      <div className="soft-card bg-slate-900 border-none flex flex-col md:flex-row md:items-center justify-between gap-4 p-8">
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 shadow-2xl transition-all">
         <div className="space-y-1">
-          <h2 className="text-3xl font-light text-white tracking-tight leading-none">
+          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-none">
             {getGreeting()}, {caregiverName} 👋
           </h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
             System connected — Secure Line
           </p>
         </div>
@@ -194,6 +215,26 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
         </div>
       </div>
 
+      {/* LATEST NETWORK ANNOUNCEMENT */}
+      {latestAnnouncement && (
+        <div className="mt-6 bg-sky-500/10 border border-sky-500/20 p-5 rounded-[28px] flex items-center gap-4 animate-in slide-in-from-top duration-1000 shadow-lg shadow-sky-500/5">
+          <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg animate-bounce">
+            <Bell size={18} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+               <span className="bg-sky-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded">URGENT</span>
+               <p className="text-[10px] font-black text-sky-400 uppercase tracking-tighter">{latestAnnouncement.title}</p>
+            </div>
+            <p className="text-xs text-white font-medium italic">"{latestAnnouncement.message}"</p>
+          </div>
+          <div className="text-right border-l border-white/10 pl-4">
+             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Received</p>
+             <p className="text-[9px] font-mono text-slate-400">{new Date(latestAnnouncement.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+          </div>
+        </div>
+      )}
+
       {/* QUICK STATS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatItem label="Total Reports" value={String(totalReports)} icon={<ClipboardList size={18} />} color="cyan" />
@@ -212,31 +253,38 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Active Roster */}
-        <div className="lg:col-span-2 soft-card bg-slate-900 border-none min-h-[300px] flex flex-col">
+        <div className="lg:col-span-2 soft-card bg-slate-900 border-none min-h-[300px] flex flex-col p-8 rounded-[40px]">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 bg-sky-400 rounded-full" />
             <h3 className="text-sm font-light text-white uppercase tracking-widest ">Active Care Roster</h3>
           </div>
 
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {assignedPatients.map(p => (
-              <div
-                key={p.patient_id}
-                onClick={() => navigate('/dashboard/caregiver/report', { state: { patient: p } })}
-                className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-sky-400/20 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-sky-400/10 rounded-xl flex items-center justify-center text-sky-400">
-                    <User size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-light text-white uppercase tracking-tight">{p.first_name} {p.last_name}</h4>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{p.address} • Case #{p.patient_id}</p>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="text-slate-800 group-hover:text-sky-400" />
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+            {assignedPatients.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center opacity-20 py-20">
+                <User size={48} />
+                <p className="text-[10px] font-black uppercase mt-4">No subjects assigned</p>
               </div>
-            ))}
+            ) : (
+              assignedPatients.map(p => (
+                <div
+                  key={p.patient_id}
+                  onClick={() => navigate('/dashboard/caregiver/report', { state: { patient: p } })}
+                  className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-sky-400/20 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-sky-400/10 rounded-xl flex items-center justify-center text-sky-400">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-light text-white uppercase tracking-tight">{p.first_name} {p.last_name}</h4>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{p.address} • Case #{p.patient_id}</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-800 group-hover:text-sky-400" />
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -246,82 +294,50 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
           <div className="bg-card border border-card-border rounded-[32px] p-6 shadow-sm">
             <h3 className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-4">Doctors On Call</h3>
             <div className="space-y-3">
-              {onlineDoctors.map(doc => (
-                <div key={doc.prc_license} className="flex items-center justify-between p-3 bg-primary/20 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${doc.duty_status === 'available' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                    <p className="text-xs font-black text-text-main uppercase">Dr. {doc.last_name}</p>
-                  </div>
-                  
-                  {/* THE FUNCTIONAL LINK */}
-                  <a 
-                    href={doc.phone_number ? `tel:${doc.phone_number}` : '#'}
-                    onClick={(e) => { if(!doc.phone_number) { e.preventDefault(); alert("No number registered."); }}}
-                    className="p-2 bg-slate-900 border border-white/10 rounded-xl text-sky-400 hover:bg-sky-500 hover:text-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
-                  >
-                     <Phone size={14} />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Receive Orders Block */}
-          <div className="bg-card border border-card-border rounded-[32px] p-6 shadow-sm">
-            <h3 className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-4">Medical Orders</h3>
-            <div className="space-y-4">
-              {orders.length === 0 ? (
-                <p className="text-[10px] text-center opacity-30 uppercase font-black py-4">No Active Orders</p>
+              {onlineDoctors.length === 0 ? (
+                <div className="text-center py-6 opacity-20 text-[10px] font-black uppercase">No Doctors Online</div>
               ) : (
-                orders.map((order) => (
-                  <div 
-                    key={order.instruction_id} 
-                    className={`p-4 rounded-r-2xl border-l-4 transition-all ${
-                      order.status === 'completed' 
-                        ? 'bg-emerald-500/5 border-emerald-500 opacity-60' 
-                        : 'bg-sky-500/5 border-sky-500'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className={`text-[9px] font-black uppercase tracking-widest ${
-                        order.status === 'completed' ? 'text-emerald-500' : 'text-sky-500'
-                      }`}>
-                        FOR: {order.patient?.first_name}
-                      </span>
-                      {order.status === 'completed' ? (
-                        <span className="text-[8px] font-black text-emerald-500 uppercase flex items-center gap-1">
-                          <ShieldCheck size={10} /> COMPLETED
-                        </span>
-                      ) : (
-                        <span className="text-[8px] text-sidebar-text-muted">
-                          {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <p className="text-[11px] text-text-main leading-relaxed mb-3 italic">
-                      "{order.instruction_text}"
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="text-[8px] font-black text-sidebar-text-muted uppercase">
-                        — Dr. {order.doctor?.last_name}
+                onlineDoctors.map(doc => (
+                  <div key={doc.prc_license} className="flex items-center justify-between p-3 bg-primary/20 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-brand-cyan">
+                        <Stethoscope size={14} />
                       </div>
-                      
-                      {/* ONLY SHOW BUTTON IF NOT COMPLETED */}
-                      {order.status !== 'completed' && (
-                        <button 
-                          onClick={() => handleAcknowledgeOrder(order.instruction_id)}
-                          className="px-3 py-1.5 bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border border-sky-500/20"
-                        >
-                          Acknowledge Task
-                        </button>
-                      )}
+                      <div>
+                        <p className="text-[11px] font-bold text-white uppercase">Dr. {doc.last_name}</p>
+                        <p className="text-[8px] text-brand-cyan uppercase font-bold tracking-tighter">PRC: {doc.prc_license}</p>
+                      </div>
                     </div>
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                   </div>
                 ))
               )}
             </div>
+          </div>
+
+          {/* Pending Instructions */}
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 shadow-xl">
+             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+               <ClipboardList size={14} className="text-sky-500" /> Pending Orders
+             </h3>
+             <div className="space-y-3">
+                {orders.filter(o => o.status !== 'completed').length === 0 ? (
+                  <p className="text-center py-6 opacity-20 text-[10px] font-black uppercase">Clear Protocol</p>
+                ) : (
+                  orders.filter(o => o.status !== 'completed').map(order => (
+                    <div key={order.instruction_id} className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 group">
+                       <p className="text-[8px] font-black text-sky-500 uppercase mb-1">Subject: {order.patient?.first_name} {order.patient?.last_name}</p>
+                       <p className="text-xs text-white italic font-medium leading-relaxed mb-4">"{order.instruction_text}"</p>
+                       <button 
+                         onClick={() => handleAcknowledgeOrder(order.instruction_id)}
+                         className="w-full py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[8px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all"
+                       >
+                         Complete & Verify
+                       </button>
+                    </div>
+                  ))
+                )}
+             </div>
           </div>
         </div>
       </div>
@@ -329,19 +345,21 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   );
 }
 
-/* HELPER COMPONENTS */
-const StatItem = ({ label, value, icon, color, isActive }: any) => (
-  <div className="soft-card bg-slate-900 border-none p-6 flex flex-col justify-between gap-4 group">
-    <div className="flex items-center justify-between">
-      <p className="text-[10px] font-light text-slate-500 uppercase tracking-widest">{label}</p>
-      <div className={`p-2 rounded-xl bg-slate-950/50 border border-white/5 ${isActive ? 'text-emerald-500' : 'text-slate-400'}`}>
-        {icon}
-      </div>
-    </div>
-    <p className="text-3xl font-bold text-white tracking-tighter">{value}</p>
-  </div>
-);
+function StatItem({ label, value, icon, color, isActive = false }: { label: string, value: string, icon: React.ReactNode, color: string, isActive?: boolean }) {
+  const colorMap: Record<string, string> = {
+    cyan: 'text-sky-400 bg-sky-400/10 border-sky-400/20',
+    emerald: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+    purple: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+    slate: 'text-slate-400 bg-slate-400/10 border-white/5'
+  };
 
-const MonitorIcon = (props: any) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></svg>
-);
+  return (
+    <div className={`p-6 bg-slate-900/40 backdrop-blur-xl border rounded-[32px] shadow-lg transition-all ${colorMap[color]} ${isActive ? 'ring-1 ring-emerald-500/50' : ''}`}>
+      <div className="flex justify-between items-start mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">{label}</p>
+        <div className="opacity-80">{icon}</div>
+      </div>
+      <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
+    </div>
+  );
+}

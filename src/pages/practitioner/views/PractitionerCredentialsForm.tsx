@@ -4,7 +4,15 @@ import {
   Hospital, 
   Phone, 
   ShieldCheck, 
-  Check
+  Check,
+  IdCard,
+  PhoneForwarded,
+  MapPin,
+  Calendar,
+  Stethoscope,
+  Clock,
+  ChevronRight,
+  UserCheck
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
@@ -100,209 +108,226 @@ export default function PractitionerCredentialsForm() {
   if (success) {
     return (
       <div className="max-w-2xl mx-auto py-20 text-center space-y-8 animate-in zoom-in-95 duration-500">
-        <div className="w-20 h-20 bg-brand-cyan/10 border border-brand-cyan/20 rounded-[2.5rem] flex items-center justify-center text-brand-cyan mx-auto">
-           <ShieldCheck size={40} />
+        <div className="w-24 h-24 bg-sky-500/10 border border-sky-500/20 rounded-[2.5rem] flex items-center justify-center text-sky-500 mx-auto shadow-2xl shadow-sky-500/10">
+           <ShieldCheck size={48} className="animate-pulse" />
         </div>
-        <div className="space-y-2">
-           <h3 className="text-3xl font-light text-white uppercase tracking-widest">Credentials Submitted</h3>
-           <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
-             Your practitioner credentials have been queued for administrative verification. You will be notified once your consultation node is activated.
+        <div className="space-y-3">
+           <h3 className="text-4xl font-black text-white uppercase tracking-tighter">Protocol Activated</h3>
+           <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed font-medium">
+             Your practitioner credentials have been queued for secure verification. You will be notified once your node is authorized for full clinical intervention.
            </p>
         </div>
         <button 
           onClick={() => window.location.reload()}
-          className="px-10 py-4 bg-brand-cyan text-slate-950 rounded-2xl text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all"
+          className="px-12 py-5 bg-sky-500 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20"
         >
-          Return to Dashboard
+          Return to Console
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-10 page-enter pb-20">
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-6 bg-brand-cyan rounded-full" />
-          <h2 className="text-2xl font-light text-white uppercase tracking-widest">Practitioner Onboarding</h2>
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 px-4 md:px-0">
+      
+      {/* ── HEADER: NODE INITIALIZATION ── */}
+      <div className="px-2">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+          <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Protocol: Initialization</span>
         </div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-4">Initialize secure consultation node and verify credentials</p>
+        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          Node <span className="text-sky-500">Onboarding</span>
+        </h2>
+        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+          Initialize Secure Consultation Node & Verify Professional Credentials
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* Section: Licensing */}
-        <div className="md:col-span-2 space-y-6">
-           <div className="flex items-center gap-3 text-slate-500">
-              <FileText size={18} />
-              <h4 className="text-[10px] font-bold uppercase tracking-widest">Professional Licensing</h4>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField 
-                label="PRC License Number" 
-                value={formData.prc_license_number}
-                onChange={v => setFormData({...formData, prc_license_number: v})}
-                placeholder="e.g. 0123456"
-                required
-              />
-              <InputField 
-                label="License Expiry Date" 
-                type="date"
-                value={formData.prc_license_expiry}
-                onChange={v => setFormData({...formData, prc_license_expiry: v})}
-                required
-              />
-              <InputField 
-                label="Medical Profession" 
-                value={formData.prc_profession}
-                onChange={v => setFormData({...formData, prc_profession: v})}
-                placeholder="e.g. Physician, Nurse Practitioner"
-                required
-              />
-           </div>
-        </div>
+        {/* ── SECTION 1: PROFESSIONAL LICENSING ── */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-8">
+             <IdCard className="text-sky-500" size={18} />
+             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Professional Licensing</h3>
+          </div>
 
-        {/* Section: Contact */}
-        <div className="md:col-span-2 space-y-6 pt-4">
-           <div className="flex items-center gap-3 text-slate-500">
-              <Phone size={18} />
-              <h4 className="text-[10px] font-bold uppercase tracking-widest">Consultation Pipeline</h4>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField 
-                label="Clinical Hotline (Philippines)" 
-                value={formData.clinical_hotline}
-                onChange={v => setFormData({...formData, clinical_hotline: v})}
-                placeholder="+639XXXXXXXXX"
-                required
-              />
-              <InputField 
-                label="Preferred Contact Hours" 
-                value={formData.preferred_contact_hours}
-                onChange={v => setFormData({...formData, preferred_contact_hours: v})}
-                placeholder="e.g. 8:00 AM – 5:00 PM PHT"
-              />
-           </div>
-           
-           <div className="flex gap-8 pt-2">
-              <ToggleField 
-                label="Accepts Voice Calls" 
-                checked={formData.accepts_calls}
-                onChange={v => setFormData({...formData, accepts_calls: v})}
-              />
-              <ToggleField 
-                label="Accepts SMS Inquiries" 
-                checked={formData.accepts_sms}
-                onChange={v => setFormData({...formData, accepts_sms: v})}
-              />
-           </div>
-        </div>
-
-        {/* Section: Specialties */}
-        <div className="md:col-span-2 space-y-6 pt-4">
-           <div className="flex items-center gap-3 text-slate-500">
-              <Hospital size={18} />
-              <h4 className="text-[10px] font-bold uppercase tracking-widest">Affiliations & Specializations</h4>
-           </div>
-           
-           <InputField 
-              label="Primary Hospital / Institution" 
-              value={formData.primary_hospital}
-              onChange={v => setFormData({...formData, primary_hospital: v})}
-              placeholder="Cebu Provincial Hospital"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputGroup 
+              label="PRC License Number" 
+              placeholder="e.g. 0123456" 
+              icon={<ShieldCheck size={14}/>} 
+              value={formData.prc_license_number}
+              onChange={(v: any) => setFormData({...formData, prc_license_number: v})}
+              required
             />
+            <InputGroup 
+              label="License Expiry Date" 
+              type="date" 
+              placeholder="dd/mm/yyyy" 
+              icon={<Calendar size={14}/>} 
+              value={formData.prc_license_expiry}
+              onChange={(v: any) => setFormData({...formData, prc_license_expiry: v})}
+              required
+            />
+            <div className="md:col-span-2">
+              <InputGroup 
+                label="Medical Profession" 
+                placeholder="e.g. Medical Doctor / Specialist" 
+                icon={<Stethoscope size={14}/>} 
+                value={formData.prc_profession}
+                onChange={(v: any) => setFormData({...formData, prc_profession: v})}
+                required
+              />
+            </div>
+          </div>
+        </div>
 
-           <div className="space-y-3">
-              <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Medical Specializations</label>
+        {/* ── SECTION 2: CONSULTATION PIPELINE ── */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-8">
+             <PhoneForwarded className="text-emerald-500" size={18} />
+             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Consultation Pipeline</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <InputGroup 
+              label="Clinical Hotline (Philippines)" 
+              placeholder="+639XXXXXXXXX" 
+              icon={<Phone size={14}/>} 
+              value={formData.clinical_hotline}
+              onChange={(v: any) => setFormData({...formData, clinical_hotline: v})}
+              required
+            />
+            <InputGroup 
+              label="Preferred Contact Hours" 
+              placeholder="8:00 AM – 5:00 PM PHT" 
+              icon={<Clock size={14}/>} 
+              value={formData.preferred_contact_hours}
+              onChange={(v: any) => setFormData({...formData, preferred_contact_hours: v})}
+            />
+          </div>
+
+          {/* Toggles */}
+          <div className="flex flex-wrap gap-4">
+             <ToggleButton 
+               label="Accepts Voice Calls" 
+               active={formData.accepts_calls} 
+               onClick={() => setFormData({...formData, accepts_calls: !formData.accepts_calls})}
+             />
+             <ToggleButton 
+               label="Accepts SMS Inquiries" 
+               active={formData.accepts_sms} 
+               onClick={() => setFormData({...formData, accepts_sms: !formData.accepts_sms})}
+             />
+          </div>
+        </div>
+
+        {/* ── SECTION 3: AFFILIATIONS & SPECIALIZATIONS ── */}
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-8">
+             <MapPin className="text-rose-500" size={18} />
+             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Affiliations & Specializations</h3>
+          </div>
+
+          <div className="space-y-6">
+            <InputGroup 
+              label="Primary Hospital / Institution" 
+              placeholder="e.g. Cebu Provincial Hospital" 
+              icon={<Hospital size={14}/>} 
+              value={formData.primary_hospital}
+              onChange={(v: any) => setFormData({...formData, primary_hospital: v})}
+            />
+            
+            <div>
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Clinical Specializations</label>
               <div className="flex flex-wrap gap-2">
                  {SPECIALIZATIONS.map(spec => (
-                   <button
-                     key={spec}
-                     type="button"
+                   <span 
+                     key={spec} 
                      onClick={() => toggleSpecialization(spec)}
-                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${specializations.includes(spec) ? 'bg-brand-cyan/10 border-brand-cyan/30 text-brand-cyan' : 'bg-slate-900 border-white/5 text-slate-500'}`}
+                     className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all cursor-pointer border ${
+                       specializations.includes(spec) 
+                         ? 'bg-sky-500/10 border-sky-500/30 text-white' 
+                         : 'bg-white/5 border-white/5 text-slate-400 hover:border-sky-500/50 hover:text-white'
+                     }`}
                    >
                      {spec}
-                   </button>
+                   </span>
                  ))}
               </div>
-           </div>
+            </div>
+          </div>
         </div>
 
-        <div className="md:col-span-2 pt-10">
-           <button
-             type="submit"
-             disabled={loading}
-             className="w-full py-5 bg-brand-cyan text-slate-950 rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-brand-cyan/10 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3"
-           >
-             {loading ? <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent animate-spin rounded-full" /> : <ShieldCheck size={18} />}
-             Authorize & Register Practitioner Node
-           </button>
-        </div>
+        {/* ── FINAL SUBMIT ── */}
+        <button 
+          type="submit"
+          disabled={loading}
+          className="w-full py-6 bg-sky-500 hover:bg-sky-400 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-sm shadow-xl shadow-sky-500/20 transition-all active:scale-[0.98] group flex items-center justify-center gap-3"
+        >
+           {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent animate-spin rounded-full" /> : <ShieldCheck size={20} className="group-hover:rotate-12 transition-transform" />}
+           Authorize & Register Practitioner Node
+        </button>
+
       </form>
 
       {existingCreds && (
-        <div className="soft-card bg-emerald-500/5 border border-emerald-500/20 p-6 flex items-center justify-between">
+        <div className="bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-[32px] flex items-center justify-between group shadow-xl">
            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
-                 <Check size={20} />
+              <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                 <Check size={24} />
               </div>
               <div>
-                 <p className="text-[10px] font-bold text-white uppercase tracking-widest">Verification Status: {existingCreds.verification_status}</p>
-                 <p className="text-[8px] text-slate-500 uppercase tracking-widest">Last updated: {new Date(existingCreds.updated_at).toLocaleDateString()}</p>
+                 <p className="text-[10px] font-black text-white uppercase tracking-widest">Node Status: {existingCreds.verification_status}</p>
+                 <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Authorized Node Signature — Verified {new Date(existingCreds.updated_at).toLocaleDateString()}</p>
               </div>
            </div>
-           <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Node Online</p>
+           <div className="flex items-center gap-2 text-emerald-500">
+              <span className="text-[8px] font-black uppercase tracking-widest">Protocol Active</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+           </div>
         </div>
       )}
     </div>
   );
 }
 
-interface InputFieldProps {
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  required?: boolean;
-}
+// ── HELPER COMPONENTS ──
 
-function InputField({ label, type = 'text', value, onChange, placeholder, required }: InputFieldProps) {
+function InputGroup({ label, placeholder, type = "text", icon, value, onChange, required }: any) {
   return (
     <div className="space-y-2">
-       <label className="text-[8px] font-bold text-slate-500 uppercase tracking-widest px-1">{label}</label>
-       <input 
-         type={type}
-         value={value}
-         onChange={(e) => onChange(e.target.value)}
-         placeholder={placeholder}
-         required={required}
-         className="w-full bg-slate-900 border border-white/10 rounded-xl py-4 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-cyan/20 transition-all shadow-sm"
-       />
+      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">{label}</label>
+      <div className="relative group">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors">
+          {icon}
+        </div>
+        <input 
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+        />
+      </div>
     </div>
   );
 }
 
-interface ToggleFieldProps {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}
-
-function ToggleField({ label, checked, onChange }: ToggleFieldProps) {
+function ToggleButton({ label, active, onClick }: any) {
   return (
     <button 
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="flex items-center gap-3 group"
+      type="button" 
+      onClick={onClick}
+      className={`px-5 py-3 rounded-2xl border flex items-center gap-3 transition-all ${
+        active ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-white/5 border-white/5 text-slate-500'
+      }`}
     >
-       <div className={`w-10 h-6 rounded-full transition-all relative ${checked ? 'bg-brand-cyan' : 'bg-slate-800'}`}>
-          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${checked ? 'left-5 shadow-lg' : 'left-1'}`} />
-       </div>
-       <span className="text-[10px] font-bold text-slate-500 group-hover:text-white uppercase tracking-widest transition-colors">{label}</span>
+      <div className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'}`} />
+      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
     </button>
   );
 }

@@ -13,11 +13,11 @@ export default function AuditTrail() {
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'SOS_TRIGGERED': return 'bg-red-500/10 text-red-500 border-red-500/30';
-      case 'VITALS_SUBMITTED': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
-      case 'CLINICAL_SIGN_OFF': return 'bg-sky-500/10 text-sky-500 border-sky-500/30';
-      case 'SOS_RESOLVED': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
-      default: return 'bg-card border-card-border text-text-main';
+      case 'SOS_TRIGGERED': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+      case 'CLINICAL_SIGN_OFF': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+      case 'VITALS_SUBMITTED': return 'text-sky-500 bg-sky-500/10 border-sky-500/20';
+      case 'SOS_RESOLVED': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+      default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
     }
   };
 
@@ -31,11 +31,11 @@ export default function AuditTrail() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
-      <div className="bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] overflow-hidden shadow-2xl transition-all">
         <div className="p-6 md:p-8 border-b border-card-border flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card transition-colors">
           <div>
-            <h3 className="text-lg md:text-xl font-black text-text-main uppercase tracking-tight transition-colors">System Audit Log</h3>
-            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">Immutable Global Activity Stream</p>
+            <h3 className="text-2xl font-black text-white uppercase tracking-tight">System Audit Log</h3>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Immutable Global Activity Stream</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
              <div className="relative group w-full md:min-w-[200px]">
@@ -43,14 +43,14 @@ export default function AuditTrail() {
                 <input 
                   value={logSearch}
                   onChange={e => setLogSearch(e.target.value)}
-                  className="w-full bg-card border border-card-border rounded-xl py-3.5 md:py-2 pl-10 pr-4 text-[10px] font-black text-text-main focus:outline-none uppercase tracking-widest placeholder:text-sidebar-text-muted/50 transition-colors shadow-sm dark:shadow-none" 
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 md:py-2 pl-10 pr-4 text-[10px] font-bold text-slate-200 focus:outline-none focus:border-sky-500/40 uppercase tracking-widest placeholder:text-slate-500 transition-colors shadow-inner" 
                   placeholder="SEARCH DETAILS..." 
                 />
              </div>
              <select 
                 value={logFilter} 
                 onChange={e => setLogFilter(e.target.value)}
-                className="w-full md:w-auto bg-card border border-card-border rounded-xl px-4 py-3.5 md:py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none appearance-none cursor-pointer transition-colors shadow-sm dark:shadow-none"
+                className="w-full md:w-auto bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3.5 md:py-2 text-[10px] font-bold uppercase text-slate-500 hover:text-white focus:outline-none appearance-none cursor-pointer transition-colors shadow-inner"
               >
                 <option value="all" className="bg-card text-text-main">All Ops</option>
                 <option value="LOGIN" className="bg-card text-text-main">Logins</option>
@@ -67,7 +67,7 @@ export default function AuditTrail() {
         <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest bg-card transition-colors">
+                <tr className="text-left text-[10px] font-black text-slate-500 uppercase tracking-widest bg-card transition-colors">
                   <th className="px-6 py-4">Timeline Index</th>
                   <th className="px-6 py-4">Principal Identity</th>
                   <th className="px-6 py-4">Action Token</th>
@@ -77,16 +77,18 @@ export default function AuditTrail() {
               <tbody className="divide-y divide-card-border transition-colors">
                 {filteredLogs.map((l: ActivityLog) => (
                   <tr key={l.log_id} className="hover:bg-card transition-colors">
-                    <td className="px-6 py-4 font-mono text-[10px] text-sidebar-text-muted transition-colors">{new Date(l.timestamp).toLocaleDateString()} · {new Date(l.timestamp).toLocaleTimeString([], { timeStyle: 'medium' }).toUpperCase()}</td>
+                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500 transition-colors">{new Date(l.timestamp).toLocaleDateString()} · {new Date(l.timestamp).toLocaleTimeString([], { timeStyle: 'medium' }).toUpperCase()}</td>
                     <td className="px-6 py-4">
                        <div className="text-xs font-black text-sky-500 dark:text-sky-400 uppercase transition-colors">{l.user_id?.slice(0, 8)}...</div>
-                       <div className="text-[10px] font-bold text-sidebar-text-muted/60 tracking-tighter uppercase italic transition-colors">{l.user_type} SESSION</div>
+                       <div className="text-[10px] font-bold text-slate-500/60 tracking-tighter uppercase italic transition-colors">{l.user_type} SESSION</div>
                     </td>
                     <td className="px-6 py-4">
-                       <span className={`text-[10px] font-black px-2 py-1 rounded border transition-colors ${getActionColor(l.action)}`}>{l.action}</span>
+                       <span className={`px-2 py-1 rounded text-[9px] font-black border transition-colors ${getActionColor(l.action)}`}>
+                         {l.action.replace(/_/g, ' ')}
+                       </span>
                     </td>
                     <td className="px-6 py-4">
-                       <div className="text-[10px] font-medium font-mono text-sidebar-text-muted max-w-md truncate hover:whitespace-normal transition-all transition-colors">{JSON.stringify(l.details)}</div>
+                       <div className="text-[10px] font-medium font-mono text-slate-500 max-w-md truncate hover:whitespace-normal transition-all transition-colors">{JSON.stringify(l.details)}</div>
                     </td>
                   </tr>
                 ))}
@@ -100,7 +102,9 @@ export default function AuditTrail() {
              <div key={l.log_id} className="p-6 transition-all active:bg-primary/20">
                 <div className="flex items-start justify-between mb-4">
                    <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">{new Date(l.timestamp).toLocaleString()}</div>
-                   <span className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors ${getActionColor(l.action)}`}>{l.action}</span>
+                   <span className={`px-2 py-1 rounded text-[9px] font-black border transition-colors ${getActionColor(l.action)}`}>
+                     {l.action.replace(/_/g, ' ')}
+                   </span>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">

@@ -65,8 +65,8 @@ export default function AlertCenter() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-text-main uppercase tracking-tight">Clinical Threshold Inbox</h2>
-          <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1">Active Priority Breaches</p>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight">Clinical Threshold Inbox</h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Active Priority Breaches</p>
         </div>
         <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
            {alerts.filter(a => a.severity === 'critical').length} CRITICAL ALERTS
@@ -79,14 +79,14 @@ export default function AlertCenter() {
              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500 mx-auto"></div>
           </div>
         ) : alerts.length === 0 ? (
-          <div className="bg-card border border-card-border rounded-[32px] p-12 text-center opacity-40">
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-12 text-center opacity-40 shadow-2xl">
              <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
              <p className="text-[10px] uppercase font-black tracking-widest">All systems clear. No active breaches.</p>
           </div>
         ) : (
           alerts.map(alert => (
-            <div key={alert.alert_id} className={`p-6 border rounded-[32px] flex items-center justify-between transition-all group ${
-              alert.severity === 'critical' ? 'bg-red-500/5 border-red-500/20' : 'bg-amber-500/5 border-amber-500/20'
+            <div key={alert.alert_id} className={`p-8 backdrop-blur-xl border border-white/5 rounded-[32px] flex items-center justify-between transition-all group shadow-2xl ${
+              alert.severity === 'critical' ? 'bg-rose-500/10' : 'bg-amber-500/10'
             }`}>
               <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
@@ -106,8 +106,8 @@ export default function AlertCenter() {
 
               <div className="flex items-center gap-4">
                  <div className="text-right">
-                    <p className="text-[10px] font-black text-sidebar-text-muted uppercase">{new Date(alert.created_at).toLocaleTimeString()}</p>
-                    <p className="text-[8px] font-bold text-sidebar-text-muted/50 uppercase mt-1">Telemetry breach</p>
+                    <p className="text-[10px] font-mono font-bold text-slate-500 uppercase">{new Date(alert.created_at).toLocaleTimeString()}</p>
+                    <p className="text-[8px] font-bold text-slate-500/50 uppercase mt-1 tracking-[0.2em]">Telemetry breach</p>
                  </div>
                  <button 
                   onClick={() => resolveAlert(alert.alert_id, alert.patient_id)}
