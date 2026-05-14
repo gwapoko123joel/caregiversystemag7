@@ -4,24 +4,23 @@ import {
   MessageSquare, 
   Search, 
   ChevronRight, 
-  Filter, 
   Stethoscope, 
   AlertCircle,
   Clock,
   ArrowLeft,
-  PhoneForwarded,
-  Info
+  Loader2,
+  User,
+  MapPin
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const STATUS_FILTERS = [
-  { id: 'all', label: 'All', color: 'slate' },
-  { id: 'available', label: 'Available', color: 'emerald' },
-  { id: 'on_break', label: 'On Break', color: 'amber' },
-  { id: 'busy', label: 'Busy', color: 'red' },
-  { id: 'off_duty', label: 'Off Duty', color: 'slate' },
+  { id: 'all', label: 'All Personnel', color: 'slate' },
+  { id: 'available', label: 'Online & Ready', color: 'emerald' },
+  { id: 'on_break', label: 'On System Break', color: 'amber' },
+  { id: 'busy', label: 'In Consultation', color: 'red' },
+  { id: 'off_duty', label: 'Node Offline', color: 'slate' },
 ];
 
 export default function AvailableDoctorsView() {
@@ -30,12 +29,10 @@ export default function AvailableDoctorsView() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('available');
-  const [showWarningModal, setShowWarningModal] = useState<{ isOpen: boolean; doctor: any | null }>({ isOpen: false, doctor: null });
 
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      // 1. Fetch only Authorized Medical Practitioners
       const { data, error } = await supabase
         .from('caregivers')
         .select('*') 
@@ -44,17 +41,13 @@ export default function AvailableDoctorsView() {
 
       if (error) throw error;
 
-      // 2. Map the results so the UI components can read them easily
       const flattened = (data || []).map(doc => ({
         ...doc,
-        // Map id to caregiver_id for existing UI components
         caregiver_id: doc.id,
-        // Use duty_status as the source of truth for the filter
         availability_status: (doc.duty_status || 'off_duty').toLowerCase(), 
         prc_profession: 'Medical Practitioner',
         prc_license_number: doc.prc_license || 'VERIFIED',
         clinical_hotline: doc.phone_number || doc.phone,
-        // Ensure buttons are active for the demo
         accepts_calls: true, 
         accepts_sms: true 
       }));
@@ -70,12 +63,11 @@ export default function AvailableDoctorsView() {
   useEffect(() => {
     fetchDoctors();
 
-    // REAL-TIME: Listen to status changes on the caregivers table
     const channel = supabase
       .channel('doctor-directory-sync')
       .on('postgres_changes', 
         { event: 'UPDATE', schema: 'public', table: 'caregivers' }, 
-        () => fetchDoctors() // Refresh the list automatically when a doctor toggles status
+        () => fetchDoctors()
       )
       .subscribe();
 
@@ -92,265 +84,147 @@ export default function AvailableDoctorsView() {
     return matchesSearch && doc.availability_status === activeFilter;
   });
 
-  const handleCall = async (doctor: any) => {
-    if (doctor.availability_status === 'busy' || doctor.availability_status === 'on_break') {
-      setShowWarningModal({ isOpen: true, doctor });
-      return;
-    }
-    
-    initiatePhoneCall(doctor);
-  };
-
-  const initiatePhoneCall = async (doctor: any) => {
-    // 1. Log to consultation_sessions
-    await supabase.from('consultation_sessions').insert({
-      practitioner_id: doctor.caregiver_id,
-      consultation_type: 'phone_call',
-      phone_number_dialed: doctor.clinical_hotline,
-      practitioner_status_at_call: doctor.availability_status,
-      urgency_level: doctor.availability_status === 'emergency_only' ? 'critical' : 'routine'
-    });
-
-    // 2. Native dialer
+  const handleCall = (doctor: any) => {
     window.location.href = `tel:${doctor.clinical_hotline}`;
-    setShowWarningModal({ isOpen: false, doctor: null });
   };
 
-  const initiateSMS = async (doctor: any) => {
-     // 1. Log to consultation_sessions
-     await supabase.from('consultation_sessions').insert({
-      practitioner_id: doctor.caregiver_id,
-      consultation_type: 'sms',
-      phone_number_dialed: doctor.clinical_hotline,
-      practitioner_status_at_call: doctor.availability_status,
-      call_status: 'completed'
-    });
-
-    // 2. Native SMS
+  const initiateSMS = (doctor: any) => {
     window.location.href = `sms:${doctor.clinical_hotline}`;
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 page-enter pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button 
-          onClick={() => navigate(-1)}
-          className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/5"
-        >
-          <ArrowLeft size={18} />
-        </button>
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20 px-4 md:px-0">
+      
+      {/* ── HEADER SECTION ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
         <div>
-          <h2 className="text-2xl font-light text-white uppercase tracking-widest leading-none">Find Available Doctor</h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Bantayan Monitoring Network — Direct Consultation</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Directory: Clinical Personnel</span>
+          </div>
+          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+            Find <span className="text-sky-500">Available Doctor</span>
+          </h2>
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+            Direct Consultation Pipeline • Barangay Bantayan Network
+          </p>
         </div>
-      </div>
 
-      {/* Search & Filters */}
-      <div className="space-y-4 sticky top-4 z-40">
-        <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+        <div className="relative group w-full md:w-80">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" />
           <input 
             type="text"
-            placeholder="Search by name, specialization, or hospital..."
+            placeholder="Search name or specialty..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-cyan/20 transition-all shadow-lg"
+            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 font-medium"
           />
         </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <div className="p-2 bg-slate-900 rounded-xl border border-white/5 text-slate-500">
-             <Filter size={16} />
-          </div>
-          {STATUS_FILTERS.map(filter => (
-            <button
-              key={filter.id}
-              onClick={() => setActiveFilter(filter.id)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${activeFilter === filter.id ? `bg-${filter.color}-500/10 border-${filter.color}-500/30 text-${filter.color}-500 shadow-lg shadow-${filter.color}-500/5` : 'bg-slate-900 border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-300'}`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Results List */}
-      <div className="space-y-4">
+      {/* ── FILTER CHIPS ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide px-2">
+        {STATUS_FILTERS.map(filter => (
+          <button
+            key={filter.id}
+            onClick={() => setActiveFilter(filter.id)}
+            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+              activeFilter === filter.id 
+                ? 'bg-sky-500/10 border-sky-500/50 text-sky-400 shadow-lg shadow-sky-500/5' 
+                : 'bg-slate-900/40 border-white/5 text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── RESULTS GRID ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-             <div className="w-12 h-12 border-2 border-brand-cyan/20 border-t-brand-cyan rounded-full animate-spin" />
-             <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Scanning network nodes...</p>
+          <div className="col-span-full py-20 flex flex-col items-center gap-4 opacity-40">
+             <Loader2 className="animate-spin text-sky-500" size={32} />
+             <p className="text-[10px] font-black uppercase tracking-widest">Scanning network nodes...</p>
           </div>
         ) : filteredDoctors.length === 0 ? (
-          <div className="soft-card bg-slate-900/50 border-white/5 flex flex-col items-center justify-center py-20 text-center space-y-6">
-             <div className="w-20 h-20 bg-slate-950 rounded-[2.5rem] flex items-center justify-center text-slate-700">
-                <AlertCircle size={40} />
-             </div>
-             <div className="space-y-2">
-                <p className="text-lg font-light text-white uppercase ">No doctors found</p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest max-w-[280px]">Try adjusting your filters or search terms. If this is an emergency, contact the nearest health center.</p>
-             </div>
-             <button className="px-6 py-3 bg-brand-cyan text-slate-950 rounded-xl text-[10px] font-bold uppercase tracking-widest">
-                Send Urgent SMS Broadcast
-             </button>
+          <div className="col-span-full bg-slate-900/20 border-2 border-dashed border-white/5 rounded-[40px] py-20 text-center">
+             <AlertCircle size={48} className="mx-auto text-slate-700 mb-4" />
+             <p className="text-sm font-black text-slate-500 uppercase tracking-widest">No active practitioners found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredDoctors.map(doctor => (
-              <DoctorCard 
-                key={doctor.caregiver_id} 
-                doctor={doctor} 
-                onCall={handleCall}
-                onSMS={initiateSMS}
-              />
-            ))}
-          </div>
+          filteredDoctors.map(doctor => (
+            <DoctorCard 
+              key={doctor.id} 
+              doctor={doctor} 
+              onCall={handleCall}
+              onSMS={initiateSMS}
+            />
+          ))
         )}
       </div>
-
-      {/* Warning Modal */}
-      <AnimatePresence>
-        {showWarningModal.isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div 
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               onClick={() => setShowWarningModal({ isOpen: false, doctor: null })}
-               className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
-             />
-             <motion.div
-               initial={{ scale: 0.9, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               exit={{ scale: 0.9, opacity: 0 }}
-               className="relative w-full max-w-md soft-card bg-slate-900 border border-red-500/20 p-8 space-y-6"
-             >
-                <div className="w-16 h-16 bg-red-500/10 rounded-3xl flex items-center justify-center text-red-500 mx-auto">
-                   <PhoneForwarded size={32} />
-                </div>
-                <div className="text-center space-y-2">
-                   <h3 className="text-xl font-light text-white uppercase tracking-widest">Practitioner Busy</h3>
-                   <p className="text-xs text-slate-400">
-                     Dr. {showWarningModal.doctor?.full_name} is currently <span className="text-red-500 font-bold uppercase">{showWarningModal.doctor?.availability_status.replace('_', ' ')}</span>.
-                     {showWarningModal.doctor?.status_message && ` (${showWarningModal.doctor.status_message})`}
-                   </p>
-                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pt-2">Only proceed if this is an urgent clinical concern.</p>
-                </div>
-                <div className="flex gap-3">
-                   <button 
-                     onClick={() => setShowWarningModal({ isOpen: false, doctor: null })}
-                     className="flex-1 py-4 bg-slate-950 border border-white/5 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest"
-                   >
-                      Cancel
-                   </button>
-                   <button 
-                     onClick={() => initiatePhoneCall(showWarningModal.doctor)}
-                     className="flex-1 py-4 bg-red-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-red-500/20"
-                   >
-                      Call Anyway
-                   </button>
-                </div>
-             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
-function DoctorCard({ doctor, onCall, onSMS }: { doctor: any, onCall: (d: any) => void, onSMS: (d: any) => void }) {
-  const statusColors: any = {
-    available: 'emerald',
-    emergency_only: 'orange',
-    on_break: 'amber',
-    busy: 'red',
-    in_consultation: 'red',
-    off_duty: 'slate'
+// ── REFINED DOCTOR CARD COMPONENT ──
+function DoctorCard({ doctor, onCall, onSMS }: any) {
+  const statusConfig: any = {
+    available: { color: 'emerald', label: 'Ready for Consult' },
+    busy: { color: 'rose', label: 'In Consultation' },
+    on_break: { color: 'amber', label: 'On System Break' },
+    off_duty: { color: 'slate', label: 'Node Offline' }
   };
-  
-  const color = statusColors[doctor.availability_status] || 'slate';
-  const isOffDuty = doctor.availability_status === 'off_duty';
-  const canCall = doctor.accepts_calls && !isOffDuty;
+
+  const status = statusConfig[doctor.availability_status] || statusConfig.off_duty;
 
   return (
-    <motion.div 
-      layout
-      className="soft-card bg-slate-900 border-white/5 hover:border-brand-cyan/20 transition-all group overflow-hidden"
-    >
-      <div className={`h-1.5 w-full bg-${color}-500/30 mb-6 -mx-8 -mt-8 relative overflow-hidden`}>
-         <div className={`absolute inset-0 bg-${color}-500/50 animate-pulse`} />
+    <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 flex flex-col justify-between hover:border-sky-500/30 transition-all group shadow-2xl relative overflow-hidden h-full">
+      
+      {/* Background ID Decoration */}
+      <div className="absolute -right-4 -top-4 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform">
+         <Stethoscope size={140} />
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-        <div className="space-y-4 flex-1">
-          <div className="flex items-center gap-3">
-             <div className={`px-3 py-1 rounded-full bg-${color}-500/10 border border-${color}-500/20 flex items-center gap-2`}>
-                <div className={`w-1.5 h-1.5 rounded-full bg-${color}-500 ${doctor.availability_status === 'available' ? 'animate-pulse' : ''}`} />
-                <span className={`text-[8px] font-bold uppercase tracking-widest text-${color}-500`}>
-                  {doctor.availability_status.replace('_', ' ')}
-                </span>
-             </div>
-             {doctor.status_message && (
-               <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-500 uppercase tracking-widest">
-                  <Info size={10} />
-                  {doctor.status_message}
-               </div>
-             )}
+      <div>
+        <div className="flex justify-between items-start mb-6">
+          <div className="w-16 h-16 bg-sky-500/10 rounded-[2rem] flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:scale-110 transition-transform duration-500">
+             <User size={32} />
           </div>
-
-          <div>
-            <h3 className="text-xl font-light text-white uppercase tracking-widest leading-none">{doctor.full_name}</h3>
-            <p className="text-[9px] font-bold text-brand-cyan uppercase tracking-widest mt-2">
-              {doctor.prc_profession} · PRC #{doctor.prc_license_number}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 pt-2">
-             <div className="flex items-start gap-2">
-                <Stethoscope size={14} className="text-slate-500 shrink-0" />
-                <div className="space-y-1">
-                   <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Hospital & Specialties</p>
-                   <p className="text-[10px] text-slate-300">{doctor.primary_hospital || 'Private Practice'}</p>
-                   <div className="flex flex-wrap gap-1 mt-1">
-                      {doctor.specializations?.map((s: string, i: number) => (
-                        <span key={i} className="px-1.5 py-0.5 rounded-md bg-slate-950 border border-white/5 text-[7px] font-bold text-slate-500 uppercase tracking-tighter">
-                          {s}
-                        </span>
-                      ))}
-                   </div>
-                </div>
-             </div>
-             <div className="flex items-start gap-2">
-                <Clock size={14} className="text-slate-500 shrink-0" />
-                <div className="space-y-1">
-                   <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Preferred Contact</p>
-                   <p className="text-[10px] text-slate-300">{doctor.preferred_contact_hours || '8:00 AM – 5:00 PM PHT'}</p>
-                </div>
-             </div>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-${status.color}-500/10 border border-${status.color}-500/20`}>
+             <div className={`w-1.5 h-1.5 rounded-full bg-${status.color}-500 ${doctor.availability_status === 'available' ? 'animate-pulse' : ''}`} />
+             <span className={`text-[8px] font-black uppercase text-${status.color}-500 tracking-widest`}>{status.label}</span>
           </div>
         </div>
 
-        <div className="flex md:flex-col gap-2 min-w-[140px]">
-           <button 
-             onClick={() => onCall(doctor)}
-             disabled={!canCall}
-             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${canCall ? 'bg-brand-cyan text-slate-950 hover:scale-105 active:scale-95 shadow-lg shadow-brand-cyan/10' : 'bg-slate-950 text-slate-700 cursor-not-allowed'}`}
-           >
-              <Phone size={14} /> Call Now
-           </button>
-           <button 
-             onClick={() => onSMS(doctor)}
-             disabled={!doctor.accepts_sms}
-             className={`flex-1 flex items-center justify-center gap-2 py-3 bg-slate-950 border border-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-brand-cyan/30 transition-all ${doctor.accepts_sms ? 'text-white' : 'text-slate-700 cursor-not-allowed'}`}
-           >
-              <MessageSquare size={14} /> Send SMS
-           </button>
-           <button className="flex items-center justify-center gap-2 py-2 text-[8px] font-bold text-slate-600 uppercase tracking-widest hover:text-slate-400 transition-all">
-              Clinical Profile <ChevronRight size={10} />
-           </button>
+        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">{doctor.full_name}</h3>
+        <p className="text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-6">PRC License: {doctor.prc_license_number}</p>
+        
+        <div className="space-y-3 mb-8">
+           <div className="flex items-center gap-3 text-slate-400">
+              <MapPin size={14} className="text-slate-600" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">{doctor.primary_hospital || 'Public Health Center'}</span>
+           </div>
+           <div className="flex items-center gap-3 text-slate-400">
+              <Clock size={14} className="text-slate-600" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">8:00 AM – 5:00 PM</span>
+           </div>
         </div>
       </div>
-    </motion.div>
+
+      <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/5">
+        <button 
+          onClick={() => onCall(doctor)}
+          className="flex items-center justify-center gap-2 py-4 bg-sky-500 text-slate-950 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-sky-500/20"
+        >
+          <Phone size={14} /> Call Now
+        </button>
+        <button 
+          onClick={() => onSMS(doctor)}
+          className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+        >
+          <MessageSquare size={14} /> Message
+        </button>
+      </div>
+    </div>
   );
 }
