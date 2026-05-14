@@ -23,7 +23,7 @@ import PractitionerVerificationView from './views/PractitionerVerificationView'
 import PatientVerificationView from './views/PatientVerificationView'
 import PatientManagementView from './views/PatientManagementView'
 import HealthAnalytics from './views/HealthAnalytics'
-import ProfilePage from '../ProfilePage'
+import ProfilePage from '../shared/ProfilePage'
 
 export interface AdminDashboardContextType {
   users: Profile[]

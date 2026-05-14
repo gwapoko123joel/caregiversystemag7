@@ -30,32 +30,23 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
   }, []);
 
   // Role-aware menu items
-  const baseItems = [
-    { label: 'View Profile', icon: UserIcon, path: '/profile' },
-    { label: 'My Activity', icon: Activity, path: '/profile/activity' },
-    { label: 'Settings', icon: Settings, path: '/profile/settings' },
-  ];
-
-  const roleItems: Record<string, typeof baseItems> = {
-    caregiver: [
-      { label: 'My Trainings', icon: Award, path: '/profile/trainings' },
-      { label: 'My Patients', icon: Users, path: '/profile/patients' },
-    ],
-    medical_practitioner: [
-      { label: 'My Credentials', icon: Shield, path: '/profile/credentials' },
-      { label: 'Consultation Stats', icon: BarChart3, path: '/profile/stats' },
-    ],
-    practitioner: [
-      { label: 'My Credentials', icon: Shield, path: '/profile/credentials' },
-      { label: 'Consultation Stats', icon: BarChart3, path: '/profile/stats' },
-    ],
-    admin: [
-      { label: 'Admin Authority', icon: Shield, path: '/profile/authority' },
-      { label: 'System Stats', icon: BarChart3, path: '/profile/stats' },
-    ],
+  const getDashboardPath = (subPath: string) => {
+    const roleBase = user.role === 'medical_practitioner' ? 'practitioner' : user.role;
+    return `/dashboard/${roleBase}/${subPath}`;
   };
 
-  const menuItems = [...baseItems, ...(roleItems[user.role] || [])];
+  const menuItems = [
+    { 
+      label: 'View Profile', 
+      icon: UserIcon, 
+      path: getDashboardPath('profile') 
+    },
+    { 
+      label: 'My Activity', 
+      icon: Activity, 
+      path: user.role === 'admin' ? getDashboardPath('logs') : getDashboardPath('history') 
+    },
+  ];
 
   const formatRole = (role: string) => 
     role.replace('_', ' ').toUpperCase();

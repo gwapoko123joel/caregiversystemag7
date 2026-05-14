@@ -8,7 +8,8 @@ import {
   Stethoscope, 
   ChevronRight,
   Plus,
-  ShieldCheck
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { Link, useOutletContext } from 'react-router-dom'
@@ -22,6 +23,24 @@ export default function EmergencyView() {
   const [loading, setLoading] = useState(true)
   const [isDispatching, setIsDispatching] = useState(false)
   const [sosSuccess, setSosSuccess] = useState(false)
+  const [sosStatus, setSosStatus] = useState<string>('idle');
+
+  useEffect(() => {
+    // Listen for the Doctor's response
+    const channel = supabase.channel('sos-response-tracker')
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'emergency_dispatches' }, 
+        (payload) => {
+          if (payload.new.status === 'responding') {
+            setSosStatus('responding');
+            alert("DISPATCH CONFIRMED: A Doctor is now reviewing this case.");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   async function triggerSOS(patientId: number) {
     if (!user) return
@@ -33,6 +52,17 @@ export default function EmergencyView() {
     })
 
     if (!error) {
+       // ADD THIS after the emergency_dispatches insert:
+       await supabase.from('activity_logs').insert({
+         user_id: user?.id,
+         user_type: 'caregiver',
+         action: 'SOS_TRIGGERED',
+         details: { 
+           severity: 'CRITICAL',
+           location: 'Barangay Bantayan'
+         }
+       });
+
        setSosSuccess(true)
        // Auto-revert success message after 5 seconds
        setTimeout(() => setSosSuccess(false), 5000)
@@ -99,6 +129,14 @@ export default function EmergencyView() {
             <p className="text-emerald-500 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
               <ShieldCheck size={16} /> SOS BROADCASTED TO DOCTORS
             </p>
+          </div>
+        )}
+
+        {/* Practitioner Response Status */}
+        {sosStatus === 'responding' && (
+          <div className="mt-4 bg-emerald-500/20 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-center gap-3 animate-in zoom-in">
+            <CheckCircle2 className="text-emerald-500" size={20} />
+            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Practitioner Intercepted • Help is Active</span>
           </div>
         )}
       </div>

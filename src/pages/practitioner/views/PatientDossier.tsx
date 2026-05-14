@@ -40,6 +40,19 @@ export default function PatientDossier({
   const [isSending, setIsSending] = useState(false)
   const [orders, setOrders] = useState<any[]>([])
   const [activeDispatch, setActiveDispatch] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+
+  // Fetch Practitioner Profile for Signing
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('caregivers')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => setUserProfile(data));
+    }
+  }, [user]);
 
   async function fetchSOS() {
     const { data } = await supabase
@@ -101,7 +114,7 @@ export default function PatientDossier({
     if (!summary) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('emergency_dispatches')
         .update({ 
           status: 'resolved', 
@@ -109,7 +122,21 @@ export default function PatientDossier({
           resolved_at: new Date().toISOString() 
         })
         .eq('dispatch_id', dispatchId);
+
+      if (error) throw error;
+
+      // LOG ACTIVITY: SOS RESOLVED
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'medical_practitioner',
+        action: 'SOS_RESOLVED',
+        details: { 
+          dispatch_id: dispatchId,
+          patient_name: `${patient.first_name} ${patient.last_name}`
+        }
+      });
         
+      setActiveDispatch(null);
       alert("Emergency Protocol Closed. Summary filed to Audit Trail.");
       window.location.reload();
     } catch (err) {
@@ -119,8 +146,7 @@ export default function PatientDossier({
   }
 
   // --- TREND CALCULATION LOGIC ---
-  const getTrend = (key: string) => {
-    const logs = patient.patient_monitoring_logs;
+  const getTrend = (key: string, logs: any[]) => {
     if (logs.length < 2) return null;
     
     const current = logs[0].vital_signs[key];
@@ -146,6 +172,27 @@ export default function PatientDossier({
     }
     return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
   };
+
+  async function handleSignOff(logId: number) {
+    if (!user) return;
+    
+    try {
+      // 2. LOG ACTIVITY: CLINICAL SIGN-OFF
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'medical_practitioner',
+        action: 'CLINICAL_SIGN_OFF',
+        details: { 
+          log_id: logId,
+          verified_by: `Dr. ${userProfile?.last_name || 'Practitioner'}`
+        }
+      });
+
+      alert("Clinical Sign-Off Recorded in Audit Log");
+    } catch (err) {
+      console.error("Sign-off error:", err);
+    }
+  }
 
   return (
     <div className="animate-in slide-in-from-right-8 duration-500 space-y-6">
@@ -228,8 +275,8 @@ export default function PatientDossier({
              <div className="bg-sky-500/5 border border-sky-500/10 rounded-[28px] p-6 flex items-center justify-between">
                <div>
                  <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Systolic Trend</p>
-                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('blood_pressure')?.color}`}>
-                   {getTrend('blood_pressure')?.icon} {getTrend('blood_pressure')?.label}
+                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('blood_pressure', patient.patient_monitoring_logs)?.color}`}>
+                   {getTrend('blood_pressure', patient.patient_monitoring_logs)?.icon} {getTrend('blood_pressure', patient.patient_monitoring_logs)?.label}
                  </h4>
                </div>
                <div className="text-right">
@@ -243,8 +290,8 @@ export default function PatientDossier({
              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[28px] p-6 flex items-center justify-between">
                <div>
                  <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Oxygen Stability</p>
-                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('oxygen_saturation')?.color}`}>
-                   {getTrend('oxygen_saturation')?.icon} {getTrend('oxygen_saturation')?.label}
+                 <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('oxygen_saturation', patient.patient_monitoring_logs)?.color}`}>
+                   {getTrend('oxygen_saturation', patient.patient_monitoring_logs)?.icon} {getTrend('oxygen_saturation', patient.patient_monitoring_logs)?.label}
                  </h4>
                </div>
                <div className="text-right">
@@ -336,9 +383,17 @@ export default function PatientDossier({
                                     <div>O₂: <span className="text-text-main font-mono transition-colors">{currentLog.vital_signs?.oxygen_saturation || '—'}%</span></div>
                                  </div>
                                  {currentLog.notes && <div className="mt-4 text-[10px] md:text-[11px] text-sidebar-text-muted  leading-relaxed border-l-2 border-card-border pl-4 ml-1 transition-colors">"{currentLog.notes}"</div>}
-                                 <div className="mt-6 flex items-center gap-2">
-                                    <div className="w-5 h-5 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center text-[7px] md:text-[8px] font-light text-text-main transition-colors">{currentLog.caregiver_name?.[0]}</div>
-                                    <div className="text-[8px] md:text-[9px] font-light text-sidebar-text-muted uppercase tracking-widest  transition-colors leading-none">Node Assessor: {currentLog.caregiver_name}</div>
+                                 <div className="mt-6 flex items-center justify-between">
+                                     <div className="flex items-center gap-2">
+                                        <div className="w-5 h-5 bg-sky-500/10 rounded-full flex items-center justify-center text-sky-500 text-[8px] font-black">{currentLog.caregiver_name?.[0]}</div>
+                                        <div className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-widest">Node Assessor: {currentLog.caregiver_name}</div>
+                                     </div>
+                                     <button 
+                                       onClick={() => handleSignOff(currentLog.log_id)}
+                                       className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500/10 border border-sky-500/20 text-sky-500 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-sky-500 hover:text-white transition-all active:scale-95"
+                                     >
+                                        <ShieldCheck size={10} /> Verify & Sign-Off
+                                     </button>
                                  </div>
                               </div>
                            </div>

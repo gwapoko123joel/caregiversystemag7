@@ -102,6 +102,17 @@ export default function SubmitReport() {
 
       if (insertError) throw insertError
 
+      // ADD THIS after the patient_monitoring_logs insert is successful:
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'caregiver',
+        action: 'VITALS_SUBMITTED',
+        details: { 
+          patient_name: `${patient.first_name} ${patient.last_name}`,
+          status: form.physical_status 
+        }
+      });
+
       // 3. BROADCAST ALERT LOGIC
       const sys = parseInt(form.blood_pressure.split('/')[0])
       const o2 = parseInt(form.oxygen_saturation)

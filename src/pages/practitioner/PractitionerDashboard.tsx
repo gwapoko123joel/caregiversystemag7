@@ -29,7 +29,7 @@ import PatientDossier from './views/PatientDossier'
 import ContactConsole from './views/ContactConsole'
 import PractitionerCredentialsForm from './views/PractitionerCredentialsForm'
 import PatientReferralForm from './views/PatientReferralForm'
-import ProfilePage from '../ProfilePage'
+import ProfilePage from '../shared/ProfilePage'
 
 export interface AlertItem {
   id: number
@@ -149,32 +149,47 @@ function PractitionerLayout() {
   }, [loadData, playAlert])
 
   useEffect(() => {
-    // Listen for active dispatches
-    const channel = supabase.channel('global-sos')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'emergency_dispatches' }, 
-      async (payload) => {
-        const { data } = await supabase.from('patients').select('*').eq('patient_id', payload.new.patient_id).single();
-        setActiveSOS({ ...payload.new, patient: data });
-        playAlert();
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'emergency_dispatches' },
-      (payload) => {
-        // If someone else responded, clear the overlay
-        if (payload.new.status === 'responding' && payload.new.responded_by !== user?.id) {
-          setActiveSOS((current: any) => 
-            current?.dispatch_id === payload.new.dispatch_id ? null : current
-          );
+    console.log("Practitioner Node: Listening for Global SOS...");
+
+    const channel = supabase
+      .channel('global-sos-stream') // Unique channel name for real-time broadcast
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'emergency_dispatches',
+          filter: 'status=eq.active' // Only listen for NEW active emergencies
+        }, 
+        async (payload) => {
+          console.log("🚨 SOS RECEIVED:", payload);
+          
+          // Fetch patient details to show on the red screen
+          const { data: patient } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('patient_id', payload.new.patient_id)
+            .single();
+
+          if (patient) {
+            setActiveSOS({ ...payload.new, patient });
+            // Use the established playAlert function for the demo
+            playAlert();
+          }
         }
-      })
-      .subscribe();
+      )
+      .subscribe((status) => {
+        console.log("SOS Subscription Status:", status);
+      });
 
-    return () => { supabase.removeChannel(channel); };
-  }, [playAlert, user?.id]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [playAlert]);
 
-  const handleSOSResponse = async (dispatchId: string) => {
+  async function handleSOSResponse(dispatchId: string) {
     if (!user) return;
     try {
-      // 1. Mark as responding in DB
+      // 1. Tell the database the Doctor is taking over
       const { error } = await supabase
         .from('emergency_dispatches')
         .update({ 
@@ -185,14 +200,16 @@ function PractitionerLayout() {
 
       if (error) throw error;
 
-      // 2. Clear local state and navigate
-      const pid = activeSOS.patient_id;
+      // 2. Clear the red screen locally
       setActiveSOS(null);
-      navigate(`/dashboard/practitioner/patient/${pid}`);
+
+      // 3. Navigate the doctor to the patient's record immediately
+      navigate(`/dashboard/practitioner/patient/${activeSOS.patient_id}`);
+
     } catch (err: any) {
-      console.error("SOS Response Failed:", err.message);
+      console.error("SOS Response Error:", err.message);
     }
-  };
+  }
 
   const dismissAlert = (id: number) => {
     setAlerts((prev) => prev.map((a) => a.id === id ? { ...a, dismissed: true } : a))
@@ -417,8 +434,7 @@ function ContactConsoleWrapper() {
 }
 
 function HistoryLogsWrapper() {
-  const ctx = useOutletContext<PractitionerDashboardContextType>()
-  return <HistoryLogs logs={ctx.allLogs} />
+  return <HistoryLogs />
 }
 
 function PatientDossierWrapper() {

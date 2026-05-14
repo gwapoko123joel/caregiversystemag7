@@ -34,28 +34,48 @@ export default function AvailableDoctorsView() {
 
   const fetchDoctors = async () => {
     setLoading(true);
-    let query = supabase
-      .from('available_practitioners_directory')
-      .select('*')
-      .order('sort_priority', { ascending: true });
+    try {
+      // 1. Fetch only Authorized Medical Practitioners
+      const { data, error } = await supabase
+        .from('caregivers')
+        .select('*') 
+        .eq('role', 'medical_practitioner')
+        .eq('status', 'authorized');
 
-    const { data, error } = await query;
+      if (error) throw error;
 
-    if (!error && data) {
-      setDoctors(data);
+      // 2. Map the results so the UI components can read them easily
+      const flattened = (data || []).map(doc => ({
+        ...doc,
+        // Map id to caregiver_id for existing UI components
+        caregiver_id: doc.id,
+        // Use duty_status as the source of truth for the filter
+        availability_status: (doc.duty_status || 'off_duty').toLowerCase(), 
+        prc_profession: 'Medical Practitioner',
+        prc_license_number: doc.prc_license || 'VERIFIED',
+        clinical_hotline: doc.phone_number || doc.phone,
+        // Ensure buttons are active for the demo
+        accepts_calls: true, 
+        accepts_sms: true 
+      }));
+
+      setDoctors(flattened);
+    } catch (err) {
+      console.error("Directory Sync Error:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchDoctors();
 
-    // Realtime subscription
+    // REAL-TIME: Listen to status changes on the caregivers table
     const channel = supabase
-      .channel('doctor-availability-sync')
+      .channel('doctor-directory-sync')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'practitioner_availability' },
-        () => fetchDoctors()
+        { event: 'UPDATE', schema: 'public', table: 'caregivers' }, 
+        () => fetchDoctors() // Refresh the list automatically when a doctor toggles status
       )
       .subscribe();
 

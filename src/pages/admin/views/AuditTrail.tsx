@@ -4,12 +4,22 @@ import { useOutletContext } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { ActivityLog } from '../../../types/database'
 
-type LogFilter = 'all' | 'LOGIN' | 'LOGOUT' | 'REGISTER' | 'SUBMIT_REPORT' | 'ASSIGN_ACCESS_ID' | 'REISSUE_ACCESS_ID' | 'UPDATE_USER_STATUS' | 'AUTHORIZE_USER'
+type LogFilter = 'all' | 'LOGIN' | 'LOGOUT' | 'REGISTER' | 'SUBMIT_REPORT' | 'ASSIGN_ACCESS_ID' | 'REISSUE_ACCESS_ID' | 'UPDATE_USER_STATUS' | 'AUTHORIZE_USER' | 'SOS_TRIGGERED' | 'VITALS_SUBMITTED' | 'CLINICAL_SIGN_OFF' | 'SOS_RESOLVED'
 
 export default function AuditTrail() {
   const { logs } = useOutletContext<AdminDashboardContextType>()
   const [logSearch, setLogSearch] = useState('')
   const [logFilter, setLogFilter] = useState<LogFilter | string>('all')
+
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case 'SOS_TRIGGERED': return 'bg-red-500/10 text-red-500 border-red-500/30';
+      case 'VITALS_SUBMITTED': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
+      case 'CLINICAL_SIGN_OFF': return 'bg-sky-500/10 text-sky-500 border-sky-500/30';
+      case 'SOS_RESOLVED': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
+      default: return 'bg-card border-card-border text-text-main';
+    }
+  };
 
   const filteredLogs = logs.filter((l: ActivityLog) => {
     const matchFilter = logFilter === 'all' || l.action === logFilter
@@ -48,7 +58,10 @@ export default function AuditTrail() {
                 <option value="ASSIGN_ACCESS_ID" className="bg-card text-text-main">Provision ID</option>
                 <option value="REISSUE_ACCESS_ID" className="bg-card text-text-main">Reissue ID</option>
                 <option value="UPDATE_USER_STATUS" className="bg-card text-text-main">User Status</option>
-             </select>
+                <option value="SOS_TRIGGERED" className="bg-card text-text-main">SOS Alerts</option>
+                <option value="VITALS_SUBMITTED" className="bg-card text-text-main">Clinical Vitals</option>
+                <option value="CLINICAL_SIGN_OFF" className="bg-card text-text-main">Sign-Offs</option>
+              </select>
           </div>
         </div>
         <div className="hidden md:block overflow-x-auto">
@@ -70,7 +83,7 @@ export default function AuditTrail() {
                        <div className="text-[10px] font-bold text-sidebar-text-muted/60 tracking-tighter uppercase italic transition-colors">{l.user_type} SESSION</div>
                     </td>
                     <td className="px-6 py-4">
-                       <span className="text-[10px] font-black text-text-main px-2 py-1 bg-card rounded border border-card-border transition-colors">{l.action}</span>
+                       <span className={`text-[10px] font-black px-2 py-1 rounded border transition-colors ${getActionColor(l.action)}`}>{l.action}</span>
                     </td>
                     <td className="px-6 py-4">
                        <div className="text-[10px] font-medium font-mono text-sidebar-text-muted max-w-md truncate hover:whitespace-normal transition-all transition-colors">{JSON.stringify(l.details)}</div>
@@ -87,7 +100,7 @@ export default function AuditTrail() {
              <div key={l.log_id} className="p-6 transition-all active:bg-primary/20">
                 <div className="flex items-start justify-between mb-4">
                    <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">{new Date(l.timestamp).toLocaleString()}</div>
-                   <span className="text-[10px] font-black text-brand-luminous-cyan px-2 py-1 bg-sky-500/10 rounded-lg border border-sky-500/20">{l.action}</span>
+                   <span className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors ${getActionColor(l.action)}`}>{l.action}</span>
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">

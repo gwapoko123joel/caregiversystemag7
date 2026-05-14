@@ -36,6 +36,38 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   const [orders, setOrders] = useState<any[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [localDutyStatus, setLocalStatus] = useState(userProfile?.duty_status || 'off_duty');
+
+  useEffect(() => {
+    if (userProfile?.duty_status) {
+      setLocalStatus(userProfile.duty_status);
+    }
+  }, [userProfile?.duty_status]);
+
+  async function toggleDutyStatus() {
+    const newStatus = localDutyStatus === 'on_duty' ? 'off_duty' : 'on_duty';
+    
+    try {
+      const { error } = await supabase
+        .from('caregivers')
+        .update({ duty_status: newStatus })
+        .eq('id', user?.id);
+
+      if (error) throw error;
+      setLocalStatus(newStatus); // Update UI immediately
+      
+      // Create an audit trail entry
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'caregiver',
+        action: newStatus === 'on_duty' ? 'SHIFT_START' : 'SHIFT_END',
+        details: { node_id: user?.id, status: newStatus }
+      });
+
+    } catch (err: any) {
+      console.error("Shift Toggle Error:", err.message);
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -85,7 +117,7 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
   const fetchOnlineDoctors = async () => {
     const { data } = await supabase
       .from('caregivers')
-      .select('first_name, last_name, duty_status, prc_license')
+      .select('first_name, last_name, duty_status, prc_license, phone_number')
       .eq('role', 'medical_practitioner')
       .neq('duty_status', 'off_duty');
 
@@ -167,13 +199,15 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
         <StatItem label="Total Reports" value={String(totalReports)} icon={<ClipboardList size={18} />} color="cyan" />
         <StatItem label="Reports This Week" value={String(reportsThisWeek)} icon={<TrendingUp size={18} />} color="emerald" />
         <StatItem label="Session Logins" value={String(userProfile?.login_count || 0)} icon={<MonitorIcon size={18} />} color="purple" />
-        <StatItem
-          label="Duty Status"
-          value={userProfile?.duty_status?.replace('_', ' ').toUpperCase() || 'OFF DUTY'}
-          icon={<Shield size={18} />}
-          color={userProfile?.duty_status === 'available' ? 'emerald' : 'slate'}
-          isActive={userProfile?.duty_status === 'available'}
-        />
+        <div onClick={toggleDutyStatus} className="cursor-pointer active:scale-95 transition-transform">
+          <StatItem
+            label="Duty Status"
+            value={localDutyStatus === 'on_duty' ? 'ON DUTY' : 'OFF DUTY'}
+            icon={<Shield size={18} />}
+            color={localDutyStatus === 'on_duty' ? 'emerald' : 'slate'}
+            isActive={localDutyStatus === 'on_duty'}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -218,7 +252,15 @@ export default function DashboardHome({ patient, assignedPatients, userProfile, 
                     <div className={`w-2 h-2 rounded-full ${doc.duty_status === 'available' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                     <p className="text-xs font-black text-text-main uppercase">Dr. {doc.last_name}</p>
                   </div>
-                  <Phone size={14} className="text-sky-500" />
+                  
+                  {/* THE FUNCTIONAL LINK */}
+                  <a 
+                    href={doc.phone_number ? `tel:${doc.phone_number}` : '#'}
+                    onClick={(e) => { if(!doc.phone_number) { e.preventDefault(); alert("No number registered."); }}}
+                    className="p-2 bg-slate-900 border border-white/10 rounded-xl text-sky-400 hover:bg-sky-500 hover:text-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
+                  >
+                     <Phone size={14} />
+                  </a>
                 </div>
               ))}
             </div>

@@ -1,17 +1,134 @@
+import { useState, useEffect } from 'react'
 import { 
-  ClipboardList, 
-  Search, 
   Activity, 
-  Heart, 
-  Zap 
+  Clock, 
+  User, 
+  Search, 
+  Zap,
+  ChevronRight,
+  ShieldCheck,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  ClipboardList,
+  Heart,
+  Minus
 } from 'lucide-react'
+import { supabase } from '../../../lib/supabaseClient'
+import { useAuth } from '../../../hooks/useAuth'
 import type { PatientMonitoringLog } from '../../../types/database'
 
-interface HistoryLogsProps {
-  logs: (PatientMonitoringLog & { patient_name?: string, caregiver_name?: string })[]
-}
+export default function HistoryLogs() {
+  const { user } = useAuth()
+  const [logs, setLogs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [userProfile, setUserProfile] = useState<any>(null)
 
-export default function HistoryLogs({ logs }: HistoryLogsProps) {
+  // Fetch Practitioner Profile for Signing
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('caregivers')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => setUserProfile(data));
+    }
+  }, [user]);
+
+  const fetchHistoryLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patient_monitoring_logs')
+        .select(`
+          *,
+          patient:patients!patient_id (
+            first_name,
+            last_name
+          ),
+          caregiver:caregivers!caregiver_id (
+            full_name
+          ),
+          verifier:caregivers!verified_by (
+            last_name
+          )
+        `)
+        .order('recorded_at', { ascending: false });
+
+      if (!error) {
+        setLogs(data || []);
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchHistoryLogs()
+  }, [])
+
+  async function handleSignOff(logId: number) {
+    if (!user) return;
+    
+    try {
+      // 1. Mark the log as verified in the database
+      const { error: updateError } = await supabase
+        .from('patient_monitoring_logs')
+        .update({ 
+          verified_by: user.id,
+          verified_at: new Date().toISOString()
+        })
+        .eq('log_id', logId);
+
+      if (updateError) throw updateError;
+      
+      // 2. LOG ACTIVITY: CLINICAL SIGN-OFF
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'medical_practitioner',
+        action: 'CLINICAL_SIGN_OFF',
+        details: { 
+          log_id: logId,
+          verified_by: `Dr. ${userProfile?.last_name || 'Practitioner'}`
+        }
+      });
+
+      alert("Clinical Sign-Off Recorded");
+      fetchHistoryLogs(); // Refresh list
+    } catch (err) {
+      console.error("Sign-off error:", err);
+    }
+  }
+
+  // --- TREND CALCULATION LOGIC ---
+  const getTrend = (key: string) => {
+    if (logs.length < 2) return null;
+    if (!logs[0].vital_signs || !logs[1].vital_signs) return null;
+    
+    const current = logs[0].vital_signs[key];
+    const previous = logs[1].vital_signs[key];
+
+    if (key === 'blood_pressure') {
+      const currSys = parseInt(current?.split('/')[0] || '0');
+      const prevSys = parseInt(previous?.split('/')[0] || '0');
+      if (currSys > prevSys + 5) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currSys < prevSys - 5) return { type: 'down', color: 'text-emerald-500', label: 'Improving', icon: <TrendingDown size={14} /> };
+      return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+    }
+
+    const currVal = parseFloat(current || '0');
+    const prevVal = parseFloat(previous || '0');
+
+    if (key === 'oxygen_saturation') {
+      if (currVal > prevVal) return { type: 'up', color: 'text-emerald-500', label: 'Improving', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal) return { type: 'down', color: 'text-rose-500', label: 'Declining', icon: <TrendingDown size={14} /> };
+    } else { // Heart Rate, Temp
+      if (currVal > prevVal + 3) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
+      if (currVal < prevVal - 3) return { type: 'down', color: 'text-emerald-500', label: 'Lowering', icon: <TrendingDown size={14} /> };
+    }
+    return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700 slide-in-from-right-4">
       <div className="bg-card border border-card-border rounded-[32px] md:rounded-[40px] p-6 lg:p-12 shadow-sm dark:shadow-none transition-colors">
@@ -32,6 +149,41 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
            </div>
         </div>
 
+        {/* --- VITAL SIGNS TREND HUD --- */}
+        {logs.length >= 2 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 animate-in slide-in-from-top-4 duration-700">
+            <div className="bg-sky-500/5 border border-sky-500/10 rounded-[28px] p-6 flex items-center justify-between">
+              <div>
+                <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Latest Network BP Trend</p>
+                <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('blood_pressure')?.color}`}>
+                  {getTrend('blood_pressure')?.icon} {getTrend('blood_pressure')?.label}
+                </h4>
+              </div>
+              <div className="text-right">
+                <p className="text-[14px] font-mono text-text-main font-bold">
+                  {logs[1].vital_signs.blood_pressure} → {logs[0].vital_signs.blood_pressure}
+                </p>
+                <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">Latest Sequential Readings</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[28px] p-6 flex items-center justify-between">
+              <div>
+                <p className="text-[8px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-1">Network Oxygen Stability</p>
+                <h4 className={`text-sm font-black uppercase flex items-center gap-2 ${getTrend('oxygen_saturation')?.color}`}>
+                  {getTrend('oxygen_saturation')?.icon} {getTrend('oxygen_saturation')?.label}
+                </h4>
+              </div>
+              <div className="text-right">
+                <p className="text-[14px] font-mono text-text-main font-bold">
+                  {logs[1].vital_signs.oxygen_saturation}% → {logs[0].vital_signs.oxygen_saturation}%
+                </p>
+                <p className="text-[8px] text-sidebar-text-muted uppercase font-bold">Network Wide O2</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="hidden md:block bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm dark:shadow-none transition-colors">
            <table className="w-full">
               <thead>
@@ -39,11 +191,19 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
                     <th className="px-8 py-5">Node Identity</th>
                     <th className="px-8 py-5">Vitals Metadata</th>
                     <th className="px-8 py-5">Assigned Caregiver</th>
+                    <th className="px-8 py-5">Clinical Status</th>
                     <th className="px-8 py-5 text-right">Timestamp</th>
+                    <th className="px-8 py-5 text-right">Actions</th>
                  </tr>
               </thead>
               <tbody className="divide-y divide-card-border transition-colors">
-                 {logs.length === 0 ? (
+                 {loading ? (
+                    <tr>
+                      <td colSpan={4} className="px-8 py-20 text-center">
+                        <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors animate-pulse">Synchronizing clinical history...</div>
+                      </td>
+                    </tr>
+                 ) : logs.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="px-8 py-20 text-center">
                         <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors">Node telemetry archive is currently empty.</div>
@@ -56,7 +216,9 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
                              <div className="flex items-center gap-4">
                                 <div className={`w-2.5 h-2.5 rounded-full ${log.physical_status === 'critical' ? 'bg-alert-text shadow-[0_0_10px_var(--color-alert-text)]' : 'bg-sky-500 shadow-[0_0_10px_rgba(0,229,255,0.5)]'}`} />
                                 <div>
-                                   <div className="text-sm font-light text-text-main tracking-tight transition-colors">{log.patient_name || '—'}</div>
+                                   <div className="text-sm font-light text-text-main tracking-tight transition-colors">
+                                     {log.patient?.first_name} {log.patient?.last_name}
+                                   </div>
                                    <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 transition-colors">{log.physical_status} MONITORING</div>
                                 </div>
                              </div>
@@ -76,13 +238,48 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
                              </div>
                           </td>
                           <td className="px-8 py-8">
-                             <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors">{log.caregiver_name || 'System Admin'}</div>
+                             <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest transition-colors">
+                               {log.caregiver?.full_name || 'System Auto'}
+                             </div>
+                          </td>
+                          <td className="px-8 py-8">
+                             {log.verified_by ? (
+                               <div className="flex flex-col items-start gap-1">
+                                 <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-500 transition-colors">
+                                   <ShieldCheck size={10} />
+                                   <span className="text-[8px] font-black uppercase">Verified</span>
+                                 </div>
+                                 <span className="text-[7px] text-sidebar-text-muted font-bold uppercase ml-1 transition-colors">
+                                   By Dr. {log.verifier?.last_name}
+                                 </span>
+                               </div>
+                             ) : (
+                               <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-500/5 border border-white/5 rounded-lg text-slate-500/50 transition-colors">
+                                 <Clock size={10} />
+                                 <span className="text-[8px] font-black uppercase">Pending Review</span>
+                                </div>
+                             )}
                           </td>
                           <td className="px-8 py-8 text-right">
                              <div className="text-sm font-light text-text-main font-mono tracking-widest leading-none transition-colors">
                                 {new Date(log.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                              </div>
                              <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-tighter mt-1 transition-colors">{new Date(log.recorded_at).toLocaleDateString()}</div>
+                          </td>
+                          <td className="px-8 py-8 text-right">
+                             {!log.verified_by ? (
+                               <button 
+                                 onClick={() => handleSignOff(log.log_id)}
+                                 className="p-2 bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white rounded-lg transition-all group active:scale-95 shadow-sm"
+                                 title="Quick Verify"
+                               >
+                                 <CheckCircle2 size={16} />
+                               </button>
+                             ) : (
+                               <div className="p-2 text-emerald-500/50 flex justify-end">
+                                 <ShieldCheck size={16} />
+                               </div>
+                             )}
                           </td>
                        </tr>
                     ))
@@ -93,7 +290,11 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
 
         {/* Mobile View (Cards) */}
         <div className="md:hidden space-y-4">
-           {logs.length === 0 ? (
+           {loading ? (
+              <div className="p-12 text-center bg-card border border-card-border rounded-3xl">
+                 <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest animate-pulse">Syncing...</div>
+              </div>
+           ) : logs.length === 0 ? (
               <div className="p-12 text-center bg-card border border-card-border rounded-3xl">
                  <div className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest">Node telemetry archive empty.</div>
               </div>
@@ -104,7 +305,9 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
                        <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${log.physical_status === 'critical' ? 'bg-alert-text' : 'bg-sky-500'}`} />
                           <div>
-                             <div className="text-base font-light text-text-main tracking-tight">{log.patient_name || '—'}</div>
+                             <div className="text-base font-light text-text-main tracking-tight">
+                               {log.patient?.first_name} {log.patient?.last_name}
+                             </div>
                              <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest">{new Date(log.recorded_at).toLocaleDateString()} · {new Date(log.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                           </div>
                        </div>
@@ -126,9 +329,27 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
                        ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-card-border">
-                       <div className="text-[9px] font-light text-sidebar-text-muted uppercase tracking-widest">Caregiver</div>
-                       <div className="text-[10px] font-light text-text-main uppercase">{log.caregiver_name || 'System Admin'}</div>
+                    <div className="flex flex-col gap-4 pt-4 border-t border-card-border">
+                       <div className="flex items-center justify-between">
+                          <div className="text-[9px] font-light text-sidebar-text-muted uppercase tracking-widest">Caregiver</div>
+                          <div className="text-[10px] font-light text-text-main uppercase">{log.caregiver?.full_name || 'System Auto'}</div>
+                       </div>
+                       <div className="flex items-center justify-between">
+                          <div className="text-[9px] font-light text-sidebar-text-muted uppercase tracking-widest">Status</div>
+                          {log.verified_by ? (
+                             <div className="flex items-center gap-1.5 text-emerald-500">
+                                <ShieldCheck size={10} />
+                                <span className="text-[8px] font-black uppercase">Verified By Dr. {log.verifier?.last_name}</span>
+                             </div>
+                          ) : (
+                             <button 
+                               onClick={() => handleSignOff(log.log_id)}
+                               className="flex items-center gap-1.5 px-3 py-1 bg-sky-500/10 text-sky-500 rounded-lg border border-sky-500/20 text-[8px] font-black uppercase tracking-widest"
+                             >
+                                <CheckCircle2 size={10} /> Verify Now
+                             </button>
+                          )}
+                       </div>
                     </div>
                  </div>
               ))
@@ -138,3 +359,4 @@ export default function HistoryLogs({ logs }: HistoryLogsProps) {
     </div>
   )
 }
+
