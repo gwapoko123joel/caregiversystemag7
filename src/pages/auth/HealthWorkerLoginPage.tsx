@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mail, Lock, ArrowRight, Stethoscope, Heart,
   Shield, Activity, Radio, Fingerprint, ArrowLeft,
-  Info, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2
+  Info, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, UserPlus, ShieldCheck, User
 } from 'lucide-react';
 import {
   AuthBackground, BantayanLogo, AuthNodeFooter,
 } from '../../components/auth/AuthComponents';
 import { healthWorkerLogin, getCurrentSession } from '../../services/authService';
 import { ensureUserProfile } from '../../services/profileService';
+
+type Role = 'caregiver' | 'medical_practitioner';
 
 // Sub-component: RoleChip
 const RoleChip = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => (
@@ -47,7 +49,7 @@ const HealthWorkerLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
-  const [isHintExpanded, setIsHintExpanded] = useState(false);
+  const [userType, setUserType] = useState<Role>('caregiver');
 
   // Live Role Detection
   const isCaregiver = accessId.toUpperCase().startsWith('CG');
@@ -66,26 +68,24 @@ const HealthWorkerLoginPage = () => {
     checkSession();
   }, [navigate]);
 
+  // ── SMART LOGIC: AUTO-HIGHLIGHT ROLE ──
+  const handleAccessIdChange = (val: string) => {
+    const upperVal = val.toUpperCase();
+    setAccessId(upperVal);
+    
+    if (upperVal.startsWith('CG')) {
+      setUserType('caregiver');
+    } else if (upperVal.startsWith('MP')) {
+      setUserType('medical_practitioner');
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!accessId.trim()) {
-      setError('Please enter your Access ID.');
-      return;
-    }
-    if (!email.trim()) {
-      setError('Please enter your email address.');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your password.');
-      return;
-    }
-
-    const idPattern = /^(CG|MP|ADMIN)-\d{3,4}$/i;
-    if (!idPattern.test(accessId.trim().toUpperCase())) {
-      setError('Invalid Access ID format. Expected: CG-XXXX or MP-XXXX');
+    if (!accessId.trim() || !email.trim() || !password) {
+      setError('All fields are required.');
       return;
     }
 
@@ -114,233 +114,133 @@ const HealthWorkerLoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 bg-[#000814] overflow-hidden">
-      <AuthBackground variant="default" />
+    <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      
+      {/* Abort Button */}
+      <button onClick={() => navigate('/')} className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-white transition-all group z-50">
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-[10px] font-black uppercase tracking-widest">Abort</span>
+      </button>
 
-      {/* TOP HEADER: BACK BUTTON & NODE STATUS */}
-      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
-        <button
-          onClick={() => navigate('/')}
-          style={{ minHeight: '44px' }}
-          className="group flex items-center gap-2 px-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl
-                     text-[11px] tracking-wider text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all"
-        >
-          <motion.div
-            animate={{ x: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-            className="group-hover:mr-1 transition-all"
+      {/* Tighter Terminal Container */}
+      <div className="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-8 md:p-10 shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500">
+        
+        {/* Branding */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg mb-4">
+             <Heart size={32} fill="white" className="text-white" />
+          </div>
+          <h1 className="text-2xl font-black tracking-tighter uppercase">
+            Bantayan<span className="text-sky-500">Care</span>
+          </h1>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Authorization Node</p>
+        </div>
+
+        {/* Role Switcher */}
+        <div className="flex p-1 bg-slate-950/50 rounded-xl border border-white/5 mb-8">
+          <button type="button" onClick={() => setUserType('medical_practitioner')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${userType === 'medical_practitioner' ? 'bg-sky-500 text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
+            <Stethoscope size={12} /> Practitioner
+          </button>
+          <button type="button" onClick={() => setUserType('caregiver')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${userType === 'caregiver' ? 'bg-sky-500 text-slate-950 shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
+            <User size={12} /> Caregiver
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-400 text-[10px] font-bold uppercase">
+             <Activity size={14} /> {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Access ID */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Unique Access ID</label>
+            <div className="relative group">
+              <Fingerprint size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+              <input 
+                required
+                value={accessId}
+                onChange={(e) => handleAccessIdChange(e.target.value)}
+                placeholder="e.g. CG-0001"
+                className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Network Email</label>
+            <div className="relative group">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+              <input 
+                type="email" required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@bantayancare.node"
+                className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Password with Eye Icon */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Passkey</label>
+            <div className="relative group">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+              <input 
+                type={showPassword ? 'text' : 'password'} required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-12 text-sm text-white outline-none focus:border-sky-500/50 transition-all"
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-sky-500 transition-colors"
+              >
+                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <button 
+            type="submit" disabled={loading}
+            className="w-full py-4 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-950 font-black uppercase text-[10px] tracking-[0.3em] rounded-xl transition-all shadow-lg shadow-sky-500/10 active:scale-95 flex items-center justify-center gap-2 mt-6"
           >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </motion.div>
-          <span className="hidden sm:inline">BACK</span>
-        </button>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <><ShieldCheck size={16} /> Initialize Session</>}
+          </button>
+        </form>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
-          <span className="text-[9px] tracking-[0.2em] text-emerald-400 uppercase font-light">
-            Node Connected — Encrypted Channel
-          </span>
+        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+          <Link to="/register" className="inline-flex items-center gap-2 text-[10px] font-black text-sky-400 hover:text-white uppercase tracking-widest transition-all">
+            <UserPlus size={14} />
+            Initialize account with Access Key
+          </Link>
+        </div>
+
+        {/* System Footer Metadata */}
+        <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between opacity-30">
+           <div className="flex items-center gap-2">
+              <ShieldCheck size={12} className="text-sky-500" />
+              <span className="text-[8px] font-black uppercase tracking-widest">ID Verified</span>
+           </div>
+           <div className="flex items-center gap-2">
+              <Activity size={12} className="text-sky-500" />
+              <span className="text-[8px] font-black uppercase tracking-widest">Real-time Node</span>
+           </div>
+           <div className="flex items-center gap-2">
+              <Lock size={12} className="text-sky-500" />
+              <span className="text-[8px] font-black uppercase tracking-widest">Encrypted</span>
+           </div>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        {/* ===== MAIN LOGIN CARD ===== */}
-        <div className="rounded-[2.5rem] border border-white/10 bg-[#000814]/80 backdrop-blur-xl shadow-2xl shadow-black/80 overflow-hidden">
-          
-          <div className="p-8 space-y-5">
-            {/* Logo & Title */}
-            <div className="text-center space-y-3">
-              <div className="flex justify-center">
-                <BantayanLogo size="small" /> {/* Logo should be 44px equivalent via size prop or style */}
-                <div style={{ height: '44px' }} /> {/* Spacer to ensure logo area is compact */}
-              </div>
-
-              <div className="space-y-1">
-                <h1 className="text-lg font-light tracking-[0.2em] text-white uppercase">
-                  Health Worker Portal
-                </h1>
-                <p className="text-[10px] tracking-widest text-slate-500 uppercase font-light">
-                  Barangay Bantayan Care Network
-                </p>
-              </div>
-
-              {/* Role Indicators: Live Detection */}
-              <div className="flex items-center justify-center gap-3 pt-1">
-                <RoleChip icon={Stethoscope} label="Practitioner" active={isPractitioner} />
-                <RoleChip icon={Heart} label="Caregiver" active={isCaregiver} />
-              </div>
-            </div>
-
-            {/* Error Display: Animated Banner */}
-            <AnimatePresence mode="wait">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                  exit={{ opacity: 0, y: -20, height: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-red-500/20 bg-red-500/10 backdrop-blur-xl text-red-400 text-[11px] font-light">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                    <p className="flex-1">{error}</p>
-                    <button onClick={() => setError('')} className="hover:text-white transition-colors">
-                      <ArrowRight className="w-4 h-4 rotate-45" />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* ACCESS ID */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
-                    <Fingerprint className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
-                    Access ID
-                  </label>
-                  <button 
-                    type="button"
-                    onClick={() => setIsHintExpanded(!isHintExpanded)}
-                    className="p-1 hover:text-cyan-400 text-slate-500 transition-colors"
-                  >
-                    <Info className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  </button>
-                </div>
-                
-                <div className="relative group">
-                  <input
-                    type="text"
-                    value={accessId}
-                    onChange={(e) => setAccessId(e.target.value.toUpperCase())}
-                    placeholder="CG-0001 or MP-0001"
-                    disabled={loading}
-                    autoComplete="off"
-                    style={{ minHeight: '44px' }}
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
-                               focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light"
-                  />
-                </div>
-
-                <AnimatePresence>
-                  {isHintExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="p-3 mt-1 rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-[10px] text-slate-400 font-light leading-relaxed">
-                        <Shield className="w-3 h-3 text-cyan-500/50 inline mr-2 mb-0.5" strokeWidth={1.5} />
-                        Your Access ID was assigned by the system administrator during enrollment. 
-                        Format: <span className="text-cyan-400">CG-XXXX</span> for Caregivers, 
-                        <span className="text-cyan-400"> MP-XXXX</span> for Practitioners.
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* EMAIL ADDRESS */}
-              <div className="space-y-1.5">
-                <label className="px-1 text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your registered email"
-                  disabled={loading}
-                  autoComplete="email"
-                  style={{ minHeight: '44px' }}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
-                             focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light"
-                />
-              </div>
-
-              {/* PASSWORD */}
-              <div className="space-y-1.5">
-                <label className="px-1 text-[10px] tracking-[0.2em] text-slate-400 uppercase font-light flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-cyan-500" strokeWidth={1.5} />
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    disabled={loading}
-                    autoComplete="current-password"
-                    style={{ minHeight: '44px' }}
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600
-                               focus:outline-none focus:border-cyan-500/60 focus:bg-cyan-500/[0.02] transition-all font-light pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:text-cyan-400 text-slate-500 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={1.5} /> : <Eye className="w-4 h-4" strokeWidth={1.5} />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                style={{ minHeight: '44px' }}
-                className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 p-[1px] transition-all hover:shadow-[0_0_20px_rgba(0,209,255,0.3)] disabled:opacity-50"
-              >
-                <div className="w-full h-full bg-[#000814] rounded-[11px] flex items-center justify-center gap-3 text-[11px] tracking-[0.2em] text-white uppercase font-normal group-hover:bg-transparent transition-all">
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-                      Authenticating...
-                    </>
-                  ) : (
-                    <>
-                      Sign In to Portal
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.5} />
-                    </>
-                  )}
-                </div>
-              </button>
-            </form>
-
-            {/* Support Text */}
-            <div className="text-center py-2">
-              <p className="text-[10px] text-slate-600 font-light tracking-wide">
-                Secure node-to-node encryption active.
-              </p>
-            </div>
-          </div>
-
-          {/* Bottom Features Strip */}
-          <div className="border-t border-white/5 bg-white/[0.02] px-8 py-3.5">
-            <div className="flex items-center justify-between">
-              <FooterBadge icon={CheckCircle2} label="ID Verified" />
-              <div className="w-px h-3 bg-white/10" />
-              <FooterBadge icon={Activity} label="Real-Time" />
-              <div className="w-px h-3 bg-white/10" />
-              <FooterBadge icon={Radio} label="Encrypted" />
-            </div>
-          </div>
-        </div>
-
-        {/* System Node Footer */}
-        <div className="mt-8 opacity-40 hover:opacity-100 transition-opacity">
-          <AuthNodeFooter variant="default" />
-        </div>
-      </motion.div>
+      <div className="mt-8 flex flex-col items-center gap-1 opacity-20 text-center">
+         <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em]">© Barangay Bantayan Monitoring Hub</p>
+         <p className="text-[7px] font-mono text-slate-600">NODE_VER: 2.0.4-STABLE</p>
+      </div>
     </div>
   );
 };

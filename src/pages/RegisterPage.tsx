@@ -414,9 +414,18 @@ export default function RegisterPage() {
           </div>
           <button
             onClick={() => navigate('/login')}
-            className="w-full bg-sky-500 hover:bg-sky-400 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest"
+            className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
+                       text-white font-black uppercase text-[11px] tracking-[0.4em] 
+                       rounded-2xl transition-all duration-300 shadow-2xl 
+                       shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
           >
-            GO TO SIGN IN <ArrowRight size={18} />
+            {/* Subtle Shine Effect on Hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            
+            <div className="flex items-center justify-center gap-3 relative z-10">
+              <span>Initialize Node Access</span>
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </div>
           </button>
         </div>
       </div>
@@ -532,9 +541,24 @@ export default function RegisterPage() {
                     <button
                       type="submit"
                       disabled={cgVerifying || !cgAccessId.trim()}
-                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm"
+                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
+                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
+                                 rounded-2xl transition-all duration-300 shadow-2xl 
+                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
                     >
-                      {cgVerifying ? <Loader2 size={18} className="animate-spin" /> : 'Verify Access ID'}
+                      {/* Subtle Shine Effect on Hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      
+                      <div className="flex items-center justify-center gap-3 relative z-10">
+                        {cgVerifying ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <>
+                            <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" />
+                            <span>Verify Caregiver ID</span>
+                          </>
+                        )}
+                      </div>
                     </button>
                   </form>
                 )}
@@ -635,9 +659,25 @@ export default function RegisterPage() {
                     <button
                       type="submit"
                       disabled={cgSubmitting}
-                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm mt-2"
+                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
+                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
+                                 rounded-2xl transition-all duration-300 shadow-2xl 
+                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden mt-2"
                     >
-                      {cgSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>COMPLETE REGISTRATION <ArrowRight size={18} /></>}
+                      {/* Subtle Shine Effect on Hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      
+                      <div className="flex items-center justify-center gap-3 relative z-10">
+                        {cgSubmitting ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <>
+                            <UserCheck size={18} className="group-hover:scale-110 transition-transform" />
+                            <span>Authorize Caregiver Profile</span>
+                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </div>
                     </button>
                   </form>
                 )}
@@ -701,9 +741,24 @@ export default function RegisterPage() {
                     <button
                       type="submit"
                       disabled={mpVerifying || !mpAccessId.trim()}
-                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm"
+                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
+                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
+                                 rounded-2xl transition-all duration-300 shadow-2xl 
+                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
                     >
-                      {mpVerifying ? <Loader2 size={18} className="animate-spin" /> : 'Verify Practitioner ID'}
+                      {/* Subtle Shine Effect on Hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      
+                      <div className="flex items-center justify-center gap-3 relative z-10">
+                        {mpVerifying ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <>
+                            <Stethoscope size={18} className="group-hover:rotate-12 transition-transform" />
+                            <span>Verify Practitioner Node</span>
+                          </>
+                        )}
+                      </div>
                     </button>
                   </form>
                 )}
@@ -793,9 +848,25 @@ export default function RegisterPage() {
                     <button
                       type="submit"
                       disabled={mpSubmitting}
-                      className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-light rounded-2xl py-4 flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-sm mt-2"
+                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
+                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
+                                 rounded-2xl transition-all duration-300 shadow-2xl 
+                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden mt-2"
                     >
-                      {mpSubmitting ? <Loader2 size={18} className="animate-spin" /> : <>REGISTER AS PRACTITIONER <ArrowRight size={18} /></>}
+                      {/* Subtle Shine Effect on Hover */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      
+                      <div className="flex items-center justify-center gap-3 relative z-10">
+                        {mpSubmitting ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <>
+                            <ShieldCheck size={18} className="group-hover:scale-110 transition-transform" />
+                            <span>Authorize Practitioner Profile</span>
+                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </div>
                     </button>
                   </form>
                 )}
