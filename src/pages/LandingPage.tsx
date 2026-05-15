@@ -11,10 +11,14 @@ import {
   Sun,
   Moon,
   Heart,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  Globe,
+  Bell,
+  Mail,
+  Navigation
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import Footer from '../components/Footer';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -190,8 +194,70 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <Footer />
+      {/* ── CLEAN PROFESSIONAL FOOTER ── */}
+      <footer className="bg-[#020617] border-t border-white/5 py-12 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+          
+          {/* Column 1: Identity */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+                <Heart size={18} fill="white" className="text-white" />
+              </div>
+              <span className="font-black text-white uppercase tracking-tighter text-xl">
+                Bantayan<span className="text-sky-500">Care</span>
+              </span>
+            </div>
+            <p className="text-slate-500 text-xs leading-relaxed max-w-xs">
+              Empowering Barangay Bantayan through automated care coordination and real-time health monitoring protocols.
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/5 border border-emerald-500/20 rounded-full">
+               <ShieldCheck size={12} className="text-emerald-500" />
+               <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">HIPAA Compliant System</span>
+            </div>
+          </div>
+
+          {/* Column 2: Quick Nodes */}
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Resources</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-slate-500 hover:text-sky-400 text-xs transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-slate-500 hover:text-sky-400 text-xs transition-colors">Terms of Service</a></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Deployment</h4>
+              <p className="text-slate-500 text-[10px] uppercase font-bold">Dumaguete City<br/>Negros Oriental</p>
+            </div>
+          </div>
+
+          {/* Column 3: System Status */}
+          <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">System Status</span>
+               <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] font-black text-emerald-500 uppercase">Operational</span>
+               </div>
+            </div>
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              All nodes are currently synchronized with the regional health gateway.
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+            © 2026 BantayanCare. All Rights Reserved.
+          </p>
+          <div className="flex items-center gap-4 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all">
+             <Globe size={18} className="text-white cursor-pointer hover:text-sky-500" />
+             <Mail size={18} className="text-white cursor-pointer hover:text-sky-500" />
+             <Navigation size={18} className="text-white cursor-pointer hover:text-sky-500" />
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
