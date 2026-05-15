@@ -19,7 +19,8 @@ const STATUS_FILTERS = [
   { id: 'all', label: 'All Personnel', color: 'slate' },
   { id: 'available', label: 'Online & Ready', color: 'emerald' },
   { id: 'on_break', label: 'On System Break', color: 'amber' },
-  { id: 'busy', label: 'In Consultation', color: 'red' },
+  { id: 'in_consultation', label: 'In Consultation', color: 'blue' },
+  { id: 'busy', label: 'Busy', color: 'rose' },
   { id: 'off_duty', label: 'Node Offline', color: 'slate' },
 ];
 
@@ -44,11 +45,13 @@ export default function AvailableDoctorsView() {
       const flattened = (data || []).map(doc => ({
         ...doc,
         caregiver_id: doc.id,
-        availability_status: (doc.duty_status || 'off_duty').toLowerCase(), 
+        // Use the database status directly, fallback to off_duty
+        availability_status: doc.duty_status || 'off_duty', 
         prc_profession: 'Medical Practitioner',
         prc_license_number: doc.prc_license || 'VERIFIED',
         clinical_hotline: doc.phone_number || doc.phone,
-        accepts_calls: true, 
+        // Allow calling for these specific active states
+        accepts_calls: ['available', 'in_consultation', 'busy', 'emergency_only'].includes(doc.duty_status),
         accepts_sms: true 
       }));
 
@@ -170,7 +173,9 @@ export default function AvailableDoctorsView() {
 function DoctorCard({ doctor, onCall, onSMS }: any) {
   const statusConfig: any = {
     available: { color: 'emerald', label: 'Ready for Consult' },
-    busy: { color: 'rose', label: 'In Consultation' },
+    in_consultation: { color: 'sky', label: 'In Consultation' },
+    busy: { color: 'rose', label: 'Busy / Urgent Only' },
+    emergency_only: { color: 'orange', label: 'CRITICAL SOS ONLY' },
     on_break: { color: 'amber', label: 'On System Break' },
     off_duty: { color: 'slate', label: 'Node Offline' }
   };
@@ -214,9 +219,14 @@ function DoctorCard({ doctor, onCall, onSMS }: any) {
       <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/5">
         <button 
           onClick={() => onCall(doctor)}
-          className="flex items-center justify-center gap-2 py-4 bg-sky-500 text-slate-950 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-sky-500/20"
+          disabled={!doctor.accepts_calls}
+          className={`flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${
+            doctor.accepts_calls 
+              ? 'bg-sky-500 text-slate-950 hover:scale-105 active:scale-95 shadow-sky-500/20' 
+              : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+          }`}
         >
-          <Phone size={14} /> Call Now
+          <Phone size={14} /> {doctor.accepts_calls ? 'Call Now' : 'Not Available'}
         </button>
         <button 
           onClick={() => onSMS(doctor)}

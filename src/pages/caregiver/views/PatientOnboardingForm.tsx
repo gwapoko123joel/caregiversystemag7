@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   User, Calendar, Phone, MapPin, 
-  Activity, ArrowLeft, HeartPulse, 
+  Activity, ArrowLeft, ArrowRight, HeartPulse, 
   ShieldCheck, Loader2, Baby, Info,
   ChevronRight
 } from 'lucide-react';
@@ -11,6 +11,8 @@ import { useAuth } from '../../../hooks/useAuth';
 export default function PatientOnboardingForm({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [newPatientId, setNewPatientId] = useState('');
   
   // Form State
   const [formData, setFormData] = useState({
@@ -66,8 +68,8 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         });
       }
 
-      alert("Patient Synced to Network.");
-      onBack();
+      setNewPatientId(newPatient.patient_id.toString().padStart(4, '0'));
+      setShowSuccess(true);
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -218,6 +220,40 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         </div>
 
       </form>
+
+      {showSuccess && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="max-w-md w-full bg-slate-900 border border-emerald-500/30 rounded-[40px] p-10 text-center shadow-2xl relative overflow-hidden">
+            
+            {/* Visual Success Indicator */}
+            <div className="w-20 h-20 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 relative">
+              <div className="absolute inset-0 rounded-[2rem] bg-emerald-500 animate-ping opacity-20" />
+              <ShieldCheck size={40} className="text-emerald-500" />
+            </div>
+
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Subject Enrolled</h2>
+            <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-8">Status: Node Synchronized</p>
+            
+            <div className="space-y-4 mb-10">
+              <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 flex justify-between items-center">
+                <span className="text-[10px] font-black text-slate-500 uppercase">Registry ID</span>
+                <span className="text-xs font-mono font-black text-white">PT-{newPatientId}</span>
+              </div>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                The subject has been successfully provisioned into the 
+                <span className="text-white font-bold uppercase"> Bantayan Care Network</span>.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onBack()}
+              className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3"
+            >
+              Return to Dashboard <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

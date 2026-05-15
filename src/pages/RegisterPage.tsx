@@ -433,11 +433,13 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-sky-600 rounded-xl flex items-center justify-center shadow-lg">
+          <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity mb-6 group/logo">
+            <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-sky-500/30 transition-all">
               <Heart size={20} className="text-white fill-white" />
             </div>
-            <span className="text-xl font-light tracking-[0.2em] text-text-main uppercase">BantayanCare</span>
+            <span className="text-xl font-black tracking-tight text-text-main uppercase transition-colors">
+              Bantayan<span className="text-sky-500">Care</span>
+            </span>
           </Link>
           <h1 className="text-2xl font-light text-text-main uppercase tracking-[0.15em] mb-2">
             Health Worker Registration

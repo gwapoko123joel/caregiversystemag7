@@ -30,6 +30,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate, useParams } from 'react-router-dom'
 import { calculateAge } from '../../../utils/medical'
 import { motion, AnimatePresence } from 'framer-motion'
+import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 
 interface PatientDossierProps {
   initiateCall: (caregiverName?: string, patientName?: string) => void
@@ -53,6 +54,10 @@ export default function PatientDossier({
   const [logs, setLogs] = useState<any[]>([])
   const [activeDispatch, setActiveDispatch] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
+
+  // Handshake State
+  const [showHandshake, setShowHandshake] = useState(false)
+  const [handshakeData, setHandshakeData] = useState({ title: '', message: '' })
 
   useEffect(() => {
     if (id) {
@@ -192,9 +197,14 @@ export default function PatientDossier({
         })
 
       if (error) throw error
+      
+      setHandshakeData({
+        title: "Order Dispatched",
+        message: "Your clinical intervention has been securely synchronized with the field caregiver node."
+      });
+      setShowHandshake(true);
       setInstruction('')
       fetchInstructions(patient.patient_id) // Refresh list
-      alert("Instruction dispatched to Caregiver node.")
     } catch (err) {
       console.error(err)
       alert("Failed to send instruction.")
@@ -231,8 +241,11 @@ export default function PatientDossier({
       });
         
       setActiveDispatch(null);
-      alert("Emergency Protocol Closed. Summary filed to Audit Trail.");
-      window.location.reload();
+      setHandshakeData({
+        title: "Emergency Protocol Closed",
+        message: "The SOS dispatch has been resolved. A summary has been filed to the permanent audit trail."
+      });
+      setShowHandshake(true);
     } catch (err) {
       console.error(err);
       alert("Failed to resolve SOS.");
@@ -299,7 +312,11 @@ export default function PatientDossier({
         }
       });
 
-      alert("Clinical Sign-Off Recorded in Audit Log");
+      setHandshakeData({
+        title: "Clinical Sign-Off Recorded",
+        message: `This monitoring log has been clinically validated by Dr. ${userProfile?.last_name}.`
+      });
+      setShowHandshake(true);
     } catch (err) {
       console.error("Sign-off error:", err);
     }
@@ -588,6 +605,19 @@ export default function PatientDossier({
           )}
         </div>
       </div>
+
+      {/* Handshake Success Overlay */}
+      {showHandshake && (
+        <ClinicalHandshake 
+          title={handshakeData.title}
+          message={handshakeData.message}
+          onComplete={() => { 
+            setShowHandshake(false); 
+            fetchPatientData(); 
+          }}
+          actionLabel="Return to Dossier"
+        />
+      )}
     </div>
   );
 }

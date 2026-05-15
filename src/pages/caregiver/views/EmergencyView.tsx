@@ -13,7 +13,8 @@ import {
   ShieldAlert, 
   Navigation,
   Siren,
-  Activity
+  Activity,
+  RefreshCw
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useOutletContext } from 'react-router-dom'
@@ -26,6 +27,35 @@ export default function EmergencyView() {
   const [loading, setLoading] = useState(true)
   const [isDispatching, setIsDispatching] = useState(false)
   const [sosStatus, setSosStatus] = useState<string>('idle');
+  const [registry, setRegistry] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const fetchRegistry = async () => {
+    const { data } = await supabase.from('emergency_registry').select('*').order('id', { ascending: true });
+    if (data) setRegistry(data);
+  };
+
+  useEffect(() => { 
+    fetchRegistry(); 
+  }, []);
+
+  async function handleUpdateRegistry(id: number, newNumber: string) {
+    const { error } = await supabase
+      .from('emergency_registry')
+      .update({ phone_number: newNumber, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (!error) {
+      fetchRegistry();
+      // Log the change for the Admin Audit Trail
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: 'caregiver',
+        action: 'REGISTRY_UPDATED',
+        details: { service_id: id, new_contact: newNumber }
+      });
+    }
+  }
 
   useEffect(() => {
     // Listen for the Doctor's response
@@ -225,17 +255,66 @@ export default function EmergencyView() {
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Local Service Dispatch</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            <DispatchCard label="Ambulance" number="032-488-9000" icon={<Phone size={14}/>} color="rose" />
-            <DispatchCard label="Health Center" number="032-488-9111" icon={<Navigation size={14}/>} color="sky" />
-            <DispatchCard label="Fire Bureau" number="032-488-9222" icon={<Activity size={14}/>} color="amber" />
-            <DispatchCard label="Police Dept" number="032-488-9333" icon={<ShieldCheck size={14}/>} color="emerald" />
+            {registry.map((item) => (
+              <DispatchCard 
+                key={item.id}
+                label={item.service_name} 
+                number={item.phone_number} 
+                icon={
+                  item.icon_type === 'phone' ? <Phone size={14}/> :
+                  item.icon_type === 'navigation' ? <Navigation size={14}/> :
+                  item.icon_type === 'activity' ? <Activity size={14}/> :
+                  <ShieldCheck size={14}/>
+                } 
+                color={item.color_theme || 'rose'} 
+              />
+            ))}
           </div>
 
-          <button className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all">
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all"
+          >
             Update Dispatch Registry
           </button>
         </div>
       </div>
+
+      {isEditing && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="max-w-md w-full bg-slate-900 border border-white/10 rounded-[40px] p-8 shadow-2xl">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <RefreshCw size={20} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">Registry Update</h3>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Update Authorized Dispatch Nodes</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {registry.map((item) => (
+                <div key={item.id} className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-600 uppercase ml-2">{item.service_name}</label>
+                  <input 
+                    defaultValue={item.phone_number}
+                    onBlur={(e) => handleUpdateRegistry(item.id, e.target.value)}
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-sky-500/50 transition-all font-mono"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setIsEditing(false)}
+              className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Finalize Registry
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

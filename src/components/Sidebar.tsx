@@ -154,7 +154,7 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
           </div>
           
           {!(isCollapsed && isDesktop) && (
-            <span className="font-black text-white uppercase tracking-tighter text-xl whitespace-nowrap">
+            <span className="font-black text-white uppercase tracking-tight text-xl whitespace-nowrap transition-colors">
               Bantayan<span className="text-sky-500">Care</span>
             </span>
           )}

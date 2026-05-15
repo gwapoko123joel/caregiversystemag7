@@ -83,10 +83,12 @@ export default function LoginPage() {
         {/* Left Branding (Hidden on mobile) */}
         <div className="hidden lg:block space-y-8">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
-              <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
+              <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_30px_rgba(14,165,233,0.5)] transition-all">
                  <Heart size={28} className="text-white fill-white" />
               </div>
-             <span className="text-2xl font-light tracking-[0.2em] text-text-main uppercase transition-colors">BantayanCare</span>
+             <span className="text-2xl font-black tracking-tight text-text-main uppercase transition-colors">
+               Bantayan<span className="text-sky-500">Care</span>
+             </span>
           </Link>
           
           <h1 className="text-6xl font-bold text-text-main leading-[1.1] tracking-tight transition-colors">
@@ -117,7 +119,7 @@ export default function LoginPage() {
             
             <div className="mb-8 font-sans">
               <div className="lg:hidden flex justify-center mb-8">
-                <Link to="/" className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg active:scale-95">
+                <Link to="/" className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg active:scale-95">
                   <Heart size={28} className="text-white fill-white" />
                 </Link>
               </div>

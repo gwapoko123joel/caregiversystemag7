@@ -5,12 +5,14 @@ import {
   CheckCircle2, Loader2, Search,
   Briefcase, Activity, Clock, ShieldAlert
 } from 'lucide-react'
+import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 
 export default function PractitionerVerificationView() {
   const [pendingUsers, setPendingUsers] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
+  const [showHandshake, setShowHandshake] = useState(false)
 
   useEffect(() => { fetchPendingUsers(); }, [])
 
@@ -43,9 +45,7 @@ export default function PractitionerVerificationView() {
         details: { target: selectedUser.full_name, license: selectedUser.prc_license }
       })
       
-      setSelectedUser(null)
-      fetchPendingUsers()
-      alert("Practitioner Authorized for Network Access.")
+      setShowHandshake(true)
     } catch (err: any) {
       alert(err.message)
     } finally {
@@ -177,6 +177,20 @@ export default function PractitionerVerificationView() {
           )}
         </div>
       </div>
+      {/* Handshake Success Overlay */}
+      {showHandshake && (
+        <ClinicalHandshake 
+          title="Practitioner Verified"
+          message={`Dr. ${selectedUser?.full_name} has been authorized to access the clinical network.`}
+          subtext={`LICENSE: ${selectedUser?.prc_license || 'VERIFIED'}`}
+          onComplete={() => { 
+            setShowHandshake(false); 
+            setSelectedUser(null);
+            fetchPendingUsers();
+          }}
+          actionLabel="Return to Queue"
+        />
+      )}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { Profile } from '../../../types/database'
 import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
+import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 
 /**
  * Generate a random 4-digit number for access IDs.
@@ -36,6 +37,10 @@ export default function UserManagement() {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  // Handshake State
+  const [showHandshake, setShowHandshake] = useState(false)
+  const [generatedKey, setGeneratedKey] = useState('')
 
   // Handlers
   async function handleUpdateStatus(userId: string, newStatus: Profile['status']) {
@@ -194,7 +199,8 @@ export default function UserManagement() {
 
       if (error) throw error
 
-      alert(`ACCESS KEY ISSUED\n\nPersonnel: ${newUser.full_name}\nKey: ${newAccessId}\n\nProvide this key to the staff member to complete registration.`);
+      setGeneratedKey(newAccessId);
+      setShowHandshake(true);
       
       setNewUser({ full_name: '', email: '', role: 'caregiver' as Profile['role'], access_id: '' })
       setShowAddUser(false)
@@ -449,6 +455,21 @@ export default function UserManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Handshake Success Overlay */}
+      {showHandshake && (
+        <ClinicalHandshake 
+          title="Key Issued"
+          message={`A unique access token has been generated for ${newUser.full_name}.`}
+          subtext={`ACCESS KEY: ${generatedKey}`}
+          onComplete={() => { 
+            setShowHandshake(false); 
+            setShowAddUser(false); 
+            loadUsers(); 
+          }}
+          actionLabel="Close Registry"
+        />
       )}
     </div>
   );

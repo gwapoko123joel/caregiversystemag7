@@ -29,10 +29,12 @@ const LandingPage: React.FC = () => {
       {/* ── Navigation ── */}
       <nav className="relative z-50 px-6 py-6 md:px-12 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
-          <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] group-hover/logo:shadow-[0_0_30px_rgba(0,186,255,0.6)] transition-all">
+          <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_30px_rgba(14,165,233,0.5)] transition-all">
              <Heart size={24} className="text-white fill-white" />
           </div>
-          <span className="font-light tracking-[0.2em] text-lg hidden md:block text-text-main uppercase">BantayanCare</span>
+          <span className="font-black tracking-tight text-lg hidden md:block text-text-main uppercase transition-colors">
+            Bantayan<span className="text-sky-500">Care</span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}
@@ -90,7 +92,9 @@ const LandingPage: React.FC = () => {
                       <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg">
                          <Heart size={20} className="text-white fill-white" />
                       </div>
-                      <span className="font-light uppercase tracking-[0.2em] text-text-main">BantayanCare</span>
+                      <span className="font-black uppercase tracking-tight text-text-main">
+                        Bantayan<span className="text-sky-500">Care</span>
+                      </span>
                    </div>
                    <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-card border border-card-border rounded-xl">
                       <X size={20} />

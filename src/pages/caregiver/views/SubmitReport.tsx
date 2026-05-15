@@ -159,42 +159,53 @@ export default function SubmitReport() {
   // Success Overlay logic
   if (submitSuccess) {
     return (
-      <div className="max-w-2xl mx-auto py-20 animate-in fade-in zoom-in duration-500">
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-emerald-500/30 rounded-[40px] p-12 text-center shadow-2xl relative overflow-hidden">
-          {/* Background Decoration */}
-          <div className="absolute -top-10 -right-10 opacity-5 text-emerald-500">
-             <ShieldCheck size={200} />
-          </div>
-
-          <div className="w-24 h-24 bg-emerald-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-            <CheckCircle2 size={48} className="text-emerald-500" />
-          </div>
-
-          <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">Telemetry Synchronized</h2>
+      // Centering wrapper to ensure it doesn't stretch
+      <div className="flex items-center justify-center min-h-[70vh] px-4 animate-in fade-in zoom-in duration-500">
+        <div className="max-w-lg w-full bg-slate-900/40 backdrop-blur-xl border border-emerald-500/30 rounded-[40px] p-10 md:p-12 text-center shadow-2xl relative overflow-hidden">
           
-          <div className="space-y-2 mb-10">
-            <p className="text-emerald-400 font-bold uppercase text-[10px] tracking-[0.3em]">Status: Transmission Successful</p>
-            <p className="text-sm text-slate-400 max-w-xs mx-auto">
-              Clinical data for <span className="text-white font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the practitioner network.
-            </p>
+          {/* Decorative Background Shield */}
+          <div className="absolute -top-12 -right-12 opacity-5 text-emerald-500 pointer-events-none">
+             <ShieldCheck size={240} />
           </div>
 
-          <div className="bg-slate-950/50 rounded-3xl p-6 border border-white/5 mb-10 flex items-center justify-between">
-             <div className="text-left">
-                <p className="text-[8px] font-black text-slate-600 uppercase">Node Identifier</p>
-                <p className="text-[10px] font-mono text-slate-400">BANTAYAN-NODE-SYNC-OK</p>
+          {/* Visual Success Indicator */}
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 relative shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+            <div className="absolute inset-0 rounded-[2rem] bg-emerald-500 animate-ping opacity-10" />
+            <CheckCircle2 size={40} className="text-emerald-500" />
+          </div>
+
+          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-3">
+            Telemetry Synchronized
+          </h2>
+          
+          <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6">
+            Status: Transmission Successful
+          </p>
+          
+          <p className="text-sm text-slate-400 leading-relaxed mb-10 px-4">
+            Clinical data for <span className="text-white font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the medical practitioner network.
+          </p>
+
+          {/* Metadata Receipt Box - Compacted and Aligned */}
+          <div className="bg-slate-950/50 rounded-3xl p-5 border border-white/5 mb-10 grid grid-cols-2 gap-4">
+             <div className="text-left border-r border-white/5 pr-4">
+                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Node Identifier</p>
+                <p className="text-[10px] font-mono font-bold text-slate-400">BANTAYAN-NODE-01</p>
              </div>
-             <div className="text-right">
-                <p className="text-[8px] font-black text-slate-600 uppercase">Timestamp</p>
-                <p className="text-[10px] font-mono text-slate-400">{new Date().toLocaleTimeString()}</p>
+             <div className="text-right pl-4">
+                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Sync Timestamp</p>
+                <p className="text-[10px] font-mono font-bold text-slate-400">
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </p>
              </div>
           </div>
 
+          {/* Action Button - Sized to match modal */}
           <button
             onClick={() => navigate('/dashboard/caregiver/history')}
-            className="px-12 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 mx-auto"
+            className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
           >
-            Return to Registry <ArrowRight size={16} />
+            Return to Patient Registry <ArrowRight size={16} />
           </button>
         </div>
       </div>

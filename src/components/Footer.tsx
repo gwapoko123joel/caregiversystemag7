@@ -39,10 +39,12 @@ const Footer: React.FC = () => {
           {/* Column 1: Brand & Identity */}
           <div className="md:col-span-4 space-y-6">
             <div className="flex items-center gap-3 group/logo">
-              <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-sky-600 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-sky-500/40 transition-all">
+              <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-sky-500/40 transition-all">
                 <Heart size={20} className="text-white fill-white" />
               </div>
-              <span className="font-black tracking-tighter text-xl text-text-main uppercase">BantayanCare</span>
+              <span className="font-black tracking-tight text-xl text-text-main uppercase transition-colors">
+                Bantayan<span className="text-sky-500">Care</span>
+              </span>
             </div>
             <p className="text-sidebar-text-muted font-medium leading-relaxed max-w-sm">
               Empowering Barangay Bantayan through automated care coordination and real-time health monitoring.

@@ -215,3 +215,18 @@ button { font-family: inherit; }
     background: white !important;
   }
 }
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.33); }
+  80%, 100% { opacity: 0; }
+}
+
+.handshake-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+/* Custom styling for the native date picker to match your theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(50%) sepia(100%) saturate(10000%) hue-rotate(180deg);
+  cursor: pointer;
+}

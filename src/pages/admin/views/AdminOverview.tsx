@@ -1,11 +1,38 @@
+import { useState } from 'react'
 import { Users, Activity, ShieldAlert, Cpu, User, Clock, RefreshCw } from 'lucide-react'
 import { useOutletContext, Link } from 'react-router-dom'
+import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { ActivityLog } from '../../../types/database'
 import { SkeletonCard, SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
 
 export default function AdminOverview() {
   const { users, logs, health, performance, isLoading, error, loadData } = useOutletContext<AdminDashboardContextType>()
+
+  const [inspectingNode, setInspectingNode] = useState<any>(null);
+  const [nodePatients, setNodePatients] = useState<any[]>([]);
+
+  async function handleInspectNode(caregiver: any) {
+    setInspectingNode(caregiver);
+    
+    // Fetch all patients assigned to THIS specific caregiver
+    const { data, error } = await supabase
+      .from('caregiver_patient_assignments')
+      .select(`
+        patient:patients (
+          patient_id,
+          first_name,
+          last_name,
+          address,
+          status
+        )
+      `)
+      .eq('caregiver_id', caregiver.caregiver_id);
+
+    if (!error && data) {
+      setNodePatients(data.map((item: any) => item.patient));
+    }
+  }
 
   const handleRetry = () => {
     loadData()
@@ -66,7 +93,11 @@ export default function AdminOverview() {
         {/* 4-Column Grid for high-density overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {performance.map(staff => (
-            <div key={staff.caregiver_id} className="p-5 bg-slate-950/40 border border-white/5 rounded-[32px] hover:border-sky-500/30 transition-all group relative overflow-hidden">
+            <div 
+              key={staff.caregiver_id} 
+              onClick={() => handleInspectNode(staff)}
+              className="p-5 bg-slate-950/40 border border-white/5 rounded-[32px] hover:border-sky-500/50 hover:bg-slate-900/60 transition-all group cursor-pointer relative overflow-hidden"
+            >
               {/* Background Accent */}
               <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-10 transition-opacity">
                  <Activity size={60} />
@@ -153,6 +184,67 @@ export default function AdminOverview() {
           </div>
         </div>
       </div>
+
+      {/* ── PERSONNEL INTELLIGENCE OVERLAY ── */}
+      {inspectingNode && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-lg animate-in fade-in duration-300">
+          <div className="max-w-2xl w-full bg-slate-900 border border-white/10 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex items-center gap-6 mb-10">
+              <div className="w-20 h-20 bg-sky-500/10 rounded-[2rem] flex items-center justify-center text-sky-500 border border-sky-500/20">
+                <User size={40} />
+              </div>
+              <div>
+                <h3 className="text-3xl font-black text-white uppercase tracking-tighter">{inspectingNode.full_name}</h3>
+                <p className="text-sky-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">
+                  Active Field Node • {inspectingNode.unique_access_id}
+                </p>
+              </div>
+            </div>
+
+            {/* Stats Summary */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+               <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
+                  <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Total Impact</p>
+                  <p className="text-xl font-black text-white">{inspectingNode.total_reports} Reports Sent</p>
+               </div>
+               <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
+                  <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Node Vitality</p>
+                  <p className="text-xl font-black text-emerald-500 uppercase">Optimal</p>
+               </div>
+            </div>
+
+            {/* Assigned Subjects List */}
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Assigned Subject Registry</h4>
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-2 scrollbar-thin">
+                {nodePatients.length === 0 ? (
+                  <p className="text-xs text-slate-600 italic p-4 text-center border border-dashed border-white/5 rounded-2xl">No patients currently assigned to this node.</p>
+                ) : (
+                  nodePatients.map(p => (
+                    <div key={p.patient_id} className="p-4 bg-white/5 rounded-2xl flex items-center justify-between border border-white/5">
+                      <span className="text-xs font-bold text-white uppercase">{p.first_name} {p.last_name}</span>
+                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${
+                        p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                      }`}>
+                        {p.status}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setInspectingNode(null)}
+              className="mt-10 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Close Intelligence Node
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
