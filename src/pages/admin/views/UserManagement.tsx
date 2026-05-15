@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Search, Plus, KeyRound, RefreshCw,
   MoreVertical, CheckCircle2, XCircle, Clock,
-  ShieldCheck, Loader2
+  ShieldCheck, Loader2, ShieldAlert
 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
@@ -126,6 +126,45 @@ export default function UserManagement() {
     setProcessingId(null)
   }
 
+  // Handle Rejection (For Pending slots)
+  async function handleReject(userId: string, name: string) {
+    if (!confirm(`Are you sure you want to REJECT and delete the access slot for ${name}?`)) return;
+
+    const { error } = await supabase.from('caregivers').delete().eq('id', userId);
+
+    if (!error) {
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: profile?.role ?? 'admin',
+        action: 'PERSONNEL_REJECTED',
+        details: { target: name }
+      });
+      await loadUsers();
+      await loadLogs();
+    }
+  }
+
+  // Handle Revocation (For Authorized users)
+  async function handleRevoke(userId: string, name: string) {
+    if (!confirm(`WARNING: You are about to REVOKE network access for ${name}. They will be forced to log out immediately. Proceed?`)) return;
+
+    const { error } = await supabase
+      .from('caregivers')
+      .update({ status: 'pending', is_active: false })
+      .eq('id', userId);
+
+    if (!error) {
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: profile?.role ?? 'admin',
+        action: 'ACCESS_REVOKED',
+        details: { target: name }
+      });
+      await loadUsers();
+      await loadLogs();
+    }
+  }
+
   async function handleIssueNewKey() {
     if (!newUser.full_name) {
       alert('Please provide full name.')
@@ -194,30 +233,58 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-96 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" size={18} />
-          <input
-            type="text"
-            placeholder="Search personnel by name, email, or ID..."
-            className="w-full pl-12 pr-6 py-4 bg-card border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm shadow-sm placeholder:text-sidebar-text-muted/50"
-            value={searchUser}
-            onChange={(e) => setSearchUser(e.target.value)}
-          />
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+      
+      {/* ── HEADER & SEARCH ACTION BAR ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Governance: Identity Hub</span>
+          </div>
+          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+            Personnel <span className="text-sky-500">Manager</span>
+          </h2>
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+            Provisioning, Access Governance, & Policy Enforcement
+          </p>
         </div>
 
-        <button
-          onClick={() => setShowAddUser(true)}
-          className="w-full md:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
-        >
-          <Plus size={18} /> Issue Access Key
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+          <div className="relative group w-full sm:w-80">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" />
+            <input 
+              type="text"
+              placeholder="Search personnel by name, email, or ID..."
+              className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+              value={searchUser}
+              onChange={(e) => setSearchUser(e.target.value)}
+            />
+          </div>
+          <button 
+            onClick={() => setShowAddUser(true)}
+            className="w-full sm:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
+          >
+            <Plus size={18} /> Issue Access Key
+          </button>
+        </div>
       </div>
 
-      <div className="bg-card border border-card-border rounded-[32px] overflow-hidden shadow-sm transition-colors">
-        {/* Users Table (Desktop) */}
-        {filteredUsers.length === 0 ? (
+      {/* ── PERSONNEL ROSTER GRID ── */}
+      <div className="space-y-4">
+        {/* Table Headers (Visible on Desktop) */}
+        <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+          <div className="col-span-4">Identity & Credentials</div>
+          <div className="col-span-3 text-center">Unique Access Token</div>
+          <div className="col-span-2 text-center">Clearance Level</div>
+          <div className="col-span-3 text-right">Node Controls</div>
+        </div>
+
+        {isLoading && users.length === 0 ? (
+          <div className="py-20 text-center opacity-40">
+             <Loader2 className="animate-spin text-sky-500 mx-auto" size={32} />
+          </div>
+        ) : filteredUsers.length === 0 ? (
           <EmptyState
             title="Personnel Not Found"
             message={searchUser ? `No results for "${searchUser}" across the administrative node.` : "No personnel have been provisioned in the system yet."}
@@ -225,188 +292,98 @@ export default function UserManagement() {
             icon={Search}
           />
         ) : (
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] bg-card border-b border-card-border transition-colors">
-                  <th className="px-6 py-6">Identity & Credentials</th>
-                  <th className="px-6 py-6">Unique Access Token</th>
-                  <th className="px-6 py-6">Clearance Level</th>
-                  <th className="px-6 py-6 text-right">Node Controls</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border transition-colors">
-                {filteredUsers.map(u => (
-                  <tr key={u.id} className="hover:bg-primary/5 transition-colors group">
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center font-black text-sky-500 text-lg border border-card-border uppercase">
-                          {u.full_name?.[0] || u.email?.[0] || '?'}
-                        </div>
-                        <div>
-                          <div className="text-sm font-black text-text-main uppercase tracking-tight">{u.full_name || 'Unnamed User'}</div>
-                          <div className="text-xs text-sidebar-text-muted mt-0.5">{u.email || 'Unregistered'}</div>
-                          {(u.prc_license || u.bhw_id) && (
-                            <div className="text-[10px] text-sky-400 mt-1.5 font-mono tracking-widest bg-sky-500/10 inline-flex items-center px-2 py-0.5 rounded border border-sky-500/20">
-                              <ShieldCheck size={10} className="mr-1" />
-                              {u.prc_license ? `PRC: ${u.prc_license}` : `BHW: ${u.bhw_id}`}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-3">
-                        {editingId?.id === u.id ? (
-                          <div className="flex items-center gap-2">
-                            <input
-                              className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-sky-500 shadow-inner w-32 focus:outline-none"
-                              value={editingId?.value || ''}
-                              onChange={(e) => {
-                                if (editingId) {
-                                  setEditingId({ id: editingId.id, value: e.target.value.toUpperCase() })
-                                }
-                              }}
-                              autoFocus
-                              onKeyDown={(e) => e.key === 'Enter' && handleManualIdUpdate()}
-                            />
-                            <button
-                              onClick={handleManualIdUpdate}
-                              className="p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all"
-                            >
-                              <CheckCircle2 size={16} />
-                            </button>
-                            <button
-                              onClick={() => setEditingId(null)}
-                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <code
-                              className="text-[12px] font-black text-sky-500 font-mono tracking-widest bg-sky-500/5 px-3 py-1.5 rounded-xl border border-sky-500/20 shadow-sm cursor-pointer hover:bg-sky-500/10 transition-all"
-                              onClick={() => setEditingId({ id: u.id, value: u.access_id || '' })}
-                              title="Click to edit Access ID"
-                            >
-                              {u.access_id ?? 'UNINITIALIZED'}
-                            </code>
-                            <button
-                              disabled={processingId === u.id}
-                              onClick={() => handleRotateKey(u.id, u.role, u.full_name)}
-                              title="Regenerate Key"
-                              className="p-2 text-sidebar-text-muted hover:text-sky-500 hover:bg-sky-500/10 rounded-xl transition-all active:scale-90"
-                            >
-                              {processingId === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                          u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                            'bg-red-500/10 text-red-500 border-red-500/20'
-                        }`}>
-                        {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
-                        {u.status}
-                      </div>
-                    </td>
-                    <td className="px-6 py-6 text-right">
-                      <div className="flex justify-end gap-2">
-                        {u.role !== 'admin' && (
-                          <div className="relative">
-                            <select
-                              className="bg-card border border-card-border rounded-xl px-3 py-2 text-[10px] font-black uppercase text-sidebar-text-muted hover:text-text-main focus:outline-none transition-all appearance-none text-right cursor-pointer pr-2 shadow-sm dark:shadow-none"
-                              value={u.status}
-                              onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])}
-                              disabled={updatingStatus === u.id}
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="authorized">Authorize</option>
-                              <option value="revoked">Revoke</option>
-                              <option value="suspended">Suspend</option>
-                            </select>
-                          </div>
-                        )}
-                        <button className="p-2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                          <MoreVertical size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Users Card List (Mobile) */}
-        {!isLoading && filteredUsers.length > 0 && (
-          <div className="md:hidden space-y-4 p-4">
-            {filteredUsers.map(u => (
-              <div key={u.id} className="bg-card border border-card-border rounded-3xl p-6 shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="text-base font-black text-text-main uppercase tracking-tight">{u.full_name}</div>
-                    <div className="text-xs text-sidebar-text-muted">{u.email}</div>
-                    {(u.prc_license || u.bhw_id) && (
-                      <div className="text-[10px] text-sky-400 mt-1.5 font-mono tracking-widest bg-sky-500/10 inline-flex items-center px-2 py-0.5 rounded border border-sky-500/20">
-                        <ShieldCheck size={10} className="mr-1" />
-                        {u.prc_license ? `PRC: ${u.prc_license}` : `BHW: ${u.bhw_id}`}
-                      </div>
-                    )}
-                  </div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tight ${u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' :
-                      u.role === 'medical_practitioner' ? 'bg-sky-500/10 text-sky-400' :
-                        'bg-slate-100 dark:bg-white/5 text-sidebar-text-muted'
-                    }`}>{u.role.replace('_', ' ')}</span>
+          filteredUsers.map((u) => (
+            <div 
+              key={u.id}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 lg:px-8 hover:bg-slate-900/60 transition-all group shadow-xl"
+            >
+              {/* 1. Identity */}
+              <div className="col-span-4 flex items-center gap-5">
+                <div className="w-14 h-14 bg-sky-500/10 rounded-[1.5rem] flex items-center justify-center text-sky-500 border border-sky-500/20 font-black text-xl group-hover:scale-110 transition-transform duration-500">
+                  {u.full_name?.[0] || 'U'}
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-primary/50 rounded-2xl border border-card-border">
-                    <code className="text-xs font-black text-sky-500 font-mono tracking-widest px-2">
-                      {u.access_id ?? 'UNINITIALIZED'}
-                    </code>
-                    <div className="flex gap-1">
-                      <button
-                        disabled={processingId === u.id}
-                        onClick={() => handleRotateKey(u.id, u.role, u.full_name)}
-                        className="p-2 bg-card text-sidebar-text-muted hover:bg-sky-500 hover:text-white rounded-xl transition-all"
-                      >
-                        {processingId === u.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border inline-flex items-center gap-2 transition-all ${u.status === 'authorized' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        u.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                          'bg-red-500/10 text-red-500 border-red-500/20'
-                      }`}>
-                      {u.status === 'authorized' ? <CheckCircle2 size={12} /> : u.status === 'pending' ? <Clock size={12} className="animate-pulse" /> : <XCircle size={12} />}
-                      {u.status}
-                    </div>
-
-                    {u.role !== 'admin' && (
-                      <select
-                        className="bg-card border border-card-border rounded-xl px-4 py-2 text-[10px] font-black uppercase text-sidebar-text-muted active:scale-95 transition-all appearance-none cursor-pointer"
-                        value={u.status}
-                        onChange={(e) => handleUpdateStatus(u.id, e.target.value as Profile['status'])}
-                        disabled={updatingStatus === u.id}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="authorized">Authorize</option>
-                        <option value="revoked">Revoke</option>
-                        <option value="suspended">Suspend</option>
-                      </select>
-                    )}
+                <div className="space-y-1">
+                  <h4 className="text-base font-black text-white uppercase tracking-tight">{u.full_name || 'Unregistered Node'}</h4>
+                  <p className="text-[10px] text-slate-500 font-bold lowercase leading-none mb-2">{u.email || 'pending_assignment@bantayan.node'}</p>
+                  <div className="flex items-center gap-2">
+                     <span className="text-[8px] font-black px-2 py-0.5 bg-white/5 rounded border border-white/10 text-slate-400 uppercase">
+                       {u.role.replace('_', ' ')}
+                     </span>
+                     {(u.prc_license || u.bhw_id) && (
+                       <div className="flex items-center gap-1 text-[8px] font-black text-emerald-500 uppercase tracking-tighter">
+                          <ShieldCheck size={10} /> {u.prc_license || u.bhw_id}
+                       </div>
+                     )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* 2. Access Token */}
+              <div className="col-span-3 flex justify-center">
+                 <div className="flex items-center gap-3 bg-slate-950/50 border border-white/5 rounded-2xl px-4 py-3 group-hover:border-sky-500/30 transition-all">
+                    <span className="text-xs font-mono font-bold text-sky-400 tracking-wider">{u.access_id ?? u.unique_access_id}</span>
+                    <button 
+                      onClick={() => handleRotateKey(u.id, u.role, u.full_name)}
+                      className="p-1.5 hover:bg-sky-500/20 text-slate-600 hover:text-sky-400 rounded-lg transition-all"
+                      title="Rotate Token"
+                      disabled={processingId === u.id}
+                    >
+                      {processingId === u.id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                    </button>
+                 </div>
+              </div>
+
+              {/* 3. Status */}
+              <div className="col-span-2 flex justify-center">
+                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                   u.status === 'authorized' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'
+                 }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${u.status === 'authorized' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                    <span className="text-[9px] font-black uppercase tracking-widest">{u.status}</span>
+                 </div>
+              </div>
+
+              {/* 4. Controls */}
+              <div className="col-span-3 flex items-center justify-end gap-2">
+                
+                {/* IF PENDING: Show Authorize & Reject */}
+                {u.status === 'pending' && (
+                  <>
+                    <button 
+                      onClick={() => handleUpdateStatus(u.id, 'authorized')}
+                      className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2"
+                      disabled={updatingStatus === u.id}
+                    >
+                      {updatingStatus === u.id ? <Loader2 className="animate-spin" size={12} /> : <CheckCircle2 size={12} />} Authorize
+                    </button>
+                    <button 
+                      onClick={() => handleReject(u.id, u.full_name)}
+                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition-all active:scale-95"
+                      title="Reject & Delete Slot"
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </>
+                )}
+
+                {/* IF AUTHORIZED: Show Revoke */}
+                {u.status === 'authorized' && (
+                  <button 
+                    onClick={() => handleRevoke(u.id, u.full_name)}
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/5 hover:border-rose-500/50 active:scale-95 flex items-center gap-2"
+                  >
+                    <ShieldAlert size={12} /> Revoke Access
+                  </button>
+                )}
+
+                {/* Settings / More Button */}
+                <button className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-500 rounded-xl transition-all">
+                  <MoreVertical size={18} />
+                </button>
+              </div>
+
+            </div>
+          ))
         )}
       </div>
 
@@ -474,5 +451,5 @@ export default function UserManagement() {
         </div>
       )}
     </div>
-  )
+  );
 }

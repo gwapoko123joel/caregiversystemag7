@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Filter, User } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { ActivityLog } from '../../../types/database'
@@ -11,16 +11,6 @@ export default function AuditTrail() {
   const [logSearch, setLogSearch] = useState('')
   const [logFilter, setLogFilter] = useState<LogFilter | string>('all')
 
-  const getActionColor = (action: string) => {
-    switch (action) {
-      case 'SOS_TRIGGERED': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
-      case 'CLINICAL_SIGN_OFF': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-      case 'VITALS_SUBMITTED': return 'text-sky-500 bg-sky-500/10 border-sky-500/20';
-      case 'SOS_RESOLVED': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
-      default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
-    }
-  };
-
   const filteredLogs = logs.filter((l: ActivityLog) => {
     const matchFilter = logFilter === 'all' || l.action === logFilter
     const q = logSearch.toLowerCase()
@@ -30,97 +20,123 @@ export default function AuditTrail() {
   })
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
-      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] overflow-hidden shadow-2xl transition-all">
-        <div className="p-6 md:p-8 border-b border-card-border flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card transition-colors">
-          <div>
-            <h3 className="text-2xl font-black text-white uppercase tracking-tight">System Audit Log</h3>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Immutable Global Activity Stream</p>
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 h-[calc(100vh-140px)] flex flex-col">
+      
+      {/* ── HEADER & SEARCH BAR ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Governance: System Audit</span>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-             <div className="relative group w-full md:min-w-[200px]">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500" />
-                <input 
-                  value={logSearch}
-                  onChange={e => setLogSearch(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 md:py-2 pl-10 pr-4 text-[10px] font-bold text-slate-200 focus:outline-none focus:border-sky-500/40 uppercase tracking-widest placeholder:text-slate-500 transition-colors shadow-inner" 
-                  placeholder="SEARCH DETAILS..." 
-                />
-             </div>
-             <select 
-                value={logFilter} 
-                onChange={e => setLogFilter(e.target.value)}
-                className="w-full md:w-auto bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3.5 md:py-2 text-[10px] font-bold uppercase text-slate-500 hover:text-white focus:outline-none appearance-none cursor-pointer transition-colors shadow-inner"
-              >
-                <option value="all" className="bg-card text-text-main">All Ops</option>
-                <option value="LOGIN" className="bg-card text-text-main">Logins</option>
-                <option value="SUBMIT_REPORT" className="bg-card text-text-main">Reports</option>
-                <option value="ASSIGN_ACCESS_ID" className="bg-card text-text-main">Provision ID</option>
-                <option value="REISSUE_ACCESS_ID" className="bg-card text-text-main">Reissue ID</option>
-                <option value="UPDATE_USER_STATUS" className="bg-card text-text-main">User Status</option>
-                <option value="SOS_TRIGGERED" className="bg-card text-text-main">SOS Alerts</option>
-                <option value="VITALS_SUBMITTED" className="bg-card text-text-main">Clinical Vitals</option>
-                <option value="CLINICAL_SIGN_OFF" className="bg-card text-text-main">Sign-Offs</option>
-              </select>
-          </div>
-        </div>
-        <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-[10px] font-black text-slate-500 uppercase tracking-widest bg-card transition-colors">
-                  <th className="px-6 py-4">Timeline Index</th>
-                  <th className="px-6 py-4">Principal Identity</th>
-                  <th className="px-6 py-4">Action Token</th>
-                  <th className="px-6 py-4">Metadata Analysis</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border transition-colors">
-                {filteredLogs.map((l: ActivityLog) => (
-                  <tr key={l.log_id} className="hover:bg-card transition-colors">
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500 transition-colors">{new Date(l.timestamp).toLocaleDateString()} · {new Date(l.timestamp).toLocaleTimeString([], { timeStyle: 'medium' }).toUpperCase()}</td>
-                    <td className="px-6 py-4">
-                       <div className="text-xs font-black text-sky-500 dark:text-sky-400 uppercase transition-colors">{l.user_id?.slice(0, 8)}...</div>
-                       <div className="text-[10px] font-bold text-slate-500/60 tracking-tighter uppercase italic transition-colors">{l.user_type} SESSION</div>
-                    </td>
-                    <td className="px-6 py-4">
-                       <span className={`px-2 py-1 rounded text-[9px] font-black border transition-colors ${getActionColor(l.action)}`}>
-                         {l.action.replace(/_/g, ' ')}
-                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                       <div className="text-[10px] font-medium font-mono text-slate-500 max-w-md truncate hover:whitespace-normal transition-all transition-colors">{JSON.stringify(l.details)}</div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+            Immutable <span className="text-sky-500">Activity Stream</span>
+          </h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+            Global Ledger • Encrypted Forensic Trace
+          </p>
         </div>
 
-        {/* Mobile View (Cards) */}
-        <div className="md:hidden divide-y divide-card-border">
-           {filteredLogs.map((l: ActivityLog) => (
-             <div key={l.log_id} className="p-6 transition-all active:bg-primary/20">
-                <div className="flex items-start justify-between mb-4">
-                   <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest">{new Date(l.timestamp).toLocaleString()}</div>
-                   <span className={`px-2 py-1 rounded text-[9px] font-black border transition-colors ${getActionColor(l.action)}`}>
-                     {l.action.replace(/_/g, ' ')}
-                   </span>
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" />
+            <input 
+              type="text"
+              placeholder="Search by Action or Node ID..."
+              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+              value={logSearch}
+              onChange={(e) => setLogSearch(e.target.value)}
+            />
+          </div>
+          <div className="relative">
+            <select 
+              value={logFilter}
+              onChange={(e) => setLogFilter(e.target.value)}
+              className="p-3.5 bg-slate-900/40 border border-white/10 rounded-2xl text-slate-500 hover:text-sky-500 transition-all outline-none appearance-none cursor-pointer pr-10"
+            >
+              <option value="all">All Ops</option>
+              <option value="LOGIN">Logins</option>
+              <option value="SUBMIT_REPORT">Reports</option>
+              <option value="SOS_TRIGGERED">SOS Alerts</option>
+              <option value="VITALS_SUBMITTED">Clinical Vitals</option>
+              <option value="CLINICAL_SIGN_OFF">Sign-Offs</option>
+            </select>
+            <Filter size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── AUDIT LEDGER CONTAINER ── */}
+      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] overflow-hidden flex flex-col shadow-2xl flex-1 min-h-0">
+        
+        {/* ── TABLE HEADER ── */}
+        <div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-white/5 bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="col-span-2">Timeline Index</div>
+          <div className="col-span-3">Principal Identity</div>
+          <div className="col-span-2 text-center">Action Token</div>
+          <div className="col-span-5">Metadata analysis</div>
+        </div>
+
+        {/* ── SCROLLABLE TABLE BODY ── */}
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/5">
+          <div className="divide-y divide-white/5">
+            {filteredLogs.map((log) => (
+              <div key={log.log_id} className="grid grid-cols-12 gap-4 px-8 py-5 hover:bg-white/[0.02] transition-colors group items-center">
+                
+                {/* 1. Timeline */}
+                <div className="col-span-2 space-y-1">
+                  <p className="text-xs font-mono font-bold text-white leading-none">
+                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </p>
+                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-tighter">
+                    {new Date(log.timestamp).toLocaleDateString()}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-500 font-black text-[10px]">ID</div>
-                   <div>
-                      <div className="text-xs font-black text-text-main uppercase">{l.user_id?.slice(0, 12)}...</div>
-                      <div className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest">{l.user_type} SESSION</div>
-                   </div>
+                {/* 2. Identity */}
+                <div className="col-span-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 border border-white/5 group-hover:text-sky-500 transition-colors">
+                      <User size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-mono text-sky-500/80 font-bold truncate max-w-[120px]">
+                        {log.user_id?.toUpperCase().slice(0, 8)}...
+                      </p>
+                      <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest">{log.user_type} Authorized Session</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-primary/30 rounded-2xl p-4 border border-card-border">
-                   <div className="text-[9px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mb-2">Payload Data:</div>
-                   <div className="text-[10px] font-medium font-mono text-text-main leading-relaxed break-all whitespace-pre-wrap">{JSON.stringify(l.details, null, 2)}</div>
+                {/* 3. Action Badge */}
+                <div className="col-span-2 flex justify-center">
+                  <span className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border shadow-sm ${
+                    log.action === 'SOS_TRIGGERED' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
+                    log.action === 'CLINICAL_SIGN_OFF' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
+                    'bg-white/5 border-white/10 text-slate-400'
+                  }`}>
+                    {log.action.replace(/_/g, ' ')}
+                  </span>
                 </div>
-             </div>
-           ))}
+
+                {/* 4. METADATA (Human Readable Formatting) */}
+                <div className="col-span-5 flex flex-wrap gap-2">
+                   {log.details && typeof log.details === 'object' ? (
+                     Object.entries(log.details).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-1.5 px-2 py-1 bg-slate-950/50 border border-white/5 rounded-lg">
+                         <span className="text-[7px] font-black text-slate-600 uppercase">{key}:</span>
+                         <span className="text-[9px] font-bold text-slate-300 truncate max-w-[150px]">
+                           {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                         </span>
+                      </div>
+                     ))
+                   ) : (
+                     <span className="text-[9px] text-slate-700 italic">No Trace Metadata</span>
+                   )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

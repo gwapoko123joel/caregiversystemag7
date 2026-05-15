@@ -20,7 +20,7 @@ import AuditTrail from './views/AuditTrail'
 import SystemHealth from './views/SystemHealth'
 import SecurityOverview from './views/SecurityOverview'
 import PractitionerVerificationView from './views/PractitionerVerificationView'
-import PatientVerificationView from './views/PatientVerificationView'
+import FieldVerificationView from './views/FieldVerificationView'
 import PatientManagementView from './views/PatientManagementView'
 import HealthAnalytics from './views/HealthAnalytics'
 import ProfilePage from '../shared/ProfilePage'
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
         <Route path="health" element={<SystemHealth />} />
         <Route path="security" element={<SecurityOverview />} />
         <Route path="verification" element={<PractitionerVerificationView />} />
-        <Route path="patients/verification" element={<PatientVerificationView />} />
+        <Route path="patients/verification" element={<FieldVerificationView />} />
         <Route path="patients/roster" element={<PatientManagementView />} />
         <Route path="analytics" element={<HealthAnalytics />} />
         <Route path="profile" element={<ProfilePage />} />

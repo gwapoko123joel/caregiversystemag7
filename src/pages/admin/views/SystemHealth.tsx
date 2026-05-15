@@ -1,4 +1,4 @@
-import { Cpu, Zap, Server } from 'lucide-react'
+import { Cpu, Zap, Server, Database, Activity, ShieldCheck } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 
@@ -6,71 +6,166 @@ export default function SystemHealth() {
   const { health } = useOutletContext<AdminDashboardContextType>()
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500 slide-in-from-bottom-4">
-      {/* Pipeline Status */}
-      <div className="lg:col-span-2 space-y-8">
-         <div className="bg-card border border-card-border rounded-[40px] p-8 lg:p-12 shadow-sm dark:shadow-none transition-colors">
-           <h3 className="text-2xl font-black text-text-main mb-8 tracking-tight uppercase flex items-center gap-3 transition-colors">
-              <Cpu size={24} className="text-sky-500" /> Core Delivery Pipeline
-           </h3>
-           <div className="space-y-4">
-              {[
-                { l: 'Database Cluster (Production-X)', v: 'ONLINE', sub: '92ms Global Latency' },
-                { l: 'Real-time WebSocket Pub/Sub', v: 'ACTIVE', sub: '12 active channels' },
-                { l: 'Media Streaming Node', v: 'READY', sub: 'WebRTC Peer Gateway v2.4' },
-                { l: 'Auth Policy Enforcement', v: 'STRICT', sub: 'RLS Filter: ACTIVE' },
-              ].map(item => (
-                <div key={item.l} className="p-6 bg-card border border-card-border rounded-2xl flex items-center justify-between group hover:border-sky-500/30 transition-all shadow-sm dark:shadow-none">
-                   <div>
-                      <div className="text-xs font-black text-sidebar-text-muted uppercase tracking-widest transition-colors">{item.l}</div>
-                      <div className="text-[10px] font-bold text-sidebar-text-muted/60 uppercase mt-1 italic tracking-tight transition-colors">{item.sub}</div>
-                   </div>
-                   <div className="px-4 py-1.5 bg-sky-500/10 text-sky-500 border border-sky-500/30 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(0,229,255,0.1)] group-hover:shadow-sky-500/30 transition-all">
-                      {item.v}
-                   </div>
-                </div>
-              ))}
-           </div>
-         </div>
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+      
+      {/* ── HEADER ── */}
+      <div className="px-2">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+          <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Status: Operational</span>
+        </div>
+        <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+          System <span className="text-sky-500">Infrastructure</span>
+        </h2>
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+          Core Delivery Pipeline • Global Operations Console
+        </p>
       </div>
 
-      {/* Metrics Column */}
-      <div className="space-y-8">
-         <div className="bg-card border border-card-border rounded-[40px] p-10 flex flex-col h-full shadow-sm dark:shadow-none transition-colors">
-            <h3 className="text-lg font-black text-text-main mb-8 tracking-tight uppercase flex items-center gap-2 transition-colors">
-               <Zap size={20} className="text-sky-400" /> Live Metrics
-            </h3>
-            
-            <div className="space-y-12">
-               <div>
-                  <div className="flex justify-between items-end mb-4">
-                     <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors">Reporting Rate</div>
-                     <div className="text-2xl font-black text-sky-500 italic">{health.reportsToday} <span className="text-[10px] font-bold text-sidebar-text-muted/60 not-italic uppercase ml-1 transition-colors">Daily Total</span></div>
-                  </div>
-                  <div className="w-full h-1.5 bg-card border border-card-border rounded-full overflow-hidden transition-colors">
-                     <div className="h-full bg-sky-500 animate-pulse" style={{ width: '65%' }} />
-                  </div>
-               </div>
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+        
+        {/* ── LEFT: PIPELINE DIAGNOSTICS (7/10) ── */}
+        <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl flex flex-col">
+          <div className="flex items-center gap-3 mb-10">
+             <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+                <Cpu size={20} />
+             </div>
+             <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest">Core Delivery Pipeline</h3>
+                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">Real-time Backend Node Synchronization</p>
+             </div>
+          </div>
 
-               <div>
-                  <div className="flex justify-between items-end mb-4">
-                     <div className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] transition-colors">Node Uptime</div>
-                     <div className="text-2xl font-black text-sky-400 italic">{health.serverUptime}</div>
-                  </div>
-                  <div className="w-full h-1.5 bg-card border border-card-border rounded-full overflow-hidden transition-colors">
-                     <div className="h-full bg-sky-400" style={{ width: '99.98%' }} />
-                  </div>
-               </div>
+          <div className="space-y-4">
+            <PipelineRow 
+              label="Database Cluster (Production-X)" 
+              status="Online" 
+              meta="92ms Global Latency" 
+              icon={<Database size={16}/>} 
+              color="emerald" 
+            />
+            <PipelineRow 
+              label="Real-Time WebSocket Pub/Sub" 
+              status="Active" 
+              meta="12 Active Channels" 
+              icon={<Activity size={16}/>} 
+              color="sky" 
+            />
+            <PipelineRow 
+              label="Media Streaming Node" 
+              status="Ready" 
+              meta="WebRTC Peer Gateway V2.4" 
+              icon={<Server size={16}/>} 
+              color="sky" 
+            />
+            <PipelineRow 
+              label="Auth Policy Enforcement" 
+              status="Strict" 
+              meta="RLS Filter: Active" 
+              icon={<ShieldCheck size={16}/>} 
+              color="emerald" 
+            />
+          </div>
 
-               <div className="p-6 bg-card border border-card-border rounded-3xl mt-auto shadow-sm dark:shadow-none transition-colors">
-                  <div className="text-[10px] font-black text-sky-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                     <Server size={14} /> System Node Health
-                  </div>
-                  <div className="text-[32px] font-black text-text-main leading-tight italic transition-colors">OPTIMAL <span className="not-italic text-sm text-sidebar-text-muted uppercase ml-2 select-none transition-colors">— NORMAL PARAMS</span></div>
-               </div>
-            </div>
-         </div>
+          <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
+             <div className="flex items-center gap-4">
+                <div className="text-center">
+                   <p className="text-[8px] font-black text-slate-600 uppercase">Primary Region</p>
+                   <p className="text-[10px] font-bold text-white uppercase">PH-Dumaguete-01</p>
+                </div>
+                <div className="w-px h-6 bg-white/10" />
+                <div className="text-center">
+                   <p className="text-[8px] font-black text-slate-600 uppercase">Provider</p>
+                   <p className="text-[10px] font-bold text-white uppercase">Supabase Cloud</p>
+                </div>
+             </div>
+             <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">
+                Download Node Logs
+             </button>
+          </div>
+        </div>
+
+        {/* ── RIGHT: LIVE METRICS & HEALTH (3/10) ── */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* BIG STATUS HUD */}
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-[40px] p-8 text-center shadow-xl relative overflow-hidden group">
+             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
+                <ShieldCheck size={120} />
+             </div>
+             <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4">System Node Health</p>
+             <h4 className="text-4xl font-black text-white uppercase tracking-tighter">Optimal</h4>
+             <p className="text-[10px] text-emerald-500/60 font-bold uppercase mt-2 tracking-widest">— Stable Core —</p>
+          </div>
+
+          {/* METRICS HUD */}
+          <div className="bg-slate-900/40 border border-white/5 rounded-[40px] p-8 shadow-2xl space-y-8">
+             <div className="flex items-center gap-2 mb-2">
+                <Zap size={14} className="text-sky-500" />
+                <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Live Metrics</h3>
+             </div>
+
+             <MetricBar label="Reporting Rate" value="Daily Total" count={health.reportsToday} percent={65} />
+             <MetricBar label="Node Uptime" value={health.serverUptime} count="" percent={99} />
+             
+             <div className="pt-6 border-t border-white/5">
+                <div className="flex items-center justify-between text-[9px] font-black text-slate-500 uppercase mb-4">
+                   <span>Encryption Level</span>
+                   <span className="text-sky-400">AES-256</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                   {[1,2,3,4,5].map(i => <div key={i} className="h-1 bg-sky-500/40 rounded-full" />)}
+                </div>
+             </div>
+          </div>
+
+        </div>
       </div>
     </div>
   )
+}
+
+// ── HELPER: PIPELINE ROW ──
+function PipelineRow({ label, status, meta, icon, color }: any) {
+  const colors: any = {
+    emerald: 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10',
+    sky: 'text-sky-500 border-sky-500/20 bg-sky-500/10'
+  };
+
+  return (
+    <div className="flex items-center justify-between p-5 bg-slate-950/40 border border-white/5 rounded-3xl group hover:border-white/20 transition-all">
+       <div className="flex items-center gap-4">
+          <div className="p-3 bg-white/5 rounded-xl text-slate-500 group-hover:text-sky-500 transition-colors">
+            {icon}
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-white uppercase tracking-tight">{label}</p>
+            <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5">{meta}</p>
+          </div>
+       </div>
+       <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${colors[color]}`}>
+          {status}
+       </div>
+    </div>
+  );
+}
+
+// ── HELPER: METRIC BAR ──
+function MetricBar({ label, value, count, percent }: any) {
+  return (
+    <div className="space-y-3">
+       <div className="flex justify-between items-end px-1">
+          <p className="text-[9px] font-black text-slate-500 uppercase">{label}</p>
+          <p className="text-[11px] font-black text-white uppercase">
+            {count} <span className="text-[8px] text-slate-600 ml-1">{value}</span>
+          </p>
+       </div>
+       <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
+          <div 
+            className="h-full bg-sky-500 shadow-[0_0_10px_#0ea5e9]" 
+            style={{ width: `${percent}%` }}
+          />
+       </div>
+    </div>
+  );
 }

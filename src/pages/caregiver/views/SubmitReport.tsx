@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
-import ReportView from './ReportView' // Your UI component
-import { UserSearch } from 'lucide-react'
+import ReportView from './ReportView' 
+import { UserSearch, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react'
 
 export default function SubmitReport() {
   const { user } = useAuth()
@@ -102,7 +102,6 @@ export default function SubmitReport() {
 
       if (insertError) throw insertError
 
-      // ADD THIS after the patient_monitoring_logs insert is successful:
       await supabase.from('activity_logs').insert({
         user_id: user?.id,
         user_type: 'caregiver',
@@ -117,17 +116,13 @@ export default function SubmitReport() {
       const sys = parseInt(form.blood_pressure.split('/')[0])
       const o2 = parseInt(form.oxygen_saturation)
 
-      // Determine if this is an emergency
       const isCritical = sys > 160 || o2 < 90 || form.physical_status === 'critical'
       const isWarning = sys > 140 || o2 < 95 || form.physical_status === 'warning'
 
       if (isCritical || isWarning) {
-        console.log("Emergency status detected. Dispatching alert...");
-
         const { error: alertError } = await supabase
           .from('alerts')
           .insert({
-            // FORCE TO NUMBER
             patient_id: Number(patient.patient_id), 
             log_id: Number(logData.log_id),
             severity: isCritical ? 'critical' : 'warning',
@@ -139,13 +134,11 @@ export default function SubmitReport() {
           alert("DATABASE REJECTED ALERT: " + alertError.message);
         }
 
-        // NEW: Update the Master Patient Table so everyone sees the emergency
         await supabase
           .from('patients')
           .update({ status: isCritical ? 'critical' : 'warning' })
           .eq('patient_id', patient.patient_id);
       } else {
-        // If the report is stable, make sure the patient is marked active/green
         await supabase
           .from('patients')
           .update({ status: 'active' })
@@ -153,11 +146,7 @@ export default function SubmitReport() {
       }
 
       setSubmitSuccess(true)
-      // Clear draft ONLY on successful submit
       if (patient) localStorage.removeItem(`draft_notes_${patient.patient_id}`);
-      
-      // Redirect slightly slower so the user sees the success message
-      setTimeout(() => navigate('/dashboard/caregiver/history'), 2500)
 
     } catch (err: any) {
       console.error("Critical System Error:", err)
@@ -166,6 +155,52 @@ export default function SubmitReport() {
       setSubmitting(false)
     }
   }
+
+  // Success Overlay logic
+  if (submitSuccess) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 animate-in fade-in zoom-in duration-500">
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-emerald-500/30 rounded-[40px] p-12 text-center shadow-2xl relative overflow-hidden">
+          {/* Background Decoration */}
+          <div className="absolute -top-10 -right-10 opacity-5 text-emerald-500">
+             <ShieldCheck size={200} />
+          </div>
+
+          <div className="w-24 h-24 bg-emerald-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+            <CheckCircle2 size={48} className="text-emerald-500" />
+          </div>
+
+          <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">Telemetry Synchronized</h2>
+          
+          <div className="space-y-2 mb-10">
+            <p className="text-emerald-400 font-bold uppercase text-[10px] tracking-[0.3em]">Status: Transmission Successful</p>
+            <p className="text-sm text-slate-400 max-w-xs mx-auto">
+              Clinical data for <span className="text-white font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the practitioner network.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/50 rounded-3xl p-6 border border-white/5 mb-10 flex items-center justify-between">
+             <div className="text-left">
+                <p className="text-[8px] font-black text-slate-600 uppercase">Node Identifier</p>
+                <p className="text-[10px] font-mono text-slate-400">BANTAYAN-NODE-SYNC-OK</p>
+             </div>
+             <div className="text-right">
+                <p className="text-[8px] font-black text-slate-600 uppercase">Timestamp</p>
+                <p className="text-[10px] font-mono text-slate-400">{new Date().toLocaleTimeString()}</p>
+             </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/dashboard/caregiver/history')}
+            className="px-12 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 mx-auto"
+          >
+            Return to Registry <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // 5. If no patient is selected, show a "Select Patient" state
   if (!patient) {
     return (

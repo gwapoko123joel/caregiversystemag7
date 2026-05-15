@@ -4,12 +4,20 @@ import {
   Search, 
   ArrowRightLeft, 
   ChevronDown,
-  ClipboardList
+  ClipboardList,
+  Filter,
+  MoreVertical,
+  ChevronRight,
+  MapPin,
+  Activity,
+  User,
+  Loader2
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import type { Patient, Profile } from '../../../types/database';
 import PatientCard from '../../../components/patients/PatientCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { calculateAge } from '../../../utils/medical';
 
 export default function PatientManagementView() {
   const navigate = useNavigate();
@@ -121,71 +129,116 @@ export default function PatientManagementView() {
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+      
+      {/* ── HEADER & SEARCH BAR ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2">
         <div>
-          <h1 className="text-2xl font-light tracking-[0.2em] uppercase text-white">Patient Roster</h1>
-          <p className="text-[10px] text-sky-500 uppercase tracking-widest mt-1">Global Health Network Registry</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Registry: Global Population</span>
+          </div>
+          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+            Patient <span className="text-sky-500">Roster</span>
+          </h2>
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+            Global Health Network Registry • Management & Oversight
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="relative">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" />
             <input 
               type="text"
-              placeholder="Search patients..."
+              placeholder="Search global records..."
+              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="bg-slate-900 border border-white/5 rounded-xl pl-12 pr-6 py-3 text-[10px] uppercase tracking-widest text-white placeholder:text-slate-700 focus:border-sky-500/50 outline-none w-64 transition-all"
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="relative">
-            <select 
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="bg-slate-900 border border-white/5 rounded-xl px-6 py-3 text-[10px] uppercase tracking-widest text-white outline-none appearance-none cursor-pointer pr-12"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending_verification">Pending</option>
-              <option value="rejected">Rejected</option>
-              <option value="archived">Archived</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          <div className="p-4 bg-slate-900/40 border border-white/10 rounded-2xl text-slate-500 cursor-pointer hover:text-sky-500 transition-all">
+             <Filter size={18} />
           </div>
         </div>
-      </header>
+      </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="h-64 bg-slate-900/50 border border-white/5 rounded-2xl animate-pulse" />
-          ))}
-        </div>
-      ) : filteredPatients.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-slate-900/50 border border-white/5 rounded-3xl text-center">
-          <div className="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-slate-700 mb-6 border border-white/5 shadow-inner">
-            <ClipboardList size={32} />
+      {/* ── GLOBAL PATIENT GRID (3-Column Layout) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full py-20 text-center opacity-40">
+             <Loader2 className="animate-spin text-sky-500 mx-auto" size={32} />
           </div>
-          <h3 className="text-lg font-light text-white uppercase tracking-widest mb-2">No Patients Found</h3>
-          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest max-w-xs">Try adjusting your filters or search terms</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPatients.map(patient => (
-            <PatientCard 
-              key={patient.patient_id} 
-              patient={patient}
-              onViewDetails={() => handleViewDetails(patient.patient_id)}
-              onVerify={() => handleApprove(patient.patient_id)}
-              onReject={() => handleReject(patient.patient_id)}
-              onReassign={() => {
-                setSelectedPatient(patient);
-                setShowReassignModal(true);
-              }}
-            />
-          ))}
-        </div>
-      )}
+        ) : filteredPatients.length === 0 ? (
+          <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] opacity-30">
+            <p className="text-xs font-black uppercase tracking-widest">No matching population nodes found</p>
+          </div>
+        ) : (
+          filteredPatients.map((p) => (
+            <div 
+              key={p.patient_id}
+              className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 hover:bg-slate-900/60 hover:border-sky-500/30 transition-all group shadow-xl relative overflow-hidden"
+            >
+              {/* Top Row: Identity & Status */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:scale-110 transition-transform duration-500">
+                  <User size={24} />
+                </div>
+                <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                  p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
+                  p.status === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                  'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                }`}>
+                  {p.status}
+                </div>
+              </div>
+
+              {/* Middle Row: Patient Name & ID */}
+              <div className="space-y-1 mb-6">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight group-hover:text-sky-400 transition-colors">
+                  {p.first_name} {p.last_name}
+                </h3>
+                <div className="flex items-center gap-2">
+                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">PT-ID: {p.patient_id.toString().padStart(4, '0')}</span>
+                   <span className="w-1 h-1 rounded-full bg-slate-800" />
+                   <span className="text-[9px] font-black text-sky-500/70 uppercase">{calculateAge(p.date_of_birth)}</span>
+                </div>
+              </div>
+
+              {/* Bottom Section: Location & Condition */}
+              <div className="space-y-3 pt-6 border-t border-white/5 mb-8">
+                <div className="flex items-center gap-3 text-slate-400">
+                  <MapPin size={14} className="text-slate-600" />
+                  <span className="text-[10px] font-bold uppercase truncate">{p.address || 'General Bantayan'}</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400">
+                  <Activity size={14} className="text-slate-600" />
+                  <span className="text-[10px] font-bold uppercase truncate">{p.medical_history || 'No History Recorded'}</span>
+                </div>
+              </div>
+
+              {/* Action Group */}
+              <div className="flex items-center gap-2">
+                 <button 
+                  onClick={() => navigate(`/dashboard/admin/patient/${p.patient_id}`)}
+                  className="flex-1 py-3 bg-white/5 hover:bg-sky-500 border border-white/10 hover:border-sky-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                 >
+                   Clinical Dossier <ChevronRight size={14} />
+                 </button>
+                 <button 
+                   onClick={() => {
+                     setSelectedPatient(p);
+                     setShowReassignModal(true);
+                   }}
+                   className="p-3 bg-white/5 hover:bg-white/10 text-slate-500 rounded-xl transition-all"
+                 >
+                    <MoreVertical size={16} />
+                 </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* Reassign Modal */}
       <AnimatePresence>
