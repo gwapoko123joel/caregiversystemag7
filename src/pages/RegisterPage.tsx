@@ -3,890 +3,341 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Mail, Lock, KeyRound, Eye, EyeOff, User,
   AlertCircle, Loader2, ShieldCheck, CheckCircle2,
-  ArrowRight, Heart, Stethoscope, UserCheck, ArrowLeft
+  ArrowRight, Heart, Stethoscope, UserCheck, ArrowLeft, Key, UserPlus
 } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../hooks/useAuth'
 
-// ─────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────
 type ActiveTab = 'caregiver' | 'medical_practitioner'
-type CaregiverStep = 1 | 2
 
-interface CaregiverVerifiedInfo {
-  id: string
-  unique_access_id: string
-  first_name: string | null
-  last_name: string | null
-  email: string | null
-}
-
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
-function generateMPAccessId(): string {
-  // Generates MP-XXXX where XXXX is a random 4-digit number
-  const num = Math.floor(1000 + Math.random() * 9000)
-  return `MP-${num}`
-}
-
-// ─────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────
 export default function RegisterPage() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
 
+  // ── UI STATE ──
   const [activeTab, setActiveTab] = useState<ActiveTab>('caregiver')
+  const [step, setStep] = useState(1)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  // ── Caregiver State ──
-  const [cgStep, setCgStep] = useState<CaregiverStep>(1)
-  const [cgAccessId, setCgAccessId] = useState('')
-  const [cgVerifiedInfo, setCgVerifiedInfo] = useState<CaregiverVerifiedInfo | null>(null)
-  const [cgFirstName, setCgFirstName] = useState('')
-  const [cgLastName, setCgLastName] = useState('')
-  const [cgEmail, setCgEmail] = useState('')
-  const [cgBhwId, setCgBhwId] = useState('')
-  const [cgPassword, setCgPassword] = useState('')
-  const [cgConfirmPassword, setCgConfirmPassword] = useState('')
-  const [cgShowPassword, setCgShowPassword] = useState(false)
-  const [cgShowConfirm, setCgShowConfirm] = useState(false)
-  const [cgVerifying, setCgVerifying] = useState(false)
-  const [cgSubmitting, setCgSubmitting] = useState(false)
-  const [cgError, setCgError] = useState<string | null>(null)
-  const [cgSuccess, setCgSuccess] = useState(false)
+  // ── FORM DATA ──
+  const [accessId, setAccessId] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [license, setLicense] = useState('') // BHW ID or PRC License
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  
+  const [showPassword, setShowPassword] = useState(false)
+  const [verifiedInfo, setVerifiedInfo] = useState<any>(null)
 
-  // ── Practitioner State ──
-  const [mpStep, setMpStep] = useState<CaregiverStep>(1)
-  const [mpAccessId, setMpAccessId] = useState('')
-  const [mpVerifiedInfo, setMpVerifiedInfo] = useState<CaregiverVerifiedInfo | null>(null)
-  const [mpFirstName, setMpFirstName] = useState('')
-  const [mpLastName, setMpLastName] = useState('')
-  const [mpEmail, setMpEmail] = useState('')
-  const [mpPrcLicense, setMpPrcLicense] = useState('')
-  const [mpPassword, setMpPassword] = useState('')
-  const [mpConfirmPassword, setMpConfirmPassword] = useState('')
-  const [mpShowPassword, setMpShowPassword] = useState(false)
-  const [mpShowConfirm, setMpShowConfirm] = useState(false)
-  const [mpVerifying, setMpVerifying] = useState(false)
-  const [mpSubmitting, setMpSubmitting] = useState(false)
-  const [mpError, setMpError] = useState<string | null>(null)
-  const [mpSuccess, setMpSuccess] = useState(false)
-  const [mpGeneratedId, setMpGeneratedId] = useState('')
+  // ── LOGIC: AUTO-DETECT ROLE ──
+  const handleIdChange = (val: string) => {
+    const v = val.toUpperCase()
+    setAccessId(v)
+    if (v.startsWith('CG')) setActiveTab('caregiver')
+    else if (v.startsWith('MP')) setActiveTab('medical_practitioner')
+  }
 
-  // ─────────────────────────────────────────────
-  // CAREGIVER: STEP 1 — Verify Access ID
-  // ─────────────────────────────────────────────
-  async function handleCaregiverVerify(e: FormEvent) {
+  // ── STEP 1: VERIFY ID ──
+  const handleVerify = async (e: FormEvent) => {
     e.preventDefault()
-    setCgError(null)
+    setError(null)
+    if (!accessId.trim()) return
 
-    const trimmedId = cgAccessId.trim().toUpperCase()
-    if (!trimmedId) {
-      setCgError('Please enter your Access ID.')
-      return
-    }
-
-    setCgVerifying(true)
+    setLoading(true)
     try {
-      const { data, error } = await supabase
+      const { data, error: dbError } = await supabase
         .from('caregivers')
-        .select('id, unique_access_id, role, is_active, email, first_name, last_name')
-        .eq('unique_access_id', trimmedId)
+        .select('*')
+        .eq('unique_access_id', accessId.trim().toUpperCase())
         .maybeSingle()
 
-      if (error) {
-        setCgError('Verification failed. Please try again.')
-        return
-      }
-
+      if (dbError) throw dbError
+      
       if (!data) {
-        setCgError('Access ID not found. Please check with your administrator.')
+        setError('Access ID not found. Contact administrator.')
         return
       }
 
-      if (data.role !== 'caregiver') {
-        setCgError('This Access ID is not assigned to a Caregiver account.')
+      if (data.role !== activeTab) {
+        setError(`This ID is registered for a ${data.role === 'caregiver' ? 'Caregiver' : 'Practitioner'}.`)
         return
       }
 
       if (data.email) {
-        // Email already set means this ID has been registered
-        setCgError('This Access ID is already registered. Please sign in instead.')
+        setError('This ID is already registered. Please sign in.')
         return
       }
 
-      // ✅ Valid — move to Step 2
-      setCgVerifiedInfo(data)
-      // Pre-fill name if admin already entered it
-      if (data.first_name) setCgFirstName(data.first_name)
-      if (data.last_name) setCgLastName(data.last_name)
-      setCgStep(2)
-
+      // Success
+      setVerifiedInfo(data)
+      if (data.first_name) setFirstName(data.first_name)
+      if (data.last_name) setLastName(data.last_name)
+      setStep(2)
+    } catch (err: any) {
+      setError(err.message || 'Verification failed')
     } finally {
-      setCgVerifying(false)
+      setLoading(false)
     }
   }
 
-  // ─────────────────────────────────────────────
-  // CAREGIVER: STEP 2 — Complete Registration
-  // ─────────────────────────────────────────────
-  async function handleCaregiverRegister(e: FormEvent) {
+  // ── STEP 2: FINAL INITIALIZATION ──
+  const handleFinalRegister = async (e: FormEvent) => {
     e.preventDefault()
-    setCgError(null)
+    setError(null)
 
-    if (!cgFirstName.trim() || !cgLastName.trim()) {
-      setCgError('First and last name are required.')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
       return
     }
-    if (!cgEmail.trim()) {
-      setCgError('Email address is required.')
-      return
-    }
-    if (cgPassword.length < 8) {
-      setCgError('Password must be at least 8 characters.')
-      return
-    }
-    if (cgPassword !== cgConfirmPassword) {
-      setCgError('Passwords do not match.')
-      return
-    }
-    if (!cgVerifiedInfo) {
-      setCgError('Session expired. Please verify your Access ID again.')
-      setCgStep(1)
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
       return
     }
 
-    setCgSubmitting(true)
+    setLoading(true)
     try {
-      // Step A: Create Supabase auth account
+      // A: Auth Sign Up
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: cgEmail.trim().toLowerCase(),
-        password: cgPassword,
+        email: email.trim().toLowerCase(),
+        password: password,
         options: {
           data: {
-            full_name: `${cgFirstName.trim()} ${cgLastName.trim()}`,
-            role: 'caregiver',
-            access_id: cgVerifiedInfo.unique_access_id,
+            full_name: `${firstName.trim()} ${lastName.trim()}`,
+            role: activeTab,
+            access_id: accessId.trim().toUpperCase()
           }
         }
       })
 
-      if (authError) {
-        console.error('[Register] STEP A AUTH FAILED:', JSON.stringify(authError))
-        setCgError(`Step A failed: ${authError.message}`)
-        return
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Auth creation failed')
+
+      // B: Update Database Row
+      const updatePayload: any = {
+        id: authData.user.id,
+        email: email.trim().toLowerCase(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        is_active: false,
+        status: 'pending'
       }
 
-      if (!authData.user) {
-        setCgError('Registration failed. Please try again.')
-        return
-      }
+      if (activeTab === 'caregiver') updatePayload.bhw_id = license.trim()
+      else updatePayload.prc_license = license.trim()
 
-      console.log('[Register] Step A auth succeeded, UID:', authData.user.id)
-      console.log('[Register] Waiting for session propagation...')
-
-      // Delay to allow the auth session to propagate before hitting RLS policies
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Step B: Update the provisioned row with the real Auth UID and profile details
       const { error: updateError } = await supabase
         .from('caregivers')
-        .update({
-          id: authData.user.id,           // Overwrite temporary UUID with real Auth UID
-          email: cgEmail.trim().toLowerCase(),
-          first_name: cgFirstName.trim(),
-          last_name: cgLastName.trim(),
-          bhw_id: cgBhwId.trim(),
-          is_active: false,
-          status: 'pending'               // Wait for final admin authorization
-        })
-        .eq('unique_access_id', cgVerifiedInfo.unique_access_id)
-
-      if (updateError) {
-        console.error('[Register] STEP B UPDATE FAILED:', JSON.stringify(updateError))
-        await supabase.auth.signOut()
-        setCgError(`Step B failed: ${updateError.message} (code: ${updateError.code})`)
-        return
-      }
-
-      console.log('[Register] Step B update succeeded')
-
-      // Step C: Log the registration
-      await supabase.from('activity_logs').insert({
-        user_id: authData.user.id,
-        user_type: 'caregiver',
-        action: 'REGISTER',
-        details: {
-          access_id: cgVerifiedInfo.unique_access_id,
-          method: 'invite_code'
-        }
-      })
-
-      setCgSuccess(true)
-
-    } catch (err: any) {
-      console.error('[Register] Unexpected error:', err)
-      setCgError(`Unexpected error: ${err.message}`)
-    } finally {
-      setCgSubmitting(false)
-    }
-  }
-
-  // ─────────────────────────────────────────────
-  // PRACTITIONER: STEP 1 — Verify Access ID
-  // ─────────────────────────────────────────────
-  async function handlePractitionerVerify(e: FormEvent) {
-    e.preventDefault()
-    setMpError(null)
-
-    const trimmedId = mpAccessId.trim().toUpperCase()
-    if (!trimmedId) {
-      setMpError('Please enter your Access ID.')
-      return
-    }
-
-    setMpVerifying(true)
-    try {
-      const { data, error } = await supabase
-        .from('caregivers')
-        .select('id, unique_access_id, role, is_active, email, first_name, last_name')
-        .eq('unique_access_id', trimmedId)
-        .maybeSingle()
-
-      if (error) {
-        setMpError('Verification failed. Please try again.')
-        return
-      }
-
-      if (!data) {
-        setMpError('Access ID not found. Please contact your Barangay Admin.')
-        return
-      }
-
-      if (data.role !== 'medical_practitioner') {
-        setMpError('This Access ID is not assigned to a Practitioner account.')
-        return
-      }
-
-      if (data.email) {
-        setMpError('This Access ID is already registered. Please sign in instead.')
-        return
-      }
-
-      // ✅ Valid — move to Step 2
-      setMpVerifiedInfo(data)
-      if (data.first_name) setMpFirstName(data.first_name)
-      if (data.last_name) setMpLastName(data.last_name)
-      setMpStep(2)
-
-    } finally {
-      setMpVerifying(false)
-    }
-  }
-
-  // ─────────────────────────────────────────────
-  // PRACTITIONER: STEP 2 — Complete Registration
-  // ─────────────────────────────────────────────
-  async function handlePractitionerRegister(e: FormEvent) {
-    e.preventDefault()
-    setMpError(null)
-
-    if (!mpFirstName.trim() || !mpLastName.trim()) {
-      setMpError('First and last name are required.')
-      return
-    }
-    if (!mpEmail.trim()) {
-      setMpError('Email address is required.')
-      return
-    }
-    if (mpPassword.length < 8) {
-      setMpError('Password must be at least 8 characters.')
-      return
-    }
-    if (mpPassword !== mpConfirmPassword) {
-      setMpError('Passwords do not match.')
-      return
-    }
-    if (!mpVerifiedInfo) {
-      setMpError('Session expired. Please verify your Access ID again.')
-      setMpStep(1)
-      return
-    }
-
-    setMpSubmitting(true)
-    try {
-      // Step A: Create Supabase auth account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: mpEmail.trim().toLowerCase(),
-        password: mpPassword,
-        options: {
-          data: {
-            full_name: `${mpFirstName.trim()} ${mpLastName.trim()}`,
-            role: 'medical_practitioner',
-            access_id: mpVerifiedInfo.unique_access_id,
-          }
-        }
-      })
-
-      if (authError) {
-        setMpError(`Authentication failed: ${authError.message}`)
-        return
-      }
-
-      if (!authData.user) {
-        setMpError('Registration failed. Please try again.')
-        return
-      }
-
-      // Delay to allow the auth session to propagate
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Step B: Update the provisioned row with the real Auth UID and clinical details
-      const { error: updateError } = await supabase
-        .from('caregivers')
-        .update({
-          id: authData.user.id,
-          email: mpEmail.trim().toLowerCase(),
-          first_name: mpFirstName.trim(),
-          last_name: mpLastName.trim(),
-          prc_license: mpPrcLicense.trim(),
-          is_active: false,
-          status: 'pending'
-        })
-        .eq('unique_access_id', mpVerifiedInfo.unique_access_id)
+        .update(updatePayload)
+        .eq('unique_access_id', accessId.trim().toUpperCase())
 
       if (updateError) {
         await supabase.auth.signOut()
-        setMpError(`Profile update failed: ${updateError.message}`)
-        return
+        throw updateError
       }
 
-      // Step C: Log the registration
+      // C: Activity Log
       await supabase.from('activity_logs').insert({
         user_id: authData.user.id,
-        user_type: 'medical_practitioner',
+        user_type: activeTab,
         action: 'REGISTER',
-        details: { access_id: mpVerifiedInfo.unique_access_id }
+        details: { access_id: accessId.trim().toUpperCase() }
       })
 
-      setMpGeneratedId(mpVerifiedInfo.unique_access_id)
-      setMpSuccess(true)
-
+      setSuccess(true)
     } catch (err: any) {
-      setMpError(`Unexpected error: ${err.message}`)
+      setError(err.message || 'Initialization failed')
     } finally {
-      setMpSubmitting(false)
+      setLoading(false)
     }
   }
 
-  // ─────────────────────────────────────────────
-  // SUCCESS SCREENS
-  // ─────────────────────────────────────────────
-  if (cgSuccess || mpSuccess) {
-    const isPractitioner = mpSuccess
-    const accessId = isPractitioner ? mpGeneratedId : cgVerifiedInfo?.unique_access_id
-
+  // ── RENDER SUCCESS SCREEN ──
+  if (success) {
     return (
-      <div className="min-h-screen bg-primary flex items-center justify-center p-6 font-sans">
-        <div className="w-full max-w-lg bg-card border border-card-border rounded-3xl p-10 shadow-2xl text-center">
-          <div className="w-20 h-20 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 size={40} className="text-emerald-500" />
+      <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+           <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[140px]" />
+           <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[140px]" />
+        </div>
+
+        <div className="max-w-md w-full bg-slate-900/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-10 shadow-2xl relative z-10 text-center animate-in fade-in zoom-in duration-500">
+          <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={32} className="text-emerald-500" />
           </div>
-          <h2 className="text-3xl font-light text-text-main mb-3 tracking-[0.1em] uppercase">
-            Registration Submitted
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter uppercase">
+            Enrollment <span className="text-sky-500">Success</span>
           </h2>
-          <p className="text-sidebar-text-muted font-light leading-relaxed mb-6">
-            Your account is <strong className="text-amber-400">pending administrator approval</strong>.
-            You will be able to log in once an admin authorizes your account.
+          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+            Account pending <span className="text-amber-400">administrative review</span>.
           </p>
-          <div className="bg-sky-500/5 border border-sky-500/20 rounded-2xl p-5 mb-8">
-            <p className="text-xs text-sidebar-text-muted uppercase tracking-widest mb-2 font-light">
-              Your Access ID
-            </p>
-            <code className="text-2xl font-mono text-sky-400 tracking-widest">
-              {accessId}
-            </code>
-            <p className="text-xs text-sidebar-text-muted mt-3 font-light">
-              ⚠️ Save this ID — you will need it every time you log in
-            </p>
+
+          <div className="bg-slate-950/60 border border-white/5 rounded-2xl p-6 mb-8">
+            <p className="text-[9px] text-slate-500 uppercase tracking-[0.3em] mb-2 font-black">Secure Access ID</p>
+            <code className="text-2xl font-mono text-sky-400 font-bold tracking-[0.2em]">{accessId}</code>
           </div>
-          <button
-            onClick={() => navigate('/login')}
-            className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
-                       text-white font-black uppercase text-[11px] tracking-[0.4em] 
-                       rounded-2xl transition-all duration-300 shadow-2xl 
-                       shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
-          >
-            {/* Subtle Shine Effect on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            
-            <div className="flex items-center justify-center gap-3 relative z-10">
-              <span>Initialize Node Access</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </div>
+
+          <button onClick={() => navigate('/login')} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+            <span>Return to Terminal</span>
+            <ArrowRight size={16} />
           </button>
         </div>
       </div>
     )
   }
 
-  // ─────────────────────────────────────────────
-  // MAIN RENDER
-  // ─────────────────────────────────────────────
+  // ── MAIN RENDER ──
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-500/5 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-500/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+         <div className="absolute top-[-15%] right-[-10%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[120px]" />
+         <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[120px]" />
+      </div>
 
-      <div className="w-full max-w-lg relative z-10">
+      <button onClick={() => navigate('/login')} className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-white transition-all z-50">
+        <ArrowLeft size={16} />
+        <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
+      </button>
+
+      <div className="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-8 shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500">
+        
+        {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition-opacity mb-6 group/logo">
-            <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-sky-500/30 transition-all">
-              <Heart size={20} className="text-white fill-white" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-text-main uppercase transition-colors">
-              Bantayan<span className="text-sky-500">Care</span>
-            </span>
-          </Link>
-          <h1 className="text-2xl font-light text-text-main uppercase tracking-[0.15em] mb-2">
-            Health Worker Registration
-          </h1>
-          <p className="text-sm text-sidebar-text-muted font-light">
-            Barangay Bantayan Care Network
-          </p>
+          <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/20">
+             <UserPlus size={24} className="text-white" />
+          </div>
+          <h1 className="text-xl font-black tracking-tighter uppercase">Personnel Enrollment</h1>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Initialization Protocol</p>
         </div>
 
-        <div className="bg-card border border-card-border rounded-3xl overflow-hidden shadow-2xl">
-          {/* Tab Selector */}
-          <div className="grid grid-cols-2 border-b border-card-border">
-            <button
-              onClick={() => { setActiveTab('caregiver'); setCgError(null) }}
-              className={`py-5 flex items-center justify-center gap-2 text-xs font-light uppercase tracking-widest transition-all ${activeTab === 'caregiver'
-                  ? 'bg-sky-500/10 text-sky-400 border-b-2 border-sky-500'
-                  : 'text-sidebar-text-muted hover:text-text-main hover:bg-white/5'
-                }`}
-            >
-              <UserCheck size={16} />
-              Caregiver
-            </button>
-            <button
-              onClick={() => { setActiveTab('medical_practitioner'); setMpError(null) }}
-              className={`py-5 flex items-center justify-center gap-2 text-xs font-light uppercase tracking-widest transition-all ${activeTab === 'medical_practitioner'
-                  ? 'bg-sky-500/10 text-sky-400 border-b-2 border-sky-500'
-                  : 'text-sidebar-text-muted hover:text-text-main hover:bg-white/5'
-                }`}
-            >
-              <Stethoscope size={16} />
-              Practitioner
-            </button>
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+           <button 
+             onClick={() => setStep(1)}
+             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all cursor-pointer ${step >= 1 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
+           >
+             1
+           </button>
+           <div className={`h-px w-8 transition-all ${step >= 2 ? 'bg-sky-500' : 'bg-slate-800'}`} />
+           <button 
+             disabled={!verifiedInfo}
+             onClick={() => setStep(2)}
+             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${verifiedInfo ? 'cursor-pointer hover:border-sky-500/50' : 'cursor-not-allowed'} ${step >= 2 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
+           >
+             2
+           </button>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-2 text-rose-400 text-[9px] font-bold uppercase tracking-widest">
+            <AlertCircle size={14} className="shrink-0" />
+            <p>{error}</p>
           </div>
+        )}
 
-          <div className="p-8">
-            {/* ══════════════════════════════════════════ */}
-            {/* CAREGIVER TAB                             */}
-            {/* ══════════════════════════════════════════ */}
-            {activeTab === 'caregiver' && (
-              <div>
-                <div className="flex items-center gap-3 mb-8">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${cgStep >= 1 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
-                    }`}>
-                    {cgStep > 1 ? <CheckCircle2 size={14} /> : '1'}
-                  </div>
-                  <div className={`flex-1 h-px transition-all ${cgStep > 1 ? 'bg-sky-500' : 'bg-card-border'}`} />
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${cgStep >= 2 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
-                    }`}>
-                    2
-                  </div>
-                  <div className="flex-1 text-right">
-                    <span className="text-[10px] text-sidebar-text-muted uppercase tracking-widest font-light">
-                      {cgStep === 1 ? 'Verify ID' : 'Complete Profile'}
-                    </span>
-                  </div>
-                </div>
+        {/* STEP 1: VERIFY ID */}
+        {step === 1 && (
+          <form onSubmit={handleVerify} className="space-y-6 animate-in slide-in-from-right duration-300">
+            <div className="flex p-1 bg-slate-950/50 rounded-xl border border-white/5 mb-2">
+              <button type="button" onClick={() => setActiveTab('caregiver')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === 'caregiver' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
+                <User size={12} /> Caregiver
+              </button>
+              <button type="button" onClick={() => setActiveTab('medical_practitioner')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === 'medical_practitioner' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
+                <Stethoscope size={12} /> Practitioner
+              </button>
+            </div>
 
-                {cgStep === 1 && (
-                  <form onSubmit={handleCaregiverVerify} className="space-y-6">
-                    <div className="text-center mb-6">
-                      <div className="w-14 h-14 bg-sky-500/10 border border-sky-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <KeyRound size={24} className="text-sky-400" />
-                      </div>
-                      <h2 className="text-lg font-light text-text-main uppercase tracking-[0.15em] mb-2">
-                        Verify Your Access ID
-                      </h2>
-                    </div>
-
-                    {cgError && (
-                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                        <span className="text-sm text-red-400 font-light">{cgError}</span>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <div className="relative group">
-                        <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input
-                          type="text"
-                          placeholder="e.g. CG-0001"
-                          value={cgAccessId}
-                          onChange={(e) => setCgAccessId(e.target.value.toUpperCase())}
-                          className="w-full bg-primary/50 border border-card-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light tracking-widest uppercase"
-                          autoFocus
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={cgVerifying || !cgAccessId.trim()}
-                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
-                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
-                                 rounded-2xl transition-all duration-300 shadow-2xl 
-                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
-                    >
-                      {/* Subtle Shine Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      
-                      <div className="flex items-center justify-center gap-3 relative z-10">
-                        {cgVerifying ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <>
-                            <ShieldCheck size={18} className="group-hover:rotate-12 transition-transform" />
-                            <span>Verify Caregiver ID</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </form>
-                )}
-
-                {cgStep === 2 && cgVerifiedInfo && (
-                  <form onSubmit={handleCaregiverRegister} className="space-y-5">
-                    <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
-                      <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-[10px] text-emerald-400 uppercase tracking-widest font-light">Access ID Verified</p>
-                        <code className="text-sm text-emerald-300 font-mono tracking-widest">
-                          {cgVerifiedInfo.unique_access_id}
-                        </code>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setCgStep(1); setCgVerifiedInfo(null); setCgError(null) }}
-                        className="text-[10px] text-sidebar-text-muted hover:text-sky-400 uppercase tracking-widest font-light transition-colors"
-                      >
-                        Change
-                      </button>
-                    </div>
-
-                    {cgError && (
-                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                        <span className="text-sm text-red-400 font-light">{cgError}</span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">First Name</label>
-                        <div className="relative group">
-                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type="text" value={cgFirstName} onChange={(e) => setCgFirstName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Last Name</label>
-                        <div className="relative group">
-                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type="text" value={cgLastName} onChange={(e) => setCgLastName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
-                      <div className="relative group">
-                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input type="email" value={cgEmail} onChange={(e) => setCgEmail(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">BHW ID Number (For Verification)</label>
-                      <div className="relative group">
-                        <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input type="text" placeholder="e.g. BHW-2024-001" value={cgBhwId} onChange={(e) => setCgBhwId(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
-                        <div className="relative group">
-                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type={cgShowPassword ? 'text' : 'password'} value={cgPassword} onChange={(e) => setCgPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                          <button type="button" onClick={() => setCgShowPassword(!cgShowPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                            {cgShowPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm</label>
-                        <div className="relative group">
-                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type={cgShowConfirm ? 'text' : 'password'} value={cgConfirmPassword} onChange={(e) => setCgConfirmPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                          <button type="button" onClick={() => setCgShowConfirm(!cgShowConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                            {cgShowConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {cgPassword && (
-                      <div className="flex items-center gap-2">
-                        <div className={`h-1 flex-1 rounded-full transition-all ${cgPassword.length >= 8 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                        <div className={`h-1 flex-1 rounded-full transition-all ${cgPassword.length >= 10 ? 'bg-emerald-500' : 'bg-card-border'}`} />
-                        <div className={`h-1 flex-1 rounded-full transition-all ${cgPassword.length >= 12 ? 'bg-emerald-500' : 'bg-card-border'}`} />
-                        <span className="text-[10px] text-sidebar-text-muted font-light">
-                          {cgPassword.length < 8 ? 'Too short' : cgPassword.length < 10 ? 'Acceptable' : cgPassword.length < 12 ? 'Good' : 'Strong'}
-                        </span>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={cgSubmitting}
-                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
-                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
-                                 rounded-2xl transition-all duration-300 shadow-2xl 
-                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden mt-2"
-                    >
-                      {/* Subtle Shine Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      
-                      <div className="flex items-center justify-center gap-3 relative z-10">
-                        {cgSubmitting ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <>
-                            <UserCheck size={18} className="group-hover:scale-110 transition-transform" />
-                            <span>Authorize Caregiver Profile</span>
-                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </form>
-                )}
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Access Token</label>
+              <div className="relative group">
+                <Key size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+                <input 
+                  autoFocus
+                  value={accessId}
+                  onChange={(e) => handleIdChange(e.target.value)}
+                  placeholder="e.g. CG-XXXX"
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white font-mono font-bold tracking-widest outline-none focus:border-sky-500/50 uppercase"
+                />
               </div>
-            )}
+            </div>
 
-            {/* ══════════════════════════════════════════ */}
-            {/* PRACTITIONER TAB                          */}
-            {/* ══════════════════════════════════════════ */}
-            {activeTab === 'medical_practitioner' && (
-              <div>
-                <div className="flex items-center gap-3 mb-8">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${mpStep >= 1 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
-                    }`}>
-                    {mpStep > 1 ? <CheckCircle2 size={14} /> : '1'}
-                  </div>
-                  <div className={`flex-1 h-px transition-all ${mpStep > 1 ? 'bg-sky-500' : 'bg-card-border'}`} />
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-light border transition-all ${mpStep >= 2 ? 'bg-sky-500 border-sky-500 text-white' : 'border-card-border text-sidebar-text-muted'
-                    }`}>
-                    2
-                  </div>
-                  <div className="flex-1 text-right">
-                    <span className="text-[10px] text-sidebar-text-muted uppercase tracking-widest font-light">
-                      {mpStep === 1 ? 'Verify ID' : 'Clinical Profile'}
-                    </span>
-                  </div>
+            <button 
+              type="submit"
+              disabled={loading || !accessId}
+              className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <><ShieldCheck size={16} /> Verify Node Identity</>}
+            </button>
+          </form>
+        )}
+
+        {/* STEP 2: PROFILE SETUP */}
+        {step === 2 && (
+          <form onSubmit={handleFinalRegister} className="space-y-4 animate-in slide-in-from-right duration-300">
+             <div className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl mb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500" />
+                  <p className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest">{accessId}</p>
                 </div>
+                <button type="button" onClick={() => setStep(1)} className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-widest">Reset</button>
+             </div>
 
-                {mpStep === 1 && (
-                  <form onSubmit={handlePractitionerVerify} className="space-y-6">
-                    <div className="text-center mb-6">
-                      <div className="w-14 h-14 bg-sky-500/10 border border-sky-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <KeyRound size={24} className="text-sky-400" />
-                      </div>
-                      <h2 className="text-lg font-light text-text-main uppercase tracking-[0.15em] mb-2">
-                        Practitioner Access
-                      </h2>
-                    </div>
+             <div className="grid grid-cols-2 gap-3">
+                <Input label="First Name" value={firstName} onChange={setFirstName} placeholder="Juan" />
+                <Input label="Last Name" value={lastName} onChange={setLastName} placeholder="Dela Cruz" />
+             </div>
+             <Input label="Network Email" type="email" value={email} onChange={setEmail} placeholder="name@bantayan.care" />
+             
+             <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 relative">
+                  <Input label="Passkey" type={showPassword ? "text" : "password"} value={password} onChange={setPassword} placeholder="••••••••" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[26px] text-slate-600 hover:text-sky-500 transition-colors">
+                    {showPassword ? <Eye size={12} /> : <EyeOff size={12} />}
+                  </button>
+                </div>
+                <Input label="Confirm" type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="••••••••" />
+             </div>
 
-                    {mpError && (
-                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                        <span className="text-sm text-red-400 font-light">{mpError}</span>
-                      </div>
-                    )}
+             <Input 
+                label={activeTab === 'medical_practitioner' ? "PRC License" : "BHW ID Number"} 
+                value={license} 
+                onChange={setLicense} 
+                placeholder="e.g. 0123456" 
+             />
 
-                    <div className="space-y-2">
-                      <div className="relative group">
-                        <KeyRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input
-                          type="text"
-                          placeholder="e.g. MP-1234"
-                          value={mpAccessId}
-                          onChange={(e) => setMpAccessId(e.target.value.toUpperCase())}
-                          className="w-full bg-primary/50 border border-card-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light tracking-widest uppercase"
-                          autoFocus
-                        />
-                      </div>
-                    </div>
+             <button type="submit" disabled={loading} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 mt-4">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Initialize Account</>}
+             </button>
+          </form>
+        )}
 
-                    <button
-                      type="submit"
-                      disabled={mpVerifying || !mpAccessId.trim()}
-                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
-                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
-                                 rounded-2xl transition-all duration-300 shadow-2xl 
-                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden"
-                    >
-                      {/* Subtle Shine Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      
-                      <div className="flex items-center justify-center gap-3 relative z-10">
-                        {mpVerifying ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <>
-                            <Stethoscope size={18} className="group-hover:rotate-12 transition-transform" />
-                            <span>Verify Practitioner Node</span>
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </form>
-                )}
-
-                {mpStep === 2 && mpVerifiedInfo && (
-                  <form onSubmit={handlePractitionerRegister} className="space-y-5">
-                    <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
-                      <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-[10px] text-emerald-400 uppercase tracking-widest font-light">Credential Verified</p>
-                        <code className="text-sm text-emerald-300 font-mono tracking-widest">
-                          {mpVerifiedInfo.unique_access_id}
-                        </code>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setMpStep(1); setMpVerifiedInfo(null); setMpError(null) }}
-                        className="text-[10px] text-sidebar-text-muted hover:text-sky-400 uppercase tracking-widest font-light transition-colors"
-                      >
-                        Change
-                      </button>
-                    </div>
-
-                    {mpError && (
-                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
-                        <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
-                        <span className="text-sm text-red-400 font-light">{mpError}</span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">First Name</label>
-                        <div className="relative group">
-                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type="text" value={mpFirstName} onChange={(e) => setMpFirstName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Last Name</label>
-                        <div className="relative group">
-                          <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type="text" value={mpLastName} onChange={(e) => setMpLastName(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Email Address</label>
-                      <div className="relative group">
-                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">PRC License Number</label>
-                      <div className="relative group">
-                        <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                        <input type="text" placeholder="e.g. 0123456" value={mpPrcLicense} onChange={(e) => setMpPrcLicense(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-3 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" required />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Password</label>
-                        <div className="relative group">
-                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type={mpShowPassword ? 'text' : 'password'} value={mpPassword} onChange={(e) => setMpPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                          <button type="button" onClick={() => setMpShowPassword(!mpShowPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                            {mpShowPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-light text-sidebar-text-muted uppercase tracking-widest ml-1">Confirm</label>
-                        <div className="relative group">
-                          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-sidebar-text-muted group-focus-within:text-sky-500 transition-colors" />
-                          <input type={mpShowConfirm ? 'text' : 'password'} value={mpConfirmPassword} onChange={(e) => setMpConfirmPassword(e.target.value)} className="w-full bg-primary/50 border border-card-border rounded-2xl py-3.5 pl-10 pr-10 text-text-main focus:outline-none focus:border-sky-500/50 transition-all font-light text-sm" />
-                          <button type="button" onClick={() => setMpShowConfirm(!mpShowConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sidebar-text-muted hover:text-text-main transition-colors">
-                            {mpShowConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={mpSubmitting}
-                      className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 
-                                 text-white font-black uppercase text-[11px] tracking-[0.4em] 
-                                 rounded-2xl transition-all duration-300 shadow-2xl 
-                                 shadow-sky-500/20 active:scale-[0.98] group relative overflow-hidden mt-2"
-                    >
-                      {/* Subtle Shine Effect on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      
-                      <div className="flex items-center justify-center gap-3 relative z-10">
-                        {mpSubmitting ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <>
-                            <ShieldCheck size={18} className="group-hover:scale-110 transition-transform" />
-                            <span>Authorize Practitioner Profile</span>
-                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </div>
-                    </button>
-                  </form>
-                )}
-              </div>
-            )}
-
-          </div>
-
-          <div className="px-8 pb-8 pt-2 border-t border-card-border flex flex-col items-center gap-3">
-            <p className="text-sm text-sidebar-text-muted font-light">
-              Already registered?{' '}
-              <Link to="/login" className="text-sky-500 hover:underline">Sign in here</Link>
-            </p>
-            <Link to="/" className="flex items-center gap-1 text-xs text-sidebar-text-muted hover:text-text-main transition-colors font-light">
-              <ArrowLeft size={12} /> Back to Home
-            </Link>
-          </div>
-
+        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+           <Link to="/login" className="text-[9px] font-black text-slate-500 hover:text-sky-400 uppercase tracking-widest transition-all">
+             Already active? <span className="text-sky-500 border-b border-sky-500/20">Sign in to Node</span>
+           </Link>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+function Input({ label, value, onChange, placeholder, type = "text" }: any) {
+  return (
+    <div className="space-y-1.5 w-full">
+      <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">{label}</label>
+      <input 
+        type={type}
+        required
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-slate-950/50 border border-white/10 rounded-lg py-2.5 px-4 text-xs text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-800"
+      />
+    </div>
+  );
 }

@@ -237,9 +237,29 @@ const HealthWorkerLoginPage = () => {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col items-center gap-1 opacity-20 text-center">
-         <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em]">© Barangay Bantayan Monitoring Hub</p>
-         <p className="text-[7px] font-mono text-slate-600">NODE_VER: 2.0.4-STABLE</p>
+      {/* ── ROOT LEVEL METADATA & ADMIN GATEWAY ── */}
+      <div className="mt-12 flex flex-col items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-500 pb-10">
+        
+        {/* The Subtle Governance Link */}
+        <Link 
+          to="/governance" 
+          className="flex items-center gap-2 px-4 py-2 border border-white/5 hover:border-sky-500/30 rounded-full transition-all group"
+        >
+          <Shield size={12} className="text-slate-500 group-hover:text-sky-500" />
+          <span className="text-[8px] font-black text-slate-500 group-hover:text-white uppercase tracking-[0.3em]">
+            Access Governance Node
+          </span>
+        </Link>
+
+        {/* Environment Info */}
+        <div className="text-center space-y-1">
+          <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.3em]">
+            © Secured Connection — Barangay Bantayan Network
+          </p>
+          <p className="text-[7px] font-mono text-slate-800 uppercase">
+            Encrypted Node: DUMAGUETE-X01
+          </p>
+        </div>
       </div>
     </div>
   );
