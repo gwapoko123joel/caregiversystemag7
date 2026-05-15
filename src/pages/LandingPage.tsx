@@ -10,7 +10,8 @@ import {
   X,
   Sun,
   Moon,
-  Heart
+  Heart,
+  ArrowRight
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import Footer from '../components/Footer';
@@ -26,112 +27,39 @@ const LandingPage: React.FC = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blur-glow-primary opacity-40 dark:opacity-100 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blur-glow-secondary opacity-30 dark:opacity-100 blur-[150px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none transition-opacity" />
 
-      {/* ── Navigation ── */}
-      <nav className="relative z-50 px-6 py-6 md:px-12 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity active:scale-95 group/logo">
-          <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(14,165,233,0.3)] group-hover/logo:shadow-[0_0_30px_rgba(14,165,233,0.5)] transition-all">
-             <Heart size={24} className="text-white fill-white" />
+      {/* ── CLEAN CLINICAL HEADER ── */}
+      <nav className="fixed top-0 left-0 w-full z-50 bg-[#020617]/80 backdrop-blur-md border-b border-white/5 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          
+          {/* Logo remains the anchor */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+              <Heart size={24} fill="white" className="text-white" />
+            </div>
+            <span className="font-black text-white uppercase tracking-tighter text-2xl">
+              Bantayan<span className="text-sky-500">Care</span>
+            </span>
           </div>
-          <span className="font-black tracking-tight text-lg hidden md:block text-text-main uppercase transition-colors">
-            Bantayan<span className="text-sky-500">Care</span>
-          </span>
-        </Link>
 
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
-          {[
-            'Caregiver Support',
-            'Patient Records',
-            'Medical Consults',
-            'Emergency Resources'
-          ].map((item) => (
-            <button key={item} className="flex items-center gap-1 text-sm font-light uppercase tracking-[0.1em] text-sidebar-text-muted hover:text-text-main transition-colors group">
-              {item} <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
-            </button>
-          ))}
-        </div>
-
-        <div className="hidden md:flex items-center gap-4">
-          <button 
-            onClick={toggleTheme}
-            className="p-3 rounded-2xl bg-card text-sidebar-text-muted hover:text-text-main transition-all border border-card-border shadow-sm dark:shadow-none hover:shadow-md mr-2"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
-          <button className="px-6 py-2.5 text-xs font-light uppercase tracking-widest border border-card-border rounded-full bg-card hover:bg-card/80 transition-colors text-sidebar-text-muted hover:text-text-main">
-            Contact Support
-          </button>
-          <button 
-            onClick={() => navigate('/login')}
-            className="group px-6 py-2.5 text-xs font-light uppercase tracking-widest bg-sky-500 text-white rounded-full hover:shadow-[0_0_30px_rgba(0,186,255,0.5)] transition-all flex items-center gap-2"
-          >
-            Log In <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          </button>
-        </div>
-
-        {/* Mobile Toggle */}
-        <div className="flex items-center gap-3 lg:hidden">
-          <button 
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-card text-sidebar-text-muted transition-all border border-card-border"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          <button className="text-text-main p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden bg-primary/95 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-300">
-             <div className="flex flex-col h-full p-8">
-                <div className="flex items-center justify-between mb-12">
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg">
-                         <Heart size={20} className="text-white fill-white" />
-                      </div>
-                      <span className="font-black uppercase tracking-tight text-text-main">
-                        Bantayan<span className="text-sky-500">Care</span>
-                      </span>
-                   </div>
-                   <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-card border border-card-border rounded-xl">
-                      <X size={20} />
-                   </button>
-                </div>
-
-                <div className="space-y-6">
-                   {[
-                     'Caregiver Support',
-                     'Patient Records',
-                     'Medical Consults',
-                     'Emergency Resources'
-                   ].map((item) => (
-                     <button key={item} className="w-full text-left text-lg font-light uppercase tracking-widest text-sidebar-text-muted hover:text-sky-500 transition-colors py-2 border-b border-card-border/50">
-                        {item}
-                     </button>
-                   ))}
-                </div>
-
-                <div className="mt-auto space-y-4">
-                   <button 
-                     onClick={() => navigate('/login')}
-                     className="w-full py-5 bg-sky-500 text-white font-light uppercase tracking-widest rounded-2xl shadow-xl shadow-sky-500/20 active:scale-95 transition-all text-sm"
-                   >
-                     Access Dashboard
-                   </button>
-                   <button className="w-full py-5 bg-card border border-card-border text-text-main font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all text-sm">
-                     Contact Support
-                   </button>
-                </div>
-             </div>
+          {/* Right Side: Only the essential portal entry */}
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 mr-4">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Network Live</span>
+            </div>
+            
+            <Link 
+              to="/login"
+              className="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg shadow-sky-500/20 active:scale-95 flex items-center gap-2"
+            >
+              Sign In to Portal <ArrowRight size={14} />
+            </Link>
           </div>
-        )}
+        </div>
       </nav>
 
       {/* ── Hero Content ── */}
-      <main className="relative z-10 px-6 md:px-12 pt-12 md:pt-24 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <main className="relative z-10 px-6 md:px-12 pt-32 md:pt-48 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         
         {/* Left Side */}
         <div className="max-w-2xl animate-fade-in">
@@ -180,7 +108,6 @@ const LandingPage: React.FC = () => {
             </div>
 
             {/* Orbiting Cards */}
-            {/* Pie Chart Card (Top Left) */}
             <div className="absolute top-[10%] left-[10%] z-30 animate-pulse-slow">
               <div className="p-4 rounded-2xl bg-card/80 backdrop-blur-xl border border-card-border shadow-xl dark:shadow-2xl flex items-center justify-center group hover:border-sky-500/50 transition-all">
                 <div className="relative w-12 h-12">
@@ -195,7 +122,6 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Next Check-in Card (Bottom Right) */}
             <div className="absolute bottom-[15%] right-[5%] z-30">
               <div className="p-4 rounded-2xl bg-card/80 backdrop-blur-xl border border-card-border shadow-xl dark:shadow-2xl hover:border-sky-400/50 transition-all">
                  <div className="flex items-center gap-3 mb-2">
@@ -208,7 +134,6 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Vitals Trend Card (Bottom Center) */}
             <div className="absolute -bottom-[5%] left-1/2 -translate-x-1/2 z-30">
                <div className="p-4 rounded-2xl bg-card/90 backdrop-blur-2xl border border-card-border min-w-[200px] shadow-xl dark:shadow-2xl transition-all">
                   <div className="flex justify-between items-center mb-4">
@@ -228,7 +153,6 @@ const LandingPage: React.FC = () => {
                </div>
             </div>
 
-            {/* Personnel Count (Top Right) */}
             <div className="absolute top-[18%] right-[10%] z-40">
                <div className="flex flex-col gap-2">
                   <div className="flex -space-x-3">
@@ -246,27 +170,40 @@ const LandingPage: React.FC = () => {
                </div>
             </div>
 
-            {/* Critical Alert Marker */}
             <div className="absolute top-[40%] left-[15%] z-40 animate-bounce">
                <div className="px-3 py-1.5 rounded-full flex items-center gap-2 node-urgent transition-all border-none">
                   <Activity size={14} className="text-current" />
                   <span className="text-xs font-light text-current">! BP-145</span>
                </div>
             </div>
-
-            {/* Floating Particles */}
-            <div className="absolute top-[20%] left-[40%] w-1 h-1 bg-sky-500 rounded-full shadow-[0_0_8px_white]" />
-            <div className="absolute bottom-[30%] right-[30%] w-0.5 h-0.5 bg-sky-400 rounded-full shadow-[0_0_8px_white]" />
-            <div className="absolute top-[60%] right-[20%] w-1.5 h-1.5 bg-sidebar-text-muted/20 rounded-full" />
-
           </div>
         </div>
       </main>
+
+      {/* ── SYSTEM CAPABILITIES SECTION ── */}
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <FeatureInfo title="Caregiver Support" desc="Real-time field reporting and shift management for BHWs." />
+          <FeatureInfo title="Patient Records" desc="Centralized clinical dossiers with longitudinal trend tracking." />
+          <FeatureInfo title="Medical Consults" desc="Direct coordination pipeline between field staff and doctors." />
+          <FeatureInfo title="Emergency SOS" desc="Sub-second latency crisis alerts with global system takeover." />
+        </div>
+      </section>
 
       {/* ── Footer ── */}
       <Footer />
     </div>
   );
 };
+
+// Helper Component
+function FeatureInfo({ title, desc }: { title: string, desc: string }) {
+  return (
+    <div className="p-8 bg-white/5 border border-white/5 rounded-[32px] hover:border-sky-500/20 transition-all group">
+      <h4 className="text-white font-black uppercase text-xs tracking-widest mb-3 group-hover:text-sky-500 transition-colors">{title}</h4>
+      <p className="text-slate-500 text-xs leading-relaxed">{desc}</p>
+    </div>
+  )
+}
 
 export default LandingPage;
