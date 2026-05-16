@@ -1,5 +1,5 @@
 import { Shield, Building, Phone, Calendar, MapPin } from 'lucide-react';
-import { FormField } from '../../ProfilePage';
+import { FormField } from '../../shared/ProfilePage';
 
 interface Props {
   formData: any;

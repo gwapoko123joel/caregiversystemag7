@@ -4,7 +4,6 @@ import {
   Search, 
   ArrowRightLeft, 
   ChevronDown,
-  ClipboardList,
   Filter,
   MoreVertical,
   ChevronRight,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import type { Patient, Profile } from '../../../types/database';
-import PatientCard from '../../../components/patients/PatientCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { calculateAge } from '../../../utils/medical';
 
@@ -25,7 +23,7 @@ export default function PatientManagementView() {
   const [caregivers, setCaregivers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter] = useState<string>('all');
   
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showReassignModal, setShowReassignModal] = useState(false);
@@ -53,44 +51,7 @@ export default function PatientManagementView() {
     fetchData();
   }, []);
 
-  // 1. Handle Patient Approval
-  async function handleApprove(patientId: number) {
-    try {
-      const { error } = await supabase
-        .from('patients')
-        .update({ status: 'active' }) // Changes 'pending' to 'active'
-        .eq('patient_id', patientId);
 
-      if (error) throw error;
-      
-      alert("Patient record authorized and active.");
-      window.location.reload(); 
-    } catch (err: any) {
-      alert("Error approving: " + err.message);
-    }
-  }
-
-  // 2. Handle Patient Rejection
-  async function handleReject(patientId: number) {
-    if (confirm("Are you sure you want to reject and remove this patient record?")) {
-      try {
-        const { error } = await supabase
-          .from('patients')
-          .delete()
-          .eq('patient_id', patientId);
-
-        if (error) throw error;
-        window.location.reload();
-      } catch (err: any) {
-        alert("Error rejecting: " + err.message);
-      }
-    }
-  }
-
-  // 3. Handle View Details
-  function handleViewDetails(patientId: number) {
-    navigate(`/dashboard/admin/patient/${patientId}`);
-  }
 
   const handleReassign = async () => {
     if (!selectedPatient || !newCaregiverId) return;
@@ -185,8 +146,8 @@ export default function PatientManagementView() {
                   <User size={24} />
                 </div>
                 <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                  p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
-                  p.status === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
+                  (p.status as string) === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
+                  (p.status as string) === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
                   'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                 }`}>
                   {p.status}
@@ -213,7 +174,7 @@ export default function PatientManagementView() {
                 </div>
                 <div className="flex items-center gap-3 text-slate-400">
                   <Activity size={14} className="text-slate-600" />
-                  <span className="text-[10px] font-bold uppercase truncate">{p.medical_history || 'No History Recorded'}</span>
+                  <span className="text-[10px] font-bold uppercase truncate">{p.medical_conditions || 'No History Recorded'}</span>
                 </div>
               </div>
 

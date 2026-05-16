@@ -1,22 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { 
-  User, 
-  Calendar, 
-  MapPin, 
   Phone, 
-  ZoomIn, 
   Zap, 
   X,
-  ChevronLeft,
   ArrowLeft,
   ShieldCheck,
   Send,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  CheckCircle2,
-  AlertOctagon,
-  Bell,
   ArrowUpRight,
   XCircle,
   Camera,
@@ -29,10 +18,9 @@ import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate, useParams } from 'react-router-dom'
 import { calculateAge } from '../../../utils/medical'
-import { motion, AnimatePresence } from 'framer-motion'
 import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 
-interface PatientDossierProps {
+export interface PatientDossierProps {
   initiateCall: (caregiverName?: string, patientName?: string) => void
 }
 
@@ -52,7 +40,7 @@ export default function PatientDossier({
   const [instructions, setInstructions] = useState<any[]>([])
   const [referrals, setReferrals] = useState<any[]>([])
   const [logs, setLogs] = useState<any[]>([])
-  const [activeDispatch, setActiveDispatch] = useState<any>(null)
+  const [, setActiveDispatch] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<any>(null)
 
   // Handshake State
@@ -213,94 +201,19 @@ export default function PatientDossier({
     }
   }
 
-  async function handleResolveSOS(dispatchId: string) {
-    const summary = prompt("Enter a brief resolution summary (e.g., Patient stabilized, transported to NOPH):");
-    if (!summary) return;
-
-    try {
-      const { error } = await supabase
-        .from('emergency_dispatches')
-        .update({ 
-          status: 'resolved', 
-          resolution_notes: summary,
-          resolved_at: new Date().toISOString() 
-        })
-        .eq('dispatch_id', dispatchId);
-
-      if (error) throw error;
-
-      // LOG ACTIVITY: SOS RESOLVED
-      await supabase.from('activity_logs').insert({
-        user_id: user?.id,
-        user_type: 'medical_practitioner',
-        action: 'SOS_RESOLVED',
-        details: { 
-          dispatch_id: dispatchId,
-          patient_name: patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown Subject'
-        }
-      });
-        
-      setActiveDispatch(null);
-      setHandshakeData({
-        title: "Emergency Protocol Closed",
-        message: "The SOS dispatch has been resolved. A summary has been filed to the permanent audit trail."
-      });
-      setShowHandshake(true);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to resolve SOS.");
-    }
-  }
-
-  // --- UNIFIED TIMELINE LOGIC ---
-  const combinedTimeline = useMemo(() => {
-    if (!patient) return [];
-    const logsTimeline = (logs || []).map((l: any) => ({ 
-      ...l, 
-      type: 'log', 
-      date: new Date(l.recorded_at) 
-    }));
-    const instructionsHistory = instructions.map(o => ({ 
-      ...o, 
-      type: 'instruction', 
-      date: new Date(o.created_at) 
-    }));
-    return [...logsTimeline, ...instructionsHistory].sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [logs, instructions, patient]);
-
-  // --- TREND CALCULATION LOGIC ---
-  const getTrend = (key: string, logsData: any[]) => {
-    if (!logsData || logsData.length < 2) return null;
-    
-    const current = logsData[0].vital_signs[key];
-    const previous = logsData[1].vital_signs[key];
-
-    if (key === 'blood_pressure') {
-      const currSys = parseInt(current?.split('/')[0] || '0');
-      const prevSys = parseInt(previous?.split('/')[0] || '0');
-      if (currSys > prevSys + 5) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
-      if (currSys < prevSys - 5) return { type: 'down', color: 'text-emerald-500', label: 'Improving', icon: <TrendingDown size={14} /> };
-      return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
-    }
-
-    const currVal = parseFloat(current || '0');
-    const prevVal = parseFloat(previous || '0');
-
-    if (key === 'oxygen_saturation') {
-      if (currVal > prevVal) return { type: 'up', color: 'text-emerald-500', label: 'Improving', icon: <TrendingUp size={14} /> };
-      if (currVal < prevVal) return { type: 'down', color: 'text-rose-500', label: 'Declining', icon: <TrendingDown size={14} /> };
-    } else { // Heart Rate, Temp
-      if (currVal > prevVal + 3) return { type: 'up', color: 'text-rose-500', label: 'Rising', icon: <TrendingUp size={14} /> };
-      if (currVal < prevVal - 3) return { type: 'down', color: 'text-emerald-500', label: 'Lowering', icon: <TrendingDown size={14} /> };
-    }
-    return { type: 'stable', color: 'text-sky-500', label: 'Stable', icon: <Minus size={14} /> };
-  };
-
   async function handleSignOff(logId: number) {
     if (!user || !patient) return;
     
     try {
-      // 2. LOG ACTIVITY: CLINICAL SIGN-OFF
+      // Update the log directly to set verified_by
+      const { error: updateError } = await supabase
+        .from('patient_monitoring_logs')
+        .update({ verified_by: user.id })
+        .eq('log_id', logId);
+
+      if (updateError) throw updateError;
+
+      // LOG ACTIVITY: CLINICAL SIGN-OFF
       await supabase.from('activity_logs').insert({
         user_id: user?.id,
         user_type: 'medical_practitioner',
@@ -317,6 +230,7 @@ export default function PatientDossier({
         message: `This monitoring log has been clinically validated by Dr. ${userProfile?.last_name}.`
       });
       setShowHandshake(true);
+      fetchVitalsHistory(patient.patient_id);
     } catch (err) {
       console.error("Sign-off error:", err);
     }

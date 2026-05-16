@@ -80,6 +80,7 @@ export interface Caregiver {
   // Caregiver-specific
   assigned_barangay?: string | null;
   bhw_id_number?: string | null;
+  prc_license_number?: string | null;
   training_certifications?: TrainingCertification[];
   supervising_practitioner_id?: string | null;
   shift_schedule?: string | null;

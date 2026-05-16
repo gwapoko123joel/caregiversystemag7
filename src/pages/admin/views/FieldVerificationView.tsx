@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { 
   ShieldCheck, User, MapPin, 
-  CheckCircle2, Loader2,
+  Loader2,
   ClipboardList, Info
 } from 'lucide-react'
 

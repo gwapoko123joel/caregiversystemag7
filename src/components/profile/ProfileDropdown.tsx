@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  User as UserIcon, Settings, LogOut, ChevronUp,
-  Activity, Shield, Users, Award, BarChart3,
+  User as UserIcon, LogOut, ChevronUp,
+  Activity,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from './ProfileAvatar';

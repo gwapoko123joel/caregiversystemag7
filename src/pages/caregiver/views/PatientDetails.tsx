@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import { 
   ArrowLeft, User, Activity, Calendar, 
-  MapPin, Heart, Wind, Thermometer, 
-  Droplet, FileText, Clock, AlertCircle,
-  Loader2, Plus, ShieldCheck, TrendingUp, TrendingDown, Minus
+  MapPin, Clock, AlertCircle,
+  Loader2, ShieldCheck, TrendingUp, TrendingDown, Minus
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
-import { useAuth } from '../../../hooks/useAuth'
 import { calculateAge } from '../../../utils/medical'
 
 interface PatientDetailsProps {
@@ -15,7 +13,6 @@ interface PatientDetailsProps {
 }
 
 export default function PatientDetails({ patient, onBack }: PatientDetailsProps) {
-  const { user } = useAuth()
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -159,7 +156,7 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
                 <p className="text-xs text-slate-500 mt-2">There are no health logs recorded for this patient yet.</p>
               </div>
             ) : (
-              logs.map((log, index) => (
+              logs.map((log) => (
                 <div key={log.log_id} className="group bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] overflow-hidden hover:border-sky-500/30 transition-all shadow-xl">
                   <div className="p-6 md:p-8">
                     <div className="flex justify-between items-start mb-8">

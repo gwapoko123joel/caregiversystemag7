@@ -13,8 +13,6 @@ import PageTransition from '../../components/PageTransition'
 
 // Import Sub-Views
 import DashboardHome from './views/DashboardHome'
-import ReportView from './views/ReportView'
-import HistoryView from './views/HistoryView'
 import PatientHistory from './views/PatientHistory'
 import ProfilePage from '../shared/ProfilePage'
 import EmergencyView from './views/EmergencyView'

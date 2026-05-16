@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { 
-  ShieldCheck, User, Mail, IdCard, 
-  CheckCircle2, Loader2, Search,
-  Briefcase, Activity, Clock, ShieldAlert
+  ShieldCheck, User, Mail, 
+  CheckCircle2, Loader2,
+  Briefcase, ShieldAlert
 } from 'lucide-react'
 import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 

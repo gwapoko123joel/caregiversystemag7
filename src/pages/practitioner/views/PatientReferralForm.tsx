@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ClipboardCheck, 
   ArrowLeft, 
   ChevronRight, 
-  Phone, 
-  MapPin, 
   Activity,
-  CheckCircle2,
   Hospital,
   Loader2
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
-import { motion } from 'framer-motion';
 import ReferralSlip from './ReferralSlip';
 
 interface PatientReferralFormProps {
@@ -23,7 +18,6 @@ interface PatientReferralFormProps {
 export default function PatientReferralForm({ onBack, patient: initialPatient }: PatientReferralFormProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [urgency, setUrgency] = useState('routine');

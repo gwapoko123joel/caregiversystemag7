@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
 
-export default function DashboardHome({ assignedPatients, userProfile, loadingPatient, recentLogs }: any) {
+export default function DashboardHome({ assignedPatients, userProfile, recentLogs }: any) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [onlineDoctors, setOnlineDoctors] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);

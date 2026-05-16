@@ -3,11 +3,10 @@ import { Users, Activity, ShieldAlert, Cpu, User, Clock, RefreshCw } from 'lucid
 import { useOutletContext, Link } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
-import type { ActivityLog } from '../../../types/database'
-import { SkeletonCard, SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
+import { EmptyState } from '../../../components/ClinicalPolish'
 
 export default function AdminOverview() {
-  const { users, logs, health, performance, isLoading, error, loadData } = useOutletContext<AdminDashboardContextType>()
+  const { users, logs, health, performance, error, loadData } = useOutletContext<AdminDashboardContextType>()
 
   const [inspectingNode, setInspectingNode] = useState<any>(null);
   const [nodePatients, setNodePatients] = useState<any[]>([]);

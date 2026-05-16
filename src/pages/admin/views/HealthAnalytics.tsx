@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
-import { Activity, Map, ShieldAlert, Heart, Users, MapPin } from 'lucide-react'
+import { Activity, Map, Users } from 'lucide-react'
 
 export default function HealthAnalytics() {
   const [healthData, setHealthData] = useState<any[]>([])

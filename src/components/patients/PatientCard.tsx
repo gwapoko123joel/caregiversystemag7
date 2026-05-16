@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Calendar, ClipboardList, ArrowRight, UserPlus, ShieldCheck, XCircle } from 'lucide-react';
+import { User, MapPin, Calendar, ClipboardList, UserPlus, ShieldCheck, XCircle } from 'lucide-react';
 import type { Patient } from '../../types/database';
 import PatientStatusBadge from './PatientStatusBadge';
 import { calculateAge } from '../../utils/medical';

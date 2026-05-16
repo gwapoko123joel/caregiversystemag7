@@ -1,24 +1,15 @@
 import { useState, useEffect } from 'react'
 import { 
   Activity, 
-  Clock, 
   User, 
   Search, 
   Zap,
-  ChevronRight,
   ShieldCheck,
-  CheckCircle2,
-  TrendingUp,
-  TrendingDown,
-  ClipboardList,
   Heart,
-  Minus,
-  Bell,
   RefreshCw
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
-import type { PatientMonitoringLog } from '../../../types/database'
 
 export default function HistoryLogs() {
   const { user } = useAuth()

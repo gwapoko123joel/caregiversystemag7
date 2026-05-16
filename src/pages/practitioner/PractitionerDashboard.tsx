@@ -18,7 +18,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { AnimatePresence } from 'framer-motion'
 import PageTransition from '../../components/PageTransition'
 import { useOutletContext } from 'react-router-dom'
-import type { Patient, PatientMonitoringLog } from '../../types/database'
 
 // Import Sub-Views
 import PractitionerOverview from './views/PractitionerOverview'
@@ -31,31 +30,11 @@ import PractitionerCredentialsForm from './views/PractitionerCredentialsForm'
 import PatientReferralForm from './views/PatientReferralForm'
 import ProfilePage from '../shared/ProfilePage'
 
-export interface AlertItem {
-  id: number
-  patient_name: string
-  status: string
-  time: string
-  vitals: string
-  dismissed: boolean
-}
-
-export interface PatientWithLogs extends Patient {
-  patient_monitoring_logs: (PatientMonitoringLog & { caregiver_name?: string; caregivers?: any })[]
-  patient_referrals?: any[]
-}
-
-export interface PractitionerDashboardContextType {
-  patients: PatientWithLogs[]
-  alerts: AlertItem[]
-  alertCount: number
-  isLoading: boolean
-  criticalAlerts: AlertItem[]
-  allLogs: (PatientMonitoringLog & { patient_name: string; caregiver_name: string })[]
-  initiateCall: (caregiverName?: string, patientName?: string) => void
-  loadData: () => Promise<void>
-  dismissAlert: (id: number) => void
-}
+import type { 
+  AlertItem, 
+  PatientWithLogs, 
+  PractitionerDashboardContextType 
+} from './types'
 
 function PractitionerLayout() {
   const { user, signOut } = useAuth()
@@ -91,44 +70,47 @@ function PractitionerLayout() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
-    const { data: pData, error } = await supabase
-      .from('patients')
-      .select(`
-        *,
-        patient_monitoring_logs (
-          *,
-          caregivers ( first_name, last_name )
-        ),
-        patient_referrals (
-          referral_id,
-          target_facility,
-          urgency_level,
-          created_at,
-          reason_for_referral
-        )
-      `)
+    console.log("Practitioner Node: Initiating Data Sync...");
 
-    if (!error && pData) {
-      const processedPatients: PatientWithLogs[] = (pData as unknown as PatientWithLogs[]).map(p => {
-         const sortedLogs = [...(p.patient_monitoring_logs || [])].sort((a,b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
-         return { ...p, patient_monitoring_logs: sortedLogs }
-      })
-      setPatients(processedPatients);
-
-      // Fetch actual unresolved alerts from the table
-      const { data: alertData } = await supabase
-        .from('alerts')
+    try {
+      // 1. Fetch Patients with basic logs
+      const { data: pData, error: pError } = await supabase
+        .from('patients')
         .select(`
           *,
-          patient:patients(*)
-        `)
+          patient_monitoring_logs (*)
+        `);
+
+      if (pError) {
+        console.error("Patient Fetch Error:", pError);
+      } else if (pData) {
+        const processedPatients: PatientWithLogs[] = (pData as any[]).map(p => {
+           const logs = p.patient_monitoring_logs || [];
+           const sortedLogs = [...logs].sort((a,b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
+           // Add a mock caregiver_name since we removed the join
+           const mappedLogs = sortedLogs.map(l => ({ ...l, caregiver_name: 'Field Personnel' }));
+           return { 
+             ...p, 
+             patient_monitoring_logs: mappedLogs,
+             latest_log: mappedLogs[0] || null
+           };
+        });
+        setPatients(processedPatients);
+      }
+
+      // 2. Fetch Alerts (Simplified join)
+      const { data: alertData, error: aError } = await supabase
+        .from('alerts')
+        .select('*, patients(*)')
         .eq('is_resolved', false)
         .order('created_at', { ascending: false });
 
-      if (alertData) {
+      if (aError) {
+        console.error("Alert Fetch Error:", aError);
+      } else if (alertData) {
         const mappedAlerts = alertData.map((a: any) => ({
           id: a.alert_id,
-          patient_name: `${a.patient?.first_name} ${a.patient?.last_name}`,
+          patient_name: a.patients ? `${a.patients.first_name} ${a.patients.last_name}` : 'Unknown Patient',
           status: a.severity,
           time: new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           vitals: a.description,
@@ -136,14 +118,17 @@ function PractitionerLayout() {
           patient_id: a.patient_id
         }));
 
-        const urgentCount = mappedAlerts.filter((a: AlertItem) => a.status === 'critical').length
-        if (urgentCount > lastAlertCount.current) playAlert()
+        const urgentCount = mappedAlerts.filter((a: AlertItem) => a.status === 'critical').length;
+        if (urgentCount > lastAlertCount.current) playAlert();
         
-        setAlerts(mappedAlerts)
-        lastAlertCount.current = urgentCount
+        setAlerts(mappedAlerts);
+        lastAlertCount.current = urgentCount;
       }
+    } catch (err) {
+      console.error("Critical Sync Error:", err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false)
   }, [playAlert])
 
   useEffect(() => {
@@ -241,9 +226,7 @@ function PractitionerLayout() {
       (p.patient_monitoring_logs || []).map(l => ({
         ...l,
         patient_name: `${p.first_name} ${p.last_name}`,
-        caregiver_name: Array.isArray(l.caregivers)
-          ? (l.caregivers[0] ? `${l.caregivers[0].first_name} ${l.caregivers[0].last_name}` : 'Unknown')
-          : (l.caregivers ? `${(l.caregivers as any).first_name} ${(l.caregivers as any).last_name}` : 'Unknown')
+        caregiver_name: (l as any).caregiver_name || 'Field Personnel'
       }))
     ).sort((a,b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
   }, [patients])
@@ -264,7 +247,7 @@ function PractitionerLayout() {
     return 'Regional Operations Center'
   }
   return (
-    <>
+    <div className="min-h-screen bg-[#020617]">
       <LogoutModal 
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
@@ -371,7 +354,7 @@ function PractitionerLayout() {
         patientName={selectedPatientForCall || 'Patient'}
         onEndCall={() => setShowCall(false)}
       />
-    </>
+    </div>
   )
 }
 
@@ -437,8 +420,8 @@ function ContactConsoleWrapper() {
   const ctx = useOutletContext<PractitionerDashboardContextType>()
   return (
     <ContactConsole 
-      onInitiateCall={() => ctx.initiateCall('Field Caregiver', 'Active Subject')} 
-      onInitiateSMS={() => window.location.href = `sms:+639000000000`}
+      onInitiateCall={() => { ctx.initiateCall('Field Caregiver', 'Active Subject') }} 
+      onInitiateSMS={() => { window.location.href = `sms:+639000000000` }}
     />
   )
 }
@@ -456,4 +439,3 @@ function PatientReferralFormWrapper() {
   const navigate = useNavigate()
   return <PatientReferralForm onBack={() => navigate('/dashboard/practitioner')} />
 }
-

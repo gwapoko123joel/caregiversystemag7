@@ -42,7 +42,7 @@ export function ProfileStatsSection({ userId, role }: Props) {
           if (data) {
             setStats(buildCaregiverStats(data));
           }
-        } else if (role === 'medical_practitioner' || role === 'practitioner') {
+        } else if (role === 'medical_practitioner') {
           const { data } = await supabase
             .from('practitioner_profile_stats')
             .select('*')
@@ -76,7 +76,6 @@ export function ProfileStatsSection({ userId, role }: Props) {
   const sectionTitle = {
     caregiver: 'Caregiver Activity',
     medical_practitioner: 'Consultation Statistics',
-    practitioner: 'Consultation Statistics',
     admin: 'System Overview',
   }[role];
 

@@ -11,13 +11,9 @@ import {
   Activity,
   ShieldCheck,
   Cpu,
-  LogOut,
   Heart,
   ChevronRight,
-  ChevronLeft,
   UserPlus,
-  PanelLeftClose,
-  PanelLeftOpen,
   X,
   Map
 } from 'lucide-react';
@@ -56,15 +52,6 @@ const NAV: Record<UserRole, NavItem[]> = {
     { icon: <ShieldCheck size={20} strokeWidth={1.5} />,     label: 'Node Onboarding',path: '/dashboard/practitioner/onboarding' },
     { icon: <ClipboardList size={20} strokeWidth={1.5} />,   label: 'History Logs', path: '/dashboard/practitioner/history' },
   ],
-  practitioner: [
-    { icon: <LayoutDashboard size={20} strokeWidth={1.5} />, label: 'Dashboard',    path: '/dashboard/practitioner' },
-    { icon: <UserPlus size={20} strokeWidth={1.5} />,        label: 'Clinical Referral', path: '/dashboard/practitioner/referral' },
-    { icon: <Activity size={20} strokeWidth={1.5} />,        label: 'Patient Feed', path: '/dashboard/practitioner/feed' },
-    { icon: <Bell size={20} strokeWidth={1.5} />,            label: 'Alert Center', path: '/dashboard/practitioner/alerts' },
-    { icon: <Phone size={20} strokeWidth={1.5} />,           label: 'Contact Console',path: '/dashboard/practitioner/contact' },
-    { icon: <ShieldCheck size={20} strokeWidth={1.5} />,     label: 'Node Onboarding',path: '/dashboard/practitioner/onboarding' },
-    { icon: <ClipboardList size={20} strokeWidth={1.5} />,   label: 'History Logs', path: '/dashboard/practitioner/history' },
-  ],
   admin: [
     { icon: <LayoutDashboard size={20} strokeWidth={1.5} />, label: 'Overview',      path: '/dashboard/admin' },
     { icon: <Users size={20} strokeWidth={1.5} />,           label: 'User Manager',  path: '/dashboard/admin/users' },
@@ -77,12 +64,7 @@ const NAV: Record<UserRole, NavItem[]> = {
   ],
 };
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  caregiver: 'Caregiver',
-  medical_practitioner: 'Practitioner',
-  practitioner: 'Practitioner',
-  admin: 'System Admin',
-};
+
 
 export default function Sidebar({ onLogoutClick }: SidebarProps) {
   const { profile, userProfile } = useAuth();
@@ -114,14 +96,6 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
 
   const role = userProfile?.role || profile?.role || 'caregiver';
   const navItems = NAV[role as UserRole] ?? NAV.caregiver;
-
-  const displayName = userProfile?.full_name || profile?.full_name || 'U';
-  const initials = displayName
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   return (
     <>
@@ -203,7 +177,8 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
           const isActive = isBaseDashboard
             ? location.pathname === item.path
             : location.pathname.startsWith(item.path) || 
-              (item.label === 'Patient Feed' && location.pathname.includes('/patient/'));
+              (item.label === 'Patient Feed' && location.pathname.includes('/patient/')) ||
+              (item.path.includes('patients/roster') && location.pathname.includes('/admin/patient/'));
 
           const badgeCount = item.label === 'Alert Center' ? alertCount : (item.badge ?? 0);
 

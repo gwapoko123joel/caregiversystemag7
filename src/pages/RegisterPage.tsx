@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Mail, Lock, KeyRound, Eye, EyeOff, User,
+  Eye, EyeOff, User,
   AlertCircle, Loader2, ShieldCheck, CheckCircle2,
-  ArrowRight, Heart, Stethoscope, UserCheck, ArrowLeft, Key, UserPlus
+  ArrowRight, Stethoscope, ArrowLeft, Key, UserPlus
 } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../hooks/useAuth'
@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 type ActiveTab = 'caregiver' | 'medical_practitioner'
 
 export default function RegisterPage() {
-  const { signUp } = useAuth()
+  const { } = useAuth()
   const navigate = useNavigate()
 
   // ── UI STATE ──

@@ -22,6 +22,7 @@ import SecurityOverview from './views/SecurityOverview'
 import PractitionerVerificationView from './views/PractitionerVerificationView'
 import FieldVerificationView from './views/FieldVerificationView'
 import PatientManagementView from './views/PatientManagementView'
+import AdminPatientDossier from './views/AdminPatientDossier'
 import HealthAnalytics from './views/HealthAnalytics'
 import ProfilePage from '../shared/ProfilePage'
 
@@ -221,9 +222,18 @@ function AdminLayout() {
           {/* Content Area */}
           <div className="flex-1 p-4 md:p-8 relative z-10 overflow-y-auto">
             <AnimatePresence mode="wait">
-              <PageTransition key={location.pathname}>
-                <Outlet context={contextValue} />
-              </PageTransition>
+              {location.pathname.includes('/admin/patient/') ? (
+                <PageTransition key="patient-dossier">
+                  <AdminPatientDossier 
+                    patientId={location.pathname.split('/').pop()} 
+                    onBack={() => navigate('/dashboard/admin/patients/roster')} 
+                  />
+                </PageTransition>
+              ) : (
+                <PageTransition key={location.pathname.split('/').filter(Boolean)[1] || 'root'}>
+                  <Outlet context={contextValue} />
+                </PageTransition>
+              )}
             </AnimatePresence>
           </div>
         </main>

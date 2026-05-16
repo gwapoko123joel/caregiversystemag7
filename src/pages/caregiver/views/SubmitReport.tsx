@@ -26,7 +26,6 @@ export default function SubmitReport() {
   // 3. Status States
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   
@@ -37,14 +36,12 @@ export default function SubmitReport() {
     if (draft) setField('notes', draft);
   }, [patient?.patient_id]);
 
-  const handleNoteChange = (text: string) => {
-    setField('notes', text);
-    if (patient) {
-      localStorage.setItem(`draft_notes_${patient.patient_id}`, text);
+  const setField = (key: string, val: any) => {
+    setForm(prev => ({ ...prev, [key]: val }))
+    if (key === 'notes' && patient) {
+      localStorage.setItem(`draft_notes_${patient.patient_id}`, val);
     }
-  };
-
-  const setField = (key: string, val: any) => setForm(prev => ({ ...prev, [key]: val }))
+  }
 
   // Handle Image Selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +63,6 @@ export default function SubmitReport() {
     if (!user || !patient) return
 
     setSubmitting(true)
-    setError(null)
 
     try {
       let imageUrl = null
@@ -150,7 +146,7 @@ export default function SubmitReport() {
 
     } catch (err: any) {
       console.error("Critical System Error:", err)
-      setError(err.message || "Connection failed. Please check network.")
+      alert(err.message || "Connection failed. Please check network.")
     } finally {
       setSubmitting(false)
     }
@@ -184,9 +180,8 @@ export default function SubmitReport() {
           
           <p className="text-sm text-slate-400 leading-relaxed mb-10 px-4">
             Clinical data for <span className="text-white font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the medical practitioner network.
-          </p>
+          </p> 
 
-          {/* Metadata Receipt Box - Compacted and Aligned */}
           <div className="bg-slate-950/50 rounded-3xl p-5 border border-white/5 mb-10 grid grid-cols-2 gap-4">
              <div className="text-left border-r border-white/5 pr-4">
                 <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Node Identifier</p>
@@ -200,7 +195,6 @@ export default function SubmitReport() {
              </div>
           </div>
 
-          {/* Action Button - Sized to match modal */}
           <button
             onClick={() => navigate('/dashboard/caregiver/history')}
             className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
@@ -240,12 +234,10 @@ export default function SubmitReport() {
       setField={setField}
       handleSubmit={handleSubmit}
       submitting={submitting}
-      submitSuccess={submitSuccess}
-      error={error}
       imagePreview={imagePreview}
       handleImageChange={handleImageChange}
       removeImage={removeImage}
-      handleNoteChange={handleNoteChange}
+      onBack={() => navigate('/dashboard/caregiver/history')}
     />
   )
 }

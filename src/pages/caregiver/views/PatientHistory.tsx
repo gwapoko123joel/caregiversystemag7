@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search, User, MapPin, Activity, Loader2, Clock, ChevronRight } from 'lucide-react'
+import { Search, User, MapPin, Activity, Loader2, Clock } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'

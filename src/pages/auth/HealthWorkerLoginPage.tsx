@@ -1,44 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Mail, Lock, ArrowRight, Stethoscope, Heart,
-  Shield, Activity, Radio, Fingerprint, ArrowLeft,
-  Info, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, UserPlus, ShieldCheck, User
+  Mail, Lock, Heart,
+  Shield, Activity, Fingerprint, ArrowLeft,
+  Eye, EyeOff, Loader2, UserPlus, ShieldCheck, User, Stethoscope
 } from 'lucide-react';
-import {
-  AuthBackground, BantayanLogo, AuthNodeFooter,
-} from '../../components/auth/AuthComponents';
 import { healthWorkerLogin, getCurrentSession } from '../../services/authService';
 import { ensureUserProfile } from '../../services/profileService';
 
 type Role = 'caregiver' | 'medical_practitioner';
-
-// Sub-component: RoleChip
-const RoleChip = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => (
-  <motion.div
-    initial={false}
-    animate={{
-      borderColor: active ? 'rgba(0, 209, 255, 0.6)' : 'rgba(0, 209, 255, 0.15)',
-      backgroundColor: active ? 'rgba(0, 209, 255, 0.1)' : 'transparent',
-      boxShadow: active ? '0 0 15px rgba(0, 209, 255, 0.1)' : 'none',
-    }}
-    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] tracking-wider uppercase transition-colors
-      ${active ? 'text-cyan-400' : 'text-slate-500'}`}
-  >
-    <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
-    {label}
-  </motion.div>
-);
-
-// Sub-component: FooterBadge
-const FooterBadge = ({ icon: Icon, label }: { icon: any, label: string }) => (
-  <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-slate-500 uppercase">
-    <Icon className="w-3 h-3" strokeWidth={1.5} />
-    {label}
-  </div>
-);
 
 const HealthWorkerLoginPage = () => {
   const navigate = useNavigate();
@@ -51,10 +21,6 @@ const HealthWorkerLoginPage = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [userType, setUserType] = useState<Role>('caregiver');
 
-  // Live Role Detection
-  const isCaregiver = accessId.toUpperCase().startsWith('CG');
-  const isPractitioner = accessId.toUpperCase().startsWith('MP');
-
   useEffect(() => {
     const checkSession = async () => {
       const session = await getCurrentSession();
@@ -62,6 +28,7 @@ const HealthWorkerLoginPage = () => {
         if (session.role === 'caregiver') navigate('/dashboard/caregiver');
         else if (session.role === 'medical_practitioner') navigate('/dashboard/practitioner');
         else if (session.role === 'admin') navigate('/dashboard/admin');
+        else if (session.role === 'medical_practitioner') navigate('/dashboard/practitioner');
       }
       setCheckingSession(false);
     };
@@ -104,11 +71,7 @@ const HealthWorkerLoginPage = () => {
   if (checkingSession) {
     return (
       <div className="min-h-screen bg-[#000814] flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full"
-        />
+        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -266,4 +229,3 @@ const HealthWorkerLoginPage = () => {
 };
 
 export default HealthWorkerLoginPage;
-

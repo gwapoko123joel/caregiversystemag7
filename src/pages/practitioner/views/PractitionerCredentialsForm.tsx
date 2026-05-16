@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  FileText, 
   Hospital, 
   Phone, 
   ShieldCheck, 
@@ -10,9 +9,7 @@ import {
   MapPin,
   Calendar,
   Stethoscope,
-  Clock,
-  ChevronRight,
-  UserCheck
+  Clock
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';

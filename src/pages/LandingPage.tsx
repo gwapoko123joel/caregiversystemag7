@@ -1,29 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Users, 
-  ChevronDown, 
   ArrowUpRight, 
   Activity, 
   Clock,
-  Menu,
-  X,
-  Sun,
-  Moon,
   Heart,
   ArrowRight,
   ShieldCheck,
   Globe,
-  Bell,
   Mail,
   Navigation
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-primary text-text-main overflow-hidden selection:bg-sky-500 selection:text-white transition-colors duration-300">

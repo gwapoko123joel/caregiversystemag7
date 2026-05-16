@@ -1,15 +1,27 @@
 import { useRef } from 'react'
 import { 
   FileText, CheckCircle2, AlertCircle, Activity, 
-  Heart, Thermometer, Zap, Camera, X, Send, 
-  Plus, ShieldCheck, AlertTriangle, UserSearch, ArrowLeft,
+  Heart, Thermometer, Zap, X, Send, 
+  Plus, AlertTriangle, UserSearch, ArrowLeft,
   Loader2
 } from 'lucide-react'
 
+interface ReportViewProps {
+  patient: any;
+  form: any;
+  setField: (key: string, val: any) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+  submitting: boolean;
+  imagePreview: string | null;
+  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  removeImage: () => void;
+  onBack: () => void;
+}
+
 export default function ReportView({
   patient, form, setField, handleSubmit, submitting, 
-  submitSuccess, error, imagePreview, handleImageChange, removeImage, onBack 
-}: any) {
+  imagePreview, handleImageChange, removeImage, onBack 
+}: ReportViewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // ── No Patient State (Safety Protocol) ──
@@ -159,13 +171,17 @@ export default function ReportView({
 }
 
 // ── HELPER: TRIAGE BUTTON ──
-function TriageButton({ active, label, sub, color, icon, onClick }: any) {
-  const themes: any = {
-    emerald: 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5',
-    amber: 'border-amber-500/20 text-amber-500 bg-amber-500/5',
-    rose: 'border-rose-500/20 text-rose-500 bg-rose-500/5',
-  };
-  const activeThemes: any = {
+interface TriageButtonProps {
+  active: boolean;
+  label: string;
+  sub: string;
+  color: 'emerald' | 'amber' | 'rose';
+  icon: React.ReactNode;
+  onClick: () => void;
+}
+
+function TriageButton({ active, label, sub, color, icon, onClick }: TriageButtonProps) {
+  const activeThemes = {
     emerald: 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]',
     amber: 'border-amber-500 bg-amber-500/20 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]',
     rose: 'border-rose-500 bg-rose-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)]',
@@ -187,7 +203,16 @@ function TriageButton({ active, label, sub, color, icon, onClick }: any) {
 }
 
 // ── HELPER: VITAL INPUT ──
-function VitalInput({ label, unit, icon, placeholder, value, onChange }: any) {
+interface VitalInputProps {
+  label: string;
+  unit: string;
+  icon: React.ReactNode;
+  placeholder: string;
+  value: any;
+  onChange: (val: any) => void;
+}
+
+function VitalInput({ label, unit, icon, placeholder, value, onChange }: VitalInputProps) {
   return (
     <div className="space-y-3">
       <div className="flex justify-between px-2">

@@ -19,7 +19,7 @@ export default function MobileHeader({ onLogoutClick }: MobileHeaderProps) {
   const { toggleMobile } = useSidebar()
   const role = userProfile?.role || profile?.role
 
-  const isPractitioner = role === 'medical_practitioner' || role === 'practitioner'
+  const isPractitioner = (role as string) === 'medical_practitioner'
 
   return (
     <motion.header

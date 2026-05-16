@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { 
   User, ShieldCheck, Mail, IdCard, 
   Activity, Camera, Loader2, CheckCircle2, 
-  Globe, Briefcase 
+  Globe
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
@@ -31,7 +31,7 @@ export default function ProfilePage() {
       // 2. Update the Caregivers table
       const { error: updateError } = await supabase
         .from('caregivers')
-        .update({ avatar_url: filePath })
+        .update({ profile_picture_url: filePath })
         .eq('id', user?.id);
 
       if (updateError) throw updateError;
@@ -46,8 +46,8 @@ export default function ProfilePage() {
     }
   }
 
-  const avatarUrl = profile?.avatar_url 
-    ? supabase.storage.from('avatars').getPublicUrl(profile.avatar_url).data.publicUrl 
+  const avatarUrl = profile?.profile_picture_url 
+    ? supabase.storage.from('avatars').getPublicUrl(profile.profile_picture_url).data.publicUrl 
     : null;
 
   return (
@@ -134,9 +134,8 @@ export default function ProfilePage() {
             color="text-sky-400"
           />
           <DetailCard 
-            icon={<ShieldCheck size={18} />} 
             label={profile?.role === 'medical_practitioner' ? "PRC License Number" : "Barangay Health ID"} 
-            value={profile?.role === 'medical_practitioner' ? profile?.prc_license : profile?.bhw_id} 
+            value={profile?.role === 'medical_practitioner' ? profile?.prc_license_number : profile?.bhw_id_number} 
             sub="Verified Clinical Credential"
             color="text-emerald-400" 
           />
@@ -192,6 +191,29 @@ function DetailCard({ icon, label, value, sub, color = "text-white" }: any) {
            <div className="w-1 h-1 rounded-full bg-sky-500/40" />
            <p className="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">{sub}</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- SHARED UI COMPONENT: FORM FIELD ---
+export function FormField({ label, icon: Icon, value, onChange, placeholder, type = "text" }: any) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+        {label}
+      </label>
+      <div className="relative group">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors">
+          <Icon size={16} />
+        </div>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+        />
       </div>
     </div>
   );

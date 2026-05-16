@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react'
 import { 
   Phone, 
-  AlertTriangle, 
-  MapPin, 
-  Clock, 
   User, 
-  Stethoscope, 
   ShieldCheck,
-  CheckCircle2,
-  AlertCircle, 
   Loader2, 
   ShieldAlert, 
   Navigation,
@@ -26,7 +20,6 @@ export default function EmergencyView() {
   const [practitioners, setPractitioners] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isDispatching, setIsDispatching] = useState(false)
-  const [sosStatus, setSosStatus] = useState<string>('idle');
   const [registry, setRegistry] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -64,7 +57,6 @@ export default function EmergencyView() {
         { event: 'UPDATE', schema: 'public', table: 'emergency_dispatches' }, 
         (payload) => {
           if (payload.new.status === 'responding') {
-            setSosStatus('responding');
             alert("DISPATCH CONFIRMED: A Doctor is now reviewing this case.");
           }
         }
@@ -94,7 +86,6 @@ export default function EmergencyView() {
            patient_id: patientId
          }
        });
-       setSosStatus('active');
     } else {
        alert("SOS FAILED: " + error.message)
     }

@@ -1,5 +1,5 @@
 import { Award, Clock, MapPin } from 'lucide-react';
-import { FormField } from '../../ProfilePage';
+import { FormField } from '../../shared/ProfilePage';
 
 interface Props {
   formData: any;

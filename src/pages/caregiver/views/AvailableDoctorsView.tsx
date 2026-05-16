@@ -3,17 +3,14 @@ import {
   Phone, 
   MessageSquare, 
   Search, 
-  ChevronRight, 
   Stethoscope, 
   AlertCircle,
   Clock,
-  ArrowLeft,
   Loader2,
   User,
   MapPin
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
 
 const STATUS_FILTERS = [
   { id: 'all', label: 'All Personnel', color: 'slate' },
@@ -25,7 +22,6 @@ const STATUS_FILTERS = [
 ];
 
 export default function AvailableDoctorsView() {
-  const navigate = useNavigate();
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

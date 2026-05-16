@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { 
   User, Calendar, Phone, MapPin, 
-  Activity, ArrowLeft, ArrowRight, HeartPulse, 
-  ShieldCheck, Loader2, Baby, Info,
+  ArrowLeft, ArrowRight, HeartPulse, 
+  ShieldCheck, Loader2,
   ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  gender: string;
+  contact: string;
+  address: string;
+  medicalHistory: string;
+}
 
 export default function PatientOnboardingForm({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
@@ -15,7 +25,7 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
   const [newPatientId, setNewPatientId] = useState('');
   
   // Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     dob: '',
@@ -25,7 +35,7 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
     medicalHistory: ''
   });
 
-  const setField = (key: string, val: string) => setFormData(prev => ({ ...prev, [key]: val }));
+  const setField = (key: keyof FormData, val: string) => setFormData(prev => ({ ...prev, [key]: val }));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,9 +49,9 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         last_name: formData.lastName.trim(),
         date_of_birth: formData.dob || null,
         gender: formData.gender,
-        contact_number: formData.contact.trim(),
+        phone_number: formData.contact.trim(), // Correct field name is phone_number
         address: formData.address.trim(),
-        medical_history: formData.medicalHistory.trim(),
+        medical_conditions: formData.medicalHistory.trim(), // Correct field name is medical_conditions
         status: 'active',
         registration_status: 'active',
         registered_by: user.id
@@ -259,7 +269,17 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
 }
 
 // --- REUSABLE INPUT COMPONENT ---
-function InputField({ label, placeholder, icon, type = "text", value, onChange, required }: any) {
+interface InputFieldProps {
+  label: string;
+  placeholder?: string;
+  icon: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (val: string) => void;
+  required?: boolean;
+}
+
+function InputField({ label, placeholder, icon, type = "text", value, onChange, required }: InputFieldProps) {
   return (
     <div className="space-y-2">
       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">

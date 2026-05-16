@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import {
-  Search, Plus, KeyRound, RefreshCw,
-  MoreVertical, CheckCircle2, XCircle, Clock,
+  Search, Plus, RefreshCw,
+  MoreVertical, CheckCircle2, XCircle,
   ShieldCheck, Loader2, ShieldAlert
 } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { Profile } from '../../../types/database'
-import { SkeletonRow, EmptyState } from '../../../components/ClinicalPolish'
+import { EmptyState } from '../../../components/ClinicalPolish'
 import ClinicalHandshake from '../../../components/shared/ClinicalHandshake'
 
 /**
@@ -33,7 +33,6 @@ export default function UserManagement() {
     access_id: ''
   })
 
-  const [editingId, setEditingId] = useState<{ id: string, value: string } | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -105,31 +104,7 @@ export default function UserManagement() {
     }
   }
 
-  async function handleManualIdUpdate() {
-    const currentEdit = editingId
-    if (!currentEdit) return
 
-    setProcessingId(currentEdit.id)
-    const { error } = await supabase
-      .from('caregivers')
-      .update({ unique_access_id: currentEdit.value.trim().toUpperCase() })
-      .eq('id', currentEdit.id)
-
-    if (!error) {
-      await supabase.from('activity_logs').insert({
-        user_id: user?.id,
-        user_type: profile?.role ?? 'admin',
-        action: 'MANUAL_ACCESS_ID_UPDATE',
-        details: { target_user: currentEdit.id, new_id: currentEdit.value }
-      })
-      await loadUsers()
-      await loadLogs()
-      setEditingId(null)
-    } else {
-      alert(error.message)
-    }
-    setProcessingId(null)
-  }
 
   // Handle Rejection (For Pending slots)
   async function handleReject(userId: string, name: string) {
@@ -473,4 +448,16 @@ export default function UserManagement() {
       )}
     </div>
   );
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="animate-pulse">
+      <td className="p-4"><div className="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded-lg" /></td>
+      <td className="p-4"><div className="h-4 w-32 bg-slate-100 dark:bg-slate-800 rounded" /></td>
+      <td className="p-4"><div className="h-4 w-24 bg-slate-100 dark:bg-slate-800 rounded" /></td>
+      <td className="p-4"><div className="h-4 w-40 bg-slate-100 dark:bg-slate-800 rounded" /></td>
+      <td className="p-4"><div className="h-8 w-20 bg-slate-100 dark:bg-slate-800 rounded-xl" /></td>
+    </tr>
+  )
 }

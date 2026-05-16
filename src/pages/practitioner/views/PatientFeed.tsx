@@ -1,28 +1,24 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Users, 
   Search, 
-  Activity, 
-  Image as ImageIcon, 
-  ArrowUpRight,
-  User,
   MapPin,
   ChevronRight
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
-import type { PatientWithLogs } from '../PractitionerDashboard'
+import type { PatientWithLogs } from '../types'
 import { SkeletonCard, EmptyState } from '../../../components/ClinicalPolish'
 
-interface PatientFeedProps {
+export interface PatientFeedProps {
   patients?: PatientWithLogs[] 
   loading?: boolean
 }
 
-export default function PatientFeed({ loading: propLoading }: PatientFeedProps) {
+export default function PatientFeed({ patients: propPatients, loading: propLoading }: PatientFeedProps) {
   const navigate = useNavigate()
-  const [patients, setPatients] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [patients, setPatients] = useState<any[]>(propPatients || [])
+  const [loading, setLoading] = useState(propLoading ?? true)
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -64,7 +60,12 @@ export default function PatientFeed({ loading: propLoading }: PatientFeedProps) 
   };
 
   useEffect(() => {
-    fetchPatients();
+    if (!propPatients) {
+      fetchPatients();
+    } else {
+      setPatients(propPatients);
+      setLoading(propLoading ?? false);
+    }
     
     // Real-time listener for telemetry updates to maintain live triage
     const channel = supabase.channel('telemetry-feed-updates')
@@ -72,7 +73,7 @@ export default function PatientFeed({ loading: propLoading }: PatientFeedProps) 
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [propPatients, propLoading]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 slide-in-from-bottom-4">
@@ -162,8 +163,8 @@ export default function PatientFeed({ loading: propLoading }: PatientFeedProps) 
 
                       <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <MapPin size={12} className="text-slate-500" />
-                          <span className="text-[9px] font-bold text-slate-400 uppercase truncate max-w-[100px]">{p.address}</span>
+                           <MapPin size={12} className="text-slate-500" />
+                           <span className="text-[9px] font-bold text-slate-400 uppercase truncate max-w-[100px]">{p.address}</span>
                         </div>
                         <ChevronRight size={16} className="text-slate-700 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
                       </div>
