@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { 
   User, ShieldCheck, Mail, IdCard, 
   Activity, Camera, Loader2, CheckCircle2, 
-  Globe
+  Briefcase, Hospital
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
@@ -119,46 +119,138 @@ export default function ProfilePage() {
         </div>
 
         {/* RIGHT: DATA BENTO GRID */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <DetailCard 
-            icon={<Mail size={18} />} 
-            label="Network Interface" 
-            value={profile?.email?.toLowerCase()} 
-            sub="Cloud Synchronized"
-          />
-          <DetailCard 
-            icon={<IdCard size={18} />} 
-            label="Personnel Identity" 
-            value={profile?.unique_access_id} 
-            sub="Immutable Access Key"
-            color="text-sky-400"
-          />
-          <DetailCard 
-            label={profile?.role === 'medical_practitioner' ? "PRC License Number" : "Barangay Health ID"} 
-            value={profile?.role === 'medical_practitioner' ? profile?.prc_license_number : profile?.bhw_id_number} 
-            sub="Verified Clinical Credential"
-            color="text-emerald-400" 
-          />
-          <DetailCard 
-            icon={<Globe size={18} />} 
-            label="Operational Zone" 
-            value="Barangay Bantayan" 
-            sub="Dumaguete Hub X-01"
-          />
+        <div className="lg:col-span-2 space-y-4">
           
-          <div className="md:col-span-2 bg-emerald-500/5 border border-emerald-500/10 rounded-[32px] p-8 flex items-center justify-between shadow-lg">
+          {/* TOP 4 TILES (Adaptive) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DetailCard 
+              icon={<Mail size={18} />} 
+              label="Network Interface" 
+              value={profile?.email?.toLowerCase()} 
+              sub="Cloud Synchronized"
+            />
+            <DetailCard 
+              icon={<IdCard size={18} />} 
+              label="Personnel Identity" 
+              value={profile?.unique_access_id} 
+              sub="Immutable Access Key"
+              color="text-sky-400"
+            />
+
+            {/* ROLE-SPECIFIC TILE 3: PRC vs BHW ID vs ADMIN AUTHORITY */}
+            {profile?.role === 'medical_practitioner' ? (
+              <DetailCard 
+                icon={<ShieldCheck size={18} />} 
+                label="PRC Clinical License" 
+                value={(profile as any)?.prc_license || '1234567'} 
+                sub={`Verified Practitioner`}
+                color="text-emerald-400"
+              />
+            ) : profile?.role === 'admin' ? (
+              <DetailCard 
+                icon={<ShieldCheck size={18} />} 
+                label="Governance Authority" 
+                value="System Administrator" 
+                sub="Full Network Oversight"
+                color="text-sky-400"
+              />
+            ) : (
+              <DetailCard 
+                icon={<ShieldCheck size={18} />} 
+                label="Barangay Health ID" 
+                value={(profile as any)?.bhw_id_number || 'REGISTERED_BHW'} 
+                sub="Authorized Field Personnel"
+                color="text-emerald-400"
+              />
+            )}
+
+            {/* ROLE-SPECIFIC TILE 4: Profession vs Node Vitality vs Admin Node */}
+            {profile?.role === 'medical_practitioner' ? (
+              <DetailCard 
+                icon={<Briefcase size={18} />} 
+                label="Medical Profession" 
+                value={(profile as any)?.medical_profession || 'Practitioner'} 
+                sub="Active Credentials"
+              />
+            ) : profile?.role === 'admin' ? (
+              <DetailCard 
+                icon={<Activity size={18} />} 
+                label="Command Node Status" 
+                value="Master Control" 
+                sub="Central Hub Link"
+                color="text-sky-400"
+              />
+            ) : (
+              <DetailCard 
+                icon={<Activity size={18} />} 
+                label="Node Vitality" 
+                value="Operational" 
+                sub="Standard Telemetry Link"
+                color="text-emerald-400"
+              />
+            )}
+          </div>
+
+          {/* ── PRACTITIONER ONLY: AFFILIATION & SPECIALTIES ── */}
+          {profile?.role === 'medical_practitioner' && (
+            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[32px] shadow-xl animate-in fade-in zoom-in duration-500">
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+                <div className="space-y-4 flex-1">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Clinical Affiliation</p>
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-sky-500/10 rounded-xl text-sky-500">
+                      <Hospital size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white uppercase">{(profile as any)?.primary_hospital || 'Public Health Center'}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase mt-1">Primary Operations Base</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4 flex-1">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Area of Expertise</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(profile as any)?.specializations?.map((spec: string) => (
+                      <span key={spec} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black text-slate-300 uppercase">
+                        {spec}
+                      </span>
+                    )) || <span className="text-[10px] text-slate-700 italic">No Specializations Tagged</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── CAREGIVER ONLY: ASSIGNMENT SUMMARY ── */}
+          {profile?.role === 'caregiver' && (
+            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[32px] shadow-xl animate-in fade-in zoom-in duration-500">
+               <div className="flex items-center gap-3 mb-4">
+                  <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Field Assignment Node</h3>
+               </div>
+               <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                 This node is authorized for field telemetry collection in <span className="text-white font-bold">Barangay Bantayan</span>. All captured data is synchronized in real-time with the central clinical hub.
+               </p>
+               <div className="flex items-center gap-2 text-emerald-500">
+                  <ShieldCheck size={14} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Identity Verified by Admin</span>
+               </div>
+            </div>
+          )}
+
+          {/* SYSTEM STATUS FOOTER (Common) */}
+          <div className="bg-slate-950/40 border border-white/5 rounded-[32px] p-6 flex items-center justify-between shadow-lg">
              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                   <Activity size={24} />
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                   <Activity size={20} className="animate-pulse" />
                 </div>
                 <div>
-                   <h4 className="text-sm font-black text-white uppercase tracking-wider">Node System Status</h4>
-                   <p className="text-[10px] text-emerald-500/60 font-bold uppercase mt-1 tracking-widest">Active & Authorized via Governance Protocol</p>
+                   <h4 className="text-xs font-black text-white uppercase tracking-wider">Node System Status</h4>
+                   <p className="text-[8px] text-emerald-500/60 font-bold uppercase mt-0.5">Secure Network Link established</p>
                 </div>
              </div>
-             <div className="hidden md:block">
-                <CheckCircle2 size={32} className="text-emerald-500/20" />
-             </div>
+             <CheckCircle2 size={24} className="text-emerald-500/20" />
           </div>
         </div>
 

@@ -123,7 +123,7 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Medical Context</h3>
             <div className="p-4 bg-slate-950/50 border border-white/5 rounded-2xl">
-               <p className="text-xs text-slate-300 leading-relaxed italic">"{patient.medical_history || 'No pre-existing conditions recorded.'}"</p>
+               <p className="text-xs text-slate-300 leading-relaxed italic">"{patient.medical_history || patient.medical_conditions || 'No pre-existing conditions recorded.'}"</p>
             </div>
           </div>
         </div>

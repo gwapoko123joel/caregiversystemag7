@@ -143,7 +143,7 @@ export default function FieldVerificationView() {
                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Clinical Context</p>
                     <div className="flex items-center gap-3">
                        <ClipboardList size={16} className="text-rose-500" />
-                       <p className="text-sm font-bold text-white uppercase">{selectedPatient.medical_history || 'No Prior Conditions'}</p>
+                       <p className="text-sm font-bold text-white uppercase">{selectedPatient.medical_history || selectedPatient.medical_conditions || 'No Prior Conditions'}</p>
                     </div>
                  </div>
               </div>

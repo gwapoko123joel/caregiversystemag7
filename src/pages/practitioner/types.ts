@@ -25,5 +25,5 @@ export interface PractitionerDashboardContextType {
   allLogs: (PatientMonitoringLog & { patient_name: string; caregiver_name: string })[]
   initiateCall: (caregiverName?: string, patientName?: string) => void
   loadData: () => Promise<void>
-  dismissAlert: (id: number) => void
+  dismissAlert: (id: string | number) => void
 }

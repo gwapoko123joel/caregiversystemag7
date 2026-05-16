@@ -204,7 +204,7 @@ function PractitionerLayout() {
     }
   }
 
-  const dismissAlert = (id: number) => {
+  const dismissAlert = (id: string | number) => {
     setAlerts((prev) => prev.map((a) => a.id === id ? { ...a, dismissed: true } : a))
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ShieldCheck, Activity, Clock } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, Activity } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { calculateAge } from '../../../utils/medical'
 
@@ -82,7 +82,7 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
               <div className="space-y-4">
                  <IntelItem label="Residence" value={patient.address} />
                  <IntelItem label="Age Profile" value={calculateAge(patient.date_of_birth)} />
-                 <IntelItem label="Medical Context" value={patient.medical_conditions || 'No Conditions Declared'} />
+                 <IntelItem label="Medical Context" value={patient.medical_conditions || patient.medical_history || 'No Conditions Declared'} />
               </div>
 
               <div className="pt-6 border-t border-white/5">

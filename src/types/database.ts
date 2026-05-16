@@ -186,6 +186,7 @@ export interface Patient {
   phone_number: string | null;
   address: string | null;
   medical_conditions: string | null;
+  medical_history: string | null;
   emergency_contact: string | null;
   photo_url: string | null;
 

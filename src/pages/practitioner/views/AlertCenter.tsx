@@ -7,7 +7,7 @@ import type { AlertItem } from '../types'
 interface AlertCenterProps {
   alerts: AlertItem[]
   alertCount: number
-  dismissAlert: (id: number) => void
+  dismissAlert: (id: string | number) => void
   initiateCall: (caregiverName?: string, patientName?: string) => void
 }
 

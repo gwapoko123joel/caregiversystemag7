@@ -1,4 +1,5 @@
 import { User } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 interface ProfileAvatarProps {
   src?: string | null;
@@ -25,11 +26,16 @@ export function ProfileAvatar({
   const initials = fullName
     .split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
+  // Smart URL handling: If src exists but isn't a full URL, assume it's a Supabase storage path
+  const finalSrc = src && !src.startsWith('http') && !src.startsWith('data:')
+    ? supabase.storage.from('avatars').getPublicUrl(src).data.publicUrl
+    : src;
+
   return (
     <div className={`relative ${sizeMap[size]} ${className} flex-shrink-0`}>
-      {src ? (
+      {finalSrc ? (
         <img
-          src={src} alt={fullName}
+          src={finalSrc} alt={fullName}
           className={`${sizeMap[size]} rounded-full object-cover 
                      border-2 border-cyan-500/30 ring-2 ring-cyan-500/10`}
         />

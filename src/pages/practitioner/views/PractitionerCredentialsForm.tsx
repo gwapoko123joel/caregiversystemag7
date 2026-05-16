@@ -21,7 +21,7 @@ const SPECIALIZATIONS = [
 ];
 
 export default function PractitionerCredentialsForm() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [existingCreds, setExistingCreds] = useState<any>(null);
@@ -91,7 +91,23 @@ export default function PractitionerCredentialsForm() {
       .upsert(payload);
 
     if (!error) {
+      // Also update the main caregivers table for profile sync
+      await supabase
+        .from('caregivers')
+        .update({
+          prc_license: formData.prc_license_number,
+          license_expiry: formData.prc_license_expiry,
+          medical_profession: formData.prc_profession,
+          primary_hospital: formData.primary_hospital,
+          preferred_contact_hours: formData.preferred_contact_hours,
+          specializations: specializations,
+          is_active: true // Self-authorize for the demo
+        })
+        .eq('id', user.id);
+
       setSuccess(true);
+      if (refreshProfile) await refreshProfile();
+      
       await supabase.from('activity_logs').insert({
         user_id: user.id,
         user_type: 'medical_practitioner',

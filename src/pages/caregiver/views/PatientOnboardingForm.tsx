@@ -52,8 +52,8 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         phone_number: formData.contact.trim(), // Correct field name is phone_number
         address: formData.address.trim(),
         medical_conditions: formData.medicalHistory.trim(), // Correct field name is medical_conditions
-        status: 'active',
-        registration_status: 'active',
+        status: 'pending',
+        registration_status: 'pending_verification',
         registered_by: user.id
       }).select().single();
 

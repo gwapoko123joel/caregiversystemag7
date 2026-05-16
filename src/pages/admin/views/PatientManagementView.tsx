@@ -174,7 +174,7 @@ export default function PatientManagementView() {
                 </div>
                 <div className="flex items-center gap-3 text-slate-400">
                   <Activity size={14} className="text-slate-600" />
-                  <span className="text-[10px] font-bold uppercase truncate">{p.medical_conditions || 'No History Recorded'}</span>
+                  <span className="text-[10px] font-bold uppercase truncate">{p.medical_conditions || p.medical_history || 'No History Recorded'}</span>
                 </div>
               </div>
 
