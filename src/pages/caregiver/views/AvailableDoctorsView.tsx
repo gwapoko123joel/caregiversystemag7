@@ -8,7 +8,8 @@ import {
   Clock,
   Loader2,
   User,
-  MapPin
+  MapPin,
+  Info
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 
@@ -32,7 +33,7 @@ export default function AvailableDoctorsView() {
     try {
       const { data, error } = await supabase
         .from('caregivers')
-        .select('*') 
+        .select('*, status_message') 
         .eq('role', 'medical_practitioner')
         .eq('status', 'authorized');
 
@@ -198,7 +199,14 @@ function DoctorCard({ doctor, onCall, onSMS }: any) {
         </div>
 
         <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">{doctor.full_name}</h3>
-        <p className="text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-6">PRC License: {doctor.prc_license_number}</p>
+        <p className={`text-[10px] font-bold text-sky-500 uppercase tracking-widest ${doctor.status_message ? 'mb-2' : 'mb-6'}`}>PRC License: {doctor.prc_license_number}</p>
+        
+        {doctor.status_message && (
+          <p className="text-[10px] text-slate-400 italic mb-6 flex items-center gap-1">
+            <Info size={10} className="text-sky-500" />
+            "{doctor.status_message}"
+          </p>
+        )}
         
         <div className="space-y-3 mb-8">
            <div className="flex items-center gap-3 text-slate-400">

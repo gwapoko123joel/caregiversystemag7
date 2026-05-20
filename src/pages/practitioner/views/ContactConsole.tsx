@@ -21,47 +21,79 @@ interface ContactConsoleProps {
 export default function ContactConsole({ onInitiateCall, onInitiateSMS }: ContactConsoleProps) {
   const { user } = useAuth()
   const [dutyStatus, setDutyStatus] = useState('off_duty')
+  const [customMessage, setCustomMessage] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const [isTransmitting, setIsTransmitting] = useState(false)
 
-  // 1. Fetch current status
+  // 1. Fetch current status & listen for real-time changes
   useEffect(() => {
     if (user) {
       fetchStatus()
+
+      const channel = supabase
+        .channel(`contact-console-${user.id}`)
+        .on('postgres_changes', 
+          { event: 'UPDATE', schema: 'public', table: 'caregivers', filter: `id=eq.${user.id}` }, 
+          (payload: any) => {
+             if (payload.new) {
+               if (payload.new.duty_status) setDutyStatus(payload.new.duty_status);
+               if (payload.new.status_message !== undefined) setCustomMessage(payload.new.status_message || '');
+             }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user])
 
   async function fetchStatus() {
     const { data } = await supabase
       .from('caregivers')
-      .select('duty_status')
+      .select('duty_status, status_message')
       .eq('id', user?.id)
       .single()
     
     if (data?.duty_status) setDutyStatus(data.duty_status)
+    if (data?.status_message) setCustomMessage(data.status_message)
   }
 
   // 2. Update status function
-  async function updateDutyStatus(status: string) {
-    try {
-      const { error } = await supabase
-        .from('caregivers')
-        .update({ duty_status: status })
-        .eq('id', user?.id)
+  async function handleStatusUpdate(newStatus: string) {
+    setIsSaving(true);
+    const { error } = await supabase
+      .from('caregivers')
+      .update({ 
+        duty_status: newStatus,
+        status_message: customMessage 
+      })
+      .eq('id', user?.id);
 
-      if (error) throw error
-      setDutyStatus(status)
-      
+    if (!error) {
+      setDutyStatus(newStatus);
+
+      // SYNC: Update practitioner_availability so the top header toggle stays in sync
+      await supabase
+        .from('practitioner_availability')
+        .update({ 
+          status: newStatus,
+          status_message: customMessage,
+          last_status_change: new Date().toISOString()
+        })
+        .eq('caregiver_id', user?.id);
+
       // Optional: Audit log
       await supabase.from('activity_logs').insert({
         user_id: user?.id,
         user_type: 'medical_practitioner',
         action: 'STATUS_CHANGE',
-        details: { status }
-      })
-
-    } catch (err) {
-      console.error(err)
+        details: { status: newStatus, message: customMessage }
+      });
+      alert(`Node Status Updated: ${newStatus.toUpperCase()}`);
     }
+    setIsSaving(false);
   }
 
   // 3. Broadcast function
@@ -116,38 +148,70 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
       </div>
 
       {/* ── ROW 2: OPERATOR AVAILABILITY ── */}
-      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20">
-              <UserCheck size={24} />
+      <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center">
+          
+          {/* Left Side: Status Info */}
+          <div className="flex items-center gap-6 flex-1">
+            <div className="w-16 h-16 bg-sky-500/10 rounded-[2rem] flex items-center justify-center text-sky-500 border border-sky-500/20 shadow-inner">
+              <UserCheck size={32} />
             </div>
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">Operator Availability System</h3>
-              <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">Broadcast your clinical presence to all field caregivers</p>
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">Operator Availability System</h3>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Broadcast clinical presence to field nodes</p>
             </div>
           </div>
 
-          {/* Functional Status Toggles */}
-          <div className="flex gap-2 p-1.5 bg-slate-950/50 rounded-2xl border border-white/5 self-start md:self-auto">
-            <StatusToggleBtn 
-              active={dutyStatus === 'available'} 
-              label="Available" 
-              color="emerald" 
-              onClick={() => updateDutyStatus('available')} 
-            />
-            <StatusToggleBtn 
-              active={dutyStatus === 'busy'} 
-              label="In Consult" 
-              color="red" 
-              onClick={() => updateDutyStatus('busy')} 
-            />
-            <StatusToggleBtn 
-              active={dutyStatus === 'off_duty'} 
-              label="Off Duty" 
-              color="slate" 
-              onClick={() => updateDutyStatus('off_duty')} 
-            />
+          {/* Right Side: Interactive Controls */}
+          <div className="w-full lg:w-auto space-y-6">
+            {/* The Toggle Switchboard */}
+            <div className="flex flex-wrap gap-2 p-1.5 bg-slate-950/60 rounded-2xl border border-white/5">
+              {[
+                { id: 'available', label: 'Available', color: 'emerald' },
+                { id: 'in_consultation', label: 'In Consult', color: 'sky' },
+                { id: 'busy', label: 'Busy', color: 'rose' },
+                { id: 'off_duty', label: 'Off Duty', color: 'slate' },
+              ].map((btn) => (
+                <button
+                  key={btn.id}
+                  onClick={() => handleStatusUpdate(btn.id)}
+                  disabled={isSaving}
+                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                    dutyStatus === btn.id 
+                      ? btn.color === 'emerald' ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg'
+                        : btn.color === 'sky' ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-lg'
+                        : btn.color === 'rose' ? 'bg-rose-500 text-slate-950 border-rose-400 shadow-lg'
+                        : 'bg-slate-500 text-slate-950 border-slate-400 shadow-lg'
+                      : 'bg-transparent border-transparent text-slate-500 hover:text-white'
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Message Input */}
+            <div className="relative group flex gap-3">
+               <div className="relative flex-1">
+                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors">
+                    <MessageSquare size={14} />
+                 </div>
+                 <input 
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleStatusUpdate(dutyStatus)}
+                    placeholder="Set custom status message (e.g. In surgery until 3 PM)"
+                    className="w-full lg:w-96 bg-slate-950/40 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 italic"
+                 />
+               </div>
+               <button 
+                  onClick={() => handleStatusUpdate(dutyStatus)}
+                  disabled={isSaving}
+                  className="px-6 py-3 bg-white/5 hover:bg-sky-500 hover:text-white text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 hover:border-sky-400 whitespace-nowrap disabled:opacity-50"
+               >
+                 {isSaving ? 'Saving...' : 'Save'}
+               </button>
+            </div>
           </div>
         </div>
       </div>
@@ -242,21 +306,3 @@ function StatusMiniCard({ label, value, icon, color = "text-slate-400" }: any) {
   );
 }
 
-function StatusToggleBtn({ active, label, color, onClick }: any) {
-  const colors: any = {
-    emerald: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-    red: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
-    slate: 'text-slate-400 bg-slate-800 border-white/5'
-  };
-
-  return (
-    <button 
-      onClick={onClick}
-      className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
-        active ? colors[color] + ' shadow-lg' : 'bg-transparent border-transparent text-slate-500 hover:text-slate-300'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}

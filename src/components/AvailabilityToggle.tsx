@@ -17,8 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 const STATUS_OPTIONS = [
   { id: 'available', label: 'Available', icon: CheckCircle2, color: 'emerald', description: 'Ready for calls' },
   { id: 'on_break', label: 'On Break', icon: Coffee, color: 'amber', description: 'Briefly away' },
-  { id: 'busy', label: 'Busy', icon: MinusCircle, color: 'red', description: 'Urgent calls only' },
-  { id: 'in_consultation', label: 'In Consultation', icon: Stethoscope, color: 'brand-cyan', description: 'Currently with patient' },
+  { id: 'busy', label: 'Busy', icon: MinusCircle, color: 'rose', description: 'Urgent calls only' },
+  { id: 'in_consultation', label: 'In Consultation', icon: Stethoscope, color: 'sky', description: 'Currently with patient' },
   { id: 'emergency_only', label: 'Emergency Only', icon: AlertTriangle, color: 'orange', description: 'Critical interventions' },
   { id: 'off_duty', label: 'Off Duty', icon: LogOut, color: 'slate', description: 'Unavailable' },
 ];
@@ -163,10 +163,10 @@ export default function AvailabilityToggle() {
         .eq('caregiver_id', user.id);
 
       if (!error) {
-        // SYNC: Also update the duty_status in the caregivers table for the real-time directory
+        // SYNC: Also update the duty_status and status_message in the caregivers table for the real-time directory
         await supabase
           .from('caregivers')
-          .update({ duty_status: newStatus })
+          .update({ duty_status: newStatus, status_message: statusMessage })
           .eq('id', user.id);
 
         await supabase.from('activity_logs').insert({
@@ -185,8 +185,8 @@ export default function AvailabilityToggle() {
   };
 
   const currentOption = STATUS_OPTIONS.find(opt => opt.id === status) || STATUS_OPTIONS[5];
-  const colorClass = currentOption.color === 'brand-cyan' ? 'text-brand-cyan' : `text-${currentOption.color}-500`;
-  const bgClass = currentOption.color === 'brand-cyan' ? 'bg-brand-cyan/10' : `bg-${currentOption.color}-500/10`;
+  const colorClass = `text-${currentOption.color}-500`;
+  const bgClass = `bg-${currentOption.color}-500/10`;
 
   if (!availability) {
     return (
@@ -224,7 +224,7 @@ export default function AvailabilityToggle() {
               className="absolute top-12 left-0 w-[300px] soft-card bg-slate-900 border border-white/10 p-4 space-y-4"
             >
               <div className="flex items-center gap-3 pb-2 border-b border-white/5">
-                <Clock size={16} className="text-brand-cyan" />
+                <Clock size={16} className="text-sky-500" />
                 <h4 className="text-[10px] font-light text-white uppercase tracking-widest">Update Availability</h4>
               </div>
 
@@ -236,7 +236,7 @@ export default function AvailabilityToggle() {
                     disabled={loading}
                     className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-white/5 group ${status === opt.id ? 'bg-white/5 ring-1 ring-white/10' : ''}`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${status === opt.id ? (opt.color === 'brand-cyan' ? 'bg-brand-cyan/20 text-brand-cyan' : `bg-${opt.color}-500/20 text-${opt.color}-500`) : 'bg-slate-950 text-slate-500 group-hover:text-white'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${status === opt.id ? (`bg-${opt.color}-500/20 text-${opt.color}-500`) : 'bg-slate-950 text-slate-500 group-hover:text-white'}`}>
                       <opt.icon size={18} />
                     </div>
                     <div className="text-left">
@@ -259,7 +259,7 @@ export default function AvailabilityToggle() {
                       value={statusMessage}
                       onChange={(e) => setStatusMessage(e.target.value)}
                       placeholder="e.g. In surgery until 3pm"
-                      className="w-full bg-slate-950 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-brand-cyan/30"
+                      className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all placeholder:text-slate-700 italic"
                     />
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export default function AvailabilityToggle() {
                         type="time"
                         value={busyUntil}
                         onChange={(e) => setBusyUntil(e.target.value)}
-                        className="w-full bg-slate-950 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-brand-cyan/30"
+                        className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all text-white"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export default function AvailabilityToggle() {
 
                 <button
                   onClick={() => handleUpdateStatus(status)}
-                  className="w-full py-2 bg-brand-cyan text-slate-950 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="w-full py-2 bg-sky-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-sky-400 active:scale-[0.98] transition-all shadow-lg shadow-sky-500/20"
                 >
                   Apply Status Update
                 </button>

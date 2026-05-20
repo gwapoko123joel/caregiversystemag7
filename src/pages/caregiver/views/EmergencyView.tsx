@@ -32,6 +32,16 @@ export default function EmergencyView() {
     fetchRegistry(); 
   }, []);
 
+  const getIcon = (type: string) => {
+    switch(type) {
+      case 'phone': return <Phone size={14} />;
+      case 'navigation': return <Navigation size={14} />;
+      case 'activity': return <Activity size={14} />;
+      case 'shield': return <ShieldCheck size={14} />;
+      default: return <Phone size={14} />;
+    }
+  };
+
   async function handleUpdateRegistry(id: number, newNumber: string) {
     const { error } = await supabase
       .from('emergency_registry')
@@ -246,20 +256,30 @@ export default function EmergencyView() {
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Local Service Dispatch</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            {registry.map((item) => (
-              <DispatchCard 
-                key={item.id}
-                label={item.service_name} 
-                number={item.phone_number} 
-                icon={
-                  item.icon_type === 'phone' ? <Phone size={14}/> :
-                  item.icon_type === 'navigation' ? <Navigation size={14}/> :
-                  item.icon_type === 'activity' ? <Activity size={14}/> :
-                  <ShieldCheck size={14}/>
-                } 
-                color={item.color_theme || 'rose'} 
-              />
-            ))}
+            {registry.length === 0 ? (
+               <p className="text-[10px] text-center text-slate-700 uppercase font-black py-10 col-span-2">Syncing Registry...</p>
+            ) : (
+              registry.map((item) => (
+                <a 
+                  key={item.id}
+                  href={`tel:${item.phone_number}`}
+                  className={`p-5 rounded-[24px] border transition-all flex flex-col justify-between group h-32 ${
+                    item.color_theme === 'rose' ? 'text-rose-500 bg-rose-500/10 border-rose-500/20 hover:border-rose-500/50' :
+                    item.color_theme === 'sky' ? 'text-sky-500 bg-sky-500/10 border-sky-500/20 hover:border-sky-500/50' :
+                    item.color_theme === 'amber' ? 'text-amber-500 bg-amber-500/10 border-amber-500/20 hover:border-amber-500/50' :
+                    'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/50'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {getIcon(item.icon_type)}
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">{item.service_name}</p>
+                    <p className="text-xs font-mono font-bold whitespace-nowrap">{item.phone_number}</p>
+                  </div>
+                </a>
+              ))
+            )}
           </div>
 
           <button 
@@ -310,24 +330,3 @@ export default function EmergencyView() {
   );
 }
 
-// ── HELPER: DISPATCH CARD ──
-function DispatchCard({ label, number, icon, color }: any) {
-  const themes: any = {
-    rose: 'text-rose-500 bg-rose-500/10 border-rose-500/20 hover:border-rose-500/50',
-    sky: 'text-sky-500 bg-sky-500/10 border-sky-500/20 hover:border-sky-500/50',
-    amber: 'text-amber-500 bg-amber-500/10 border-amber-500/20 hover:border-amber-500/50',
-    emerald: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/50',
-  };
-
-  return (
-    <a href={`tel:${number.replace(/-/g, '')}`} className={`p-5 rounded-[24px] border transition-all flex flex-col justify-between group h-32 ${themes[color]}`}>
-      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
-      <div>
-        <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">{label}</p>
-        <p className="text-xs font-mono font-bold whitespace-nowrap">{number}</p>
-      </div>
-    </a>
-  );
-}
