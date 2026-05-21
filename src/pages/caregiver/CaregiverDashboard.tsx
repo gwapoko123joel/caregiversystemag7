@@ -254,7 +254,7 @@ function CaregiverLayout() {
                 {isCollapsed && isDesktop && (
                   <button
                     onClick={toggleCollapse}
-                    className="p-3 bg-card border border-card-border rounded-xl text-sidebar-text-muted hover:text-sky-500 hover:border-sky-500 transition-all"
+                    className="p-3 bg-card border border-card-border rounded-xl text-sidebar-text-muted hover:text-sky-500 hover:border-sky-500 transition-all cursor-pointer"
                     title="Expand Sidebar"
                   >
                     <Menu size={20} />
@@ -277,9 +277,9 @@ function CaregiverLayout() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate('/dashboard/caregiver/call')}
-                  className="px-6 py-3 node-urgent font-light text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-harmonized flex items-center gap-2 hover:scale-105 active:scale-95 border-none"
+                  className="px-6 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.2)] flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
                 >
-                  <Phone size={14} className="fill-current text-current" /> Call Support
+                  <Phone size={14} className="fill-current" /> Call Support
                 </button>
               </div>
             </header>
@@ -337,6 +337,7 @@ function ReportViewWrapper() {
   return <SubmitReport />
 }
 
+// HistoryViewWrapper
 function HistoryViewWrapper() {
   return <PatientHistory />
 }
@@ -349,4 +350,3 @@ function PatientOnboardingFormWrapper() {
   const navigate = useNavigate()
   return <PatientOnboardingForm onBack={() => navigate('/dashboard/caregiver')} />
 }
-// --- END OF FILE ---

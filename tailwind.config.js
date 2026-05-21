@@ -33,12 +33,23 @@ export default {
       },
       animation: {
         'orbit': 'orbit linear infinite',
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-slow': 'pulse 6s infinite',
+        'clinical-scan': 'scan 3s linear infinite',
+        'bounce-slow': 'bounce 4s infinite',
+        'float': 'float 3s ease-in-out infinite',
       },
       keyframes: {
         orbit: {
           '0%': { transform: 'rotate(0deg) translateX(150px) rotate(0deg)' },
           '100%': { transform: 'rotate(360deg) translateX(150px) rotate(-360deg)' },
+        },
+        scan: {
+          '0%': { top: '-100%' },
+          '100%': { top: '100%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
         }
       }
     },

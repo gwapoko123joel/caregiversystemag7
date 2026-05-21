@@ -13,14 +13,24 @@ import {
   Navigation,
   User,
   Stethoscope,
-  AlertTriangle
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.body.style.backgroundColor = '#020617';
+    document.body.style.backgroundImage = 'none';
+    return () => {
+      document.body.style.backgroundColor = '';
+      document.body.style.backgroundImage = '';
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-primary text-text-main overflow-hidden selection:bg-sky-500 selection:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-[#020617] text-text-main overflow-hidden selection:bg-sky-500 selection:text-white transition-colors duration-300">
       {/* ── Background Glows ── */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blur-glow-primary opacity-40 dark:opacity-100 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none transition-opacity" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blur-glow-secondary opacity-30 dark:opacity-100 blur-[150px] rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none transition-opacity" />
@@ -48,50 +58,112 @@ const LandingPage: React.FC = () => {
             
             <Link 
               to="/login"
-              className="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg shadow-sky-500/20 active:scale-95 flex items-center gap-2"
+              className="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 !text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg shadow-sky-500/20 active:scale-95 flex items-center gap-2"
             >
-              Sign In to Portal <ArrowRight size={14} />
+              AUTHORIZE ACCESS 🔒 <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ── Hero Content ── */}
-      <main className="relative z-10 px-6 md:px-12 pt-32 md:pt-48 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* ── HIGH-FIDELITY CLINICAL HERO ── */}
+      <section className="relative min-h-screen w-full bg-[#020617] flex items-center overflow-hidden border-b border-white/5">
         
-        {/* Left Side */}
-        <div className="max-w-2xl animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-xs font-light tracking-widest uppercase mb-8 transition-colors">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
-            </span>
-            Barangay Bantayan Deployment
-          </div>
-          
-          <h1 className="text-4xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-6 md:mb-8 text-text-main transition-colors">
-            Streamlining <span className="text-sky-500">Care Coordination.</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-sidebar-text-muted font-medium leading-relaxed mb-10 md:mb-12 max-w-lg transition-colors">
-            Automated caregiver reporting and real-time monitoring for Barangay Bantayan.
-          </p>
+        {/* Technical Background Grid */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none" 
+             style={{ backgroundImage: `radial-gradient(circle at 2px 2px, rgba(14,165,233,0.15) 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
+        
+        {/* Large Background Glows */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-sky-500/10 rounded-full blur-[120px] animate-pulse-slow" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-sky-500/5 rounded-full blur-[120px]" />
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={() => navigate('/login')}
-              className="group px-8 py-4 bg-sky-500 text-white font-light rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(0,186,255,0.4)] hover:scale-[1.02] transition-all text-sm uppercase tracking-widest"
-            >
-              SIGN IN AS HEALTH WORKER <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-            </button>
+        <div className="max-w-7xl mx-auto px-8 w-full z-10 pt-28 pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            
+            {/* ── LEFT: MISSION CONTROL TEXT (6 Columns) ── */}
+            <div className="lg:col-span-6 space-y-10">
+              
+              {/* Status Hub Badge */}
+              <div className="inline-flex items-center gap-4 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+                <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Node Deployment: DUM-PH_X01</span>
+              </div>
+
+              {/* Professional Headline */}
+              <div className="space-y-4">
+                <h1 className="text-6xl md:text-[5.5rem] font-black text-white leading-[0.85] tracking-tighter uppercase italic">
+                  Field-To-Clinic <br/>
+                  <span className="text-sky-500 not-italic">Live Telemetry.</span>
+                </h1>
+                <div className="h-1.5 w-24 bg-sky-500 rounded-full" />
+              </div>
+
+              {/* Focused Subtext */}
+              <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-xl">
+                A synchronized health coordination network for <span className="text-white font-bold">Barangay Bantayan</span>. 
+                Bridging the communication gap between field caregivers and clinicians with <span className="text-sky-400 font-mono">sub-second latency</span>.
+              </p>
+
+              {/* CTA Actions */}
+              <div className="flex flex-wrap items-center gap-6 pt-6">
+                <Link 
+                  to="/login" 
+                  className="px-10 py-5 bg-sky-500 hover:bg-sky-400 !text-slate-950 rounded-2xl font-black uppercase text-xs tracking-[0.3em] transition-all shadow-2xl shadow-sky-500/30 active:scale-95 flex items-center gap-3"
+                >
+                  Authorize Access <Lock size={16} />
+                </Link>
+              </div>
+            </div>
+
+            {/* ── RIGHT: TELEMETRY NETWORK VISUAL (6 Columns) ── */}
+            <div className="lg:col-span-6 flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-[550px] aspect-square">
+                
+                {/* Main Core Node */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-sky-500/5 rounded-[4rem] border border-sky-500/10 backdrop-blur-3xl flex items-center justify-center z-20 shadow-2xl">
+                   <div className="w-48 h-48 bg-sky-500/10 rounded-[3rem] border border-sky-500/20 flex items-center justify-center">
+                      <div className="w-32 h-32 bg-sky-500/20 rounded-[2.5rem] flex items-center justify-center animate-pulse">
+                         <Heart size={80} className="text-sky-500" fill="currentColor" />
+                      </div>
+                   </div>
+                   <p className="absolute bottom-6 text-[9px] font-black text-sky-500/60 uppercase tracking-[0.3em]">Central Hub</p>
+                </div>
+
+                {/* Floating Telemetry Nodes (Strategic Placement) */}
+                {/* BHW Node 01 */}
+                <div className="absolute top-[5%] left-[5%] p-5 bg-slate-900/80 border border-emerald-500/30 rounded-3xl backdrop-blur-xl shadow-2xl animate-float z-30">
+                   <div className="flex items-center gap-3 mb-3">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-slate-400 uppercase">Node_BHW_01</span>
+                   </div>
+                   <p className="text-lg font-mono text-white font-black">BP: 120/80</p>
+                   <p className="text-[8px] font-bold text-emerald-500 uppercase mt-1">Status: Normal</p>
+                </div>
+
+                {/* BHW Node 02 (Urgent) */}
+                <div className="absolute bottom-[10%] right-[5%] p-5 bg-slate-900/80 border border-rose-500/30 rounded-3xl backdrop-blur-xl shadow-2xl animate-float z-30" style={{ animationDelay: '1.5s' }}>
+                   <div className="flex items-center gap-3 mb-3">
+                      <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-slate-400 uppercase">Node_BHW_04</span>
+                   </div>
+                   <p className="text-lg font-mono text-rose-400 font-black">O2: 89%</p>
+                   <p className="text-[8px] font-bold text-rose-500 uppercase mt-1">Alert: Critical</p>
+                </div>
+
+                {/* Connection Web (SVG) */}
+                <svg className="absolute inset-0 w-full h-full opacity-30 pointer-events-none" viewBox="0 0 100 100">
+                   <path d="M 20 20 L 50 50" stroke="#0ea5e9" strokeWidth="0.2" strokeDasharray="2 2" />
+                   <path d="M 80 80 L 50 50" stroke="#f43f5e" strokeWidth="0.2" strokeDasharray="2 2" />
+                   <circle cx="50" cy="50" r="40" stroke="rgba(14,165,233,0.1)" fill="none" strokeWidth="0.1" />
+                   <circle cx="50" cy="50" r="30" stroke="rgba(14,165,233,0.1)" fill="none" strokeWidth="0.1" />
+                </svg>
+
+              </div>
+            </div>
+
           </div>
         </div>
-
-        {/* Right Side Visualization */}
-        <div className="relative flex items-center justify-center w-full">
-          <LiveNodeVisual />
-        </div>
-      </main>
+      </section>
 
       {/* ── SYSTEM CAPABILITIES SECTION ── */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
