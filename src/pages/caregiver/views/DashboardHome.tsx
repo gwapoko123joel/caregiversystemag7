@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   User, TrendingUp, ChevronRight, 
   ClipboardList, Activity, Shield, 
-  Phone, Bell, UserPlus, ShieldCheck
+  Phone, Bell, UserPlus, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabaseClient';
@@ -14,13 +14,45 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   const [orders, setOrders] = useState<any[]>([]);
   const [latestAnnouncement, setLatestAnnouncement] = useState<any>(null);
   const [localDutyStatus, setLocalStatus] = useState(userProfile?.duty_status || 'off_duty');
+  const [currentShift, setCurrentShift] = useState<any>(null);
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
+  const [elapsedMs, setElapsedMs] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const SHIFT_DURATION_MS = 9 * 60 * 60 * 1000;
+  const shiftProgress = Math.min((elapsedMs / SHIFT_DURATION_MS) * 100, 100);
+  const isWarningZone = elapsedMs >= 8 * 60 * 60 * 1000; // 8 hours
+  const isOvertime = elapsedMs >= SHIFT_DURATION_MS; // 9 hours
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Live Chronograph Logic
+  useEffect(() => {
+    let interval: any;
+    if (currentShift && currentShift.start_time) {
+      const updateTimer = () => {
+        const start = new Date(currentShift.start_time).getTime();
+        const now = new Date().getTime();
+        const diff = Math.max(0, now - start);
+        setElapsedMs(diff);
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const format = (n: number) => n.toString().padStart(2, '0');
+        setElapsedTime(`${format(hours)}:${format(minutes)}:${format(seconds)}`);
+      };
+      
+      updateTimer(); // Initial call
+      interval = setInterval(updateTimer, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [currentShift]);
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -58,6 +90,20 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
 
   // Fetch logic (Preserving essential real-time dashboard data)
   const fetchData = async () => {
+    if (user) {
+      const { data: activeShift } = await supabase
+        .from('personnel_shifts')
+        .select('*')
+        .eq('user_id', user.id)
+        .neq('status', 'completed')
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .single();
+      if (activeShift) {
+        setCurrentShift(activeShift);
+      }
+    }
+
     const { data: d } = await supabase
       .from('caregivers')
       .select('*')
@@ -89,20 +135,112 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  async function toggleDutyStatus() {
-    const newStatus = localDutyStatus === 'on_duty' ? 'off_duty' : 'on_duty';
-    const { error } = await supabase.from('caregivers').update({ duty_status: newStatus }).eq('id', user?.id);
+  // 1. Clock In Logic
+  async function handleClockIn() {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('personnel_shifts')
+      .insert({ user_id: user.id, status: 'active' })
+      .select().single();
+      
     if (!error) {
-      setLocalStatus(newStatus);
-      // Log shift change for audit trail
+      setCurrentShift(data);
+      await supabase.from('caregivers').update({ duty_status: 'on_duty' }).eq('id', user.id);
+      
+      // Log for audit trail
       await supabase.from('activity_logs').insert({
-        user_id: user?.id,
+        user_id: user.id,
         user_type: 'caregiver',
-        action: newStatus === 'on_duty' ? 'SHIFT_START' : 'SHIFT_END',
-        details: { status: newStatus }
+        action: 'SHIFT_START',
+        details: { shift_id: data.shift_id }
       });
+
+      setLocalStatus('on_duty');
     }
   }
+
+  // 2. Break Toggle Logic
+  async function handleToggleBreak() {
+    if (!user || !currentShift) return;
+    const isStartingBreak = currentShift.status !== 'break';
+    
+    // Safety check: Cannot start a break if already on lunch
+    if (isStartingBreak && currentShift.status === 'lunch') return;
+
+    const update = isStartingBreak 
+      ? { status: 'break', break_start: new Date().toISOString() } 
+      : { status: 'active', break_end: new Date().toISOString() };
+
+    const { error } = await supabase.from('personnel_shifts').update(update).eq('shift_id', currentShift.shift_id);
+    
+    if (!error) {
+      setCurrentShift({...currentShift, ...update});
+      const newDutyStatus = isStartingBreak ? 'on_break' : 'on_duty';
+      await supabase.from('caregivers').update({ duty_status: newDutyStatus }).eq('id', user.id);
+      setLocalStatus(newDutyStatus);
+    }
+  }
+
+  // 3. Lunch Toggle Logic
+  async function handleToggleLunch() {
+    if (!user || !currentShift) return;
+    const isStartingLunch = currentShift.status !== 'lunch';
+    
+    // Safety check: Cannot start a lunch if already on break
+    if (isStartingLunch && currentShift.status === 'break') return;
+
+    const update = isStartingLunch 
+      ? { status: 'lunch', lunch_start: new Date().toISOString() } 
+      : { status: 'active', lunch_end: new Date().toISOString() };
+
+    const { error } = await supabase.from('personnel_shifts').update(update).eq('shift_id', currentShift.shift_id);
+    
+    if (!error) {
+      setCurrentShift({...currentShift, ...update});
+      const newDutyStatus = isStartingLunch ? 'on_break' : 'on_duty';
+      await supabase.from('caregivers').update({ duty_status: newDutyStatus }).eq('id', user.id);
+      setLocalStatus(newDutyStatus);
+    }
+  }
+
+  // 4. Clock Out with Handover Note
+  async function handleClockOut() {
+    if (!user || !currentShift) return;
+    const note = prompt("9-HOUR OPERATIONAL LIMIT MET.\nMANDATORY: Enter Clinical Handover Note for the next shift:");
+    if (!note) return;
+
+    await supabase.from('personnel_shifts').update({
+      end_time: new Date().toISOString(),
+      status: 'completed',
+      handover_note: note
+    }).eq('shift_id', currentShift.shift_id);
+
+    await supabase.from('caregivers').update({ duty_status: 'off_duty' }).eq('id', user.id);
+    
+    // Log for audit trail
+    await supabase.from('activity_logs').insert({
+      user_id: user.id,
+      user_type: 'caregiver',
+      action: 'SHIFT_END',
+      details: { 
+        shift_id: currentShift.shift_id,
+        duration_ms: elapsedMs,
+        duration_formatted: elapsedTime,
+        handover_note: note
+      }
+    });
+
+    setLocalStatus('off_duty');
+    setCurrentShift(null);
+    setElapsedTime('00:00:00');
+    setElapsedMs(0);
+    alert("Shift Terminated. Handover transmitted to network.");
+  }
+
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return '--:--';
+    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   const caregiverName = userProfile?.full_name?.split(' ')[0] || 'Caregiver';
 
@@ -113,8 +251,10 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[40px] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-             <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Node Active</span>
+             <div className={`w-2 h-2 rounded-full ${localDutyStatus === 'on_duty' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : localDutyStatus === 'on_break' ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-slate-500'} animate-pulse`} />
+             <span className={`text-[10px] font-black uppercase tracking-[0.4em] ${localDutyStatus === 'on_duty' ? 'text-emerald-500' : localDutyStatus === 'on_break' ? 'text-amber-500' : 'text-slate-500'}`}>
+               {localDutyStatus === 'on_duty' ? 'Node Active' : localDutyStatus === 'on_break' ? 'Node Paused' : 'Node Offline'}
+             </span>
           </div>
           <h2 className="text-4xl font-black text-white uppercase tracking-tighter">
             Welcome, {caregiverName}
@@ -135,6 +275,22 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
            </button>
         </div>
       </div>
+
+      {/* ── AUTOMATED OVERTIME BANNER ── */}
+      {currentShift && isOvertime && (
+        <div className="bg-rose-500/20 border border-rose-500/50 p-5 rounded-[28px] flex items-center gap-5 animate-pulse shadow-[0_0_20px_rgba(225,29,72,0.3)]">
+          <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-rose-500/20">
+            <AlertTriangle size={22} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="bg-rose-500 text-white text-[7px] font-black px-2 py-0.5 rounded tracking-widest">SHIFT OVERRUN</span>
+              <h4 className="text-[11px] font-black text-rose-400 uppercase tracking-tighter">FATIGUE ALERT</h4>
+            </div>
+            <p className="text-xs text-white font-black italic">⚠️ SHIFT LIMIT REACHED: Please initialize handover protocol and synchronize final telemetry nodes.</p>
+          </div>
+        </div>
+      )}
 
       {/* ── NETWORK BROADCAST BANNER ── */}
       {latestAnnouncement && (
@@ -157,18 +313,142 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       )}
 
       {/* ── QUICK STATS HUD ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <StatCard label="Total Reports" value={recentLogs?.length || 0} icon={<ClipboardList size={20}/>} color="sky" />
         <StatCard label="Weekly Pulse" value={recentLogs?.length || 0} icon={<TrendingUp size={20}/>} color="emerald" />
-        <StatCard label="Session ID" value={user?.id.slice(0, 5)} icon={<Activity size={20}/>} color="purple" isMono />
-        <div onClick={toggleDutyStatus} className="cursor-pointer group">
-          <StatCard 
-            label="Shift Protocol" 
-            value={localDutyStatus === 'on_duty' ? 'ON DUTY' : 'OFF DUTY'} 
-            icon={<Shield size={20}/>} 
-            color={localDutyStatus === 'on_duty' ? 'emerald' : 'slate'}
-            pulse={localDutyStatus === 'on_duty'}
-          />
+        
+        <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 shadow-xl flex flex-col justify-center relative overflow-hidden group">
+          {/* Status Glow Indicator */}
+          <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-20 group-hover:opacity-30 transition-opacity ${
+            isOvertime ? 'bg-rose-500' :
+            isWarningZone ? 'bg-amber-500' :
+            currentShift?.status === 'active' ? 'bg-emerald-500' :
+            currentShift?.status === 'break' || currentShift?.status === 'lunch' ? 'bg-amber-500' : 'bg-slate-500'
+          }`} />
+
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Operational Shift Protocol</h3>
+            {currentShift && (
+              <span className={`text-[9px] font-mono animate-pulse ${
+                isOvertime ? 'text-rose-500' :
+                isWarningZone ? 'text-amber-500' :
+                currentShift.status === 'active' ? 'text-emerald-500' : 'text-amber-500'
+              }`}>
+                LIVE: {currentShift.shift_id.slice(0,8)}
+              </span>
+            )}
+          </div>
+
+          {!currentShift ? (
+            <button onClick={handleClockIn} className="relative z-10 w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
+              Initialize Shift
+            </button>
+          ) : (
+            <div className="space-y-4 relative z-10">
+              
+              {/* SHIFT LIFECYCLE MONITOR */}
+              <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex flex-col shadow-inner gap-4">
+                 <div className="flex items-center justify-between">
+                   <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Shift Lifecycle Monitor</p>
+                   <p className={`text-3xl font-mono font-black tracking-tight ${
+                     isOvertime ? 'text-rose-500 drop-shadow-[0_0_12px_rgba(225,29,72,0.4)] animate-pulse' :
+                     isWarningZone ? 'text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]' :
+                     currentShift.status === 'active' ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]'
+                   }`}>
+                     {(() => {
+                       const [h, m, s] = elapsedTime.split(':');
+                       if (!h || !m || !s) return elapsedTime;
+                       return (
+                         <>
+                           {h}<span className="animate-pulse opacity-50">:</span>{m}<span className="animate-pulse opacity-50">:</span>{s}
+                         </>
+                       );
+                     })()}
+                   </p>
+                 </div>
+                 
+                 {/* Progress Bar */}
+                 <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden shadow-inner">
+                   <div 
+                     className={`h-full transition-all duration-1000 rounded-full ${
+                       isOvertime ? 'bg-rose-500 shadow-[0_0_10px_#e11d48] animate-pulse' :
+                       isWarningZone ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' :
+                       'bg-emerald-500 shadow-[0_0_10px_#10b981]'
+                     }`}
+                     style={{ width: `${shiftProgress}%` }}
+                   />
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button 
+                  onClick={handleToggleBreak} 
+                  disabled={currentShift.status === 'lunch'}
+                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                    currentShift.status === 'break' 
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
+                      : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
+                  } ${currentShift.status === 'lunch' ? 'opacity-30 cursor-not-allowed hover:bg-amber-500/5' : ''}`}
+                >
+                  {currentShift.status === 'break' ? 'End Break' : 'Start Break'}
+                </button>
+                
+                <button 
+                  onClick={handleToggleLunch} 
+                  disabled={currentShift.status === 'break'}
+                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                    currentShift.status === 'lunch' 
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
+                      : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
+                  } ${currentShift.status === 'break' ? 'opacity-30 cursor-not-allowed hover:bg-amber-500/5' : ''}`}
+                >
+                  {currentShift.status === 'lunch' ? 'End Lunch' : 'Start Lunch'}
+                </button>
+
+                <button onClick={handleClockOut} className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                  isOvertime || isWarningZone ? 'bg-rose-500 hover:bg-rose-400 text-white shadow-[0_0_15px_rgba(225,29,72,0.4)] animate-pulse' : 'bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500'
+                }`}>
+                  Terminate Shift
+                </button>
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <h4 className="text-[8px] font-black uppercase text-slate-500 mb-3 tracking-widest">Shift Activity Ledger</h4>
+                <div className="relative pl-3 space-y-3 border-l border-sky-500/20">
+                  {/* Start Milestone */}
+                  <div className="relative">
+                    <div className="absolute -left-[17px] top-1 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400">Ingress Sequence</p>
+                       <p className="text-[10px] font-mono text-sky-400">{formatTime(currentShift.start_time)}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Break Milestone */}
+                  <div className="relative">
+                    <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.break_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400">Break Status</p>
+                       <p className={`text-[10px] font-mono ${currentShift.break_start ? 'text-amber-400' : 'text-slate-600'}`}>
+                         {formatTime(currentShift.break_start)} {currentShift.break_end ? `- ${formatTime(currentShift.break_end)}` : (currentShift.status === 'break' ? '- ACTIVE' : '')}
+                       </p>
+                    </div>
+                  </div>
+
+                  {/* Lunch Milestone */}
+                  <div className="relative">
+                    <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.lunch_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400">Lunch Status</p>
+                       <p className={`text-[10px] font-mono ${currentShift.lunch_start ? 'text-amber-400' : 'text-slate-600'}`}>
+                         {formatTime(currentShift.lunch_start)} {currentShift.lunch_end ? `- ${formatTime(currentShift.lunch_end)}` : (currentShift.status === 'lunch' ? '- ACTIVE' : '')}
+                       </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

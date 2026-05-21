@@ -8,12 +8,15 @@ import {
   ChevronRight,
   User,
   ShieldCheck,
-  XCircle
+  XCircle,
+  Clock,
+  MessageSquare
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
+import { useAuth } from '../../../hooks/useAuth'
 
 import type { AlertItem } from '../types'
 
@@ -32,8 +35,13 @@ export default function PractitionerOverview({
   criticalAlerts,
   initiateCall
 }: PractitionerOverviewProps) {
+  const { user } = useAuth();
   const [activeBHWs, setActiveBHWs] = useState<any[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
+
+  const [currentShift, setCurrentShift] = useState<any>(null);
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
+  const [previousHandover, setPreviousHandover] = useState<any>(null);
 
   useEffect(() => {
     const fetchActiveBHWs = async () => {
@@ -55,6 +63,127 @@ export default function PractitionerOverview({
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  const fetchSessionData = async () => {
+    if (!user) return;
+    const { data: activeShift } = await supabase
+      .from('personnel_shifts')
+      .select('*')
+      .eq('user_id', user.id)
+      .neq('status', 'completed')
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .single();
+    if (activeShift) {
+      setCurrentShift(activeShift);
+    }
+
+    // Fetch previous handover
+    const { data: prev } = await supabase
+      .from('personnel_shifts')
+      .select('handover_note, end_time, caregivers!inner(full_name, role)')
+      .eq('status', 'completed')
+      .eq('caregivers.role', 'medical_practitioner')
+      .not('handover_note', 'is', null)
+      .order('end_time', { ascending: false })
+      .limit(1)
+      .single();
+    if (prev) setPreviousHandover(prev);
+  };
+
+  useEffect(() => {
+    fetchSessionData();
+  }, [user]);
+
+  // Live Chronograph Logic
+  useEffect(() => {
+    let interval: any;
+    if (currentShift && currentShift.start_time) {
+      const updateTimer = () => {
+        const start = new Date(currentShift.start_time).getTime();
+        const now = new Date().getTime();
+        const diff = Math.max(0, now - start);
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const format = (n: number) => n.toString().padStart(2, '0');
+        setElapsedTime(`${format(hours)}:${format(minutes)}:${format(seconds)}`);
+      };
+      
+      updateTimer(); // Initial call
+      interval = setInterval(updateTimer, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [currentShift]);
+
+  // Session Management Functions
+  async function handleSessionStart() {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('personnel_shifts')
+      .insert({ user_id: user.id, status: 'active' })
+      .select().single();
+      
+    if (!error) {
+      setCurrentShift(data);
+      await supabase.from('caregivers').update({ duty_status: 'available' }).eq('id', user.id);
+    }
+  }
+
+  async function handleBreak(type: 'break' | 'lunch') {
+    if (!user || !currentShift) return;
+    const isStarting = currentShift.status !== type;
+    
+    // Safety check: Cannot start a break if already on lunch, etc.
+    if (isStarting && (currentShift.status === 'break' || currentShift.status === 'lunch')) return;
+
+    const update: any = { status: isStarting ? type : 'active' };
+    if (type === 'break') {
+       update[isStarting ? 'break_start' : 'break_end'] = new Date().toISOString();
+    } else {
+       update[isStarting ? 'lunch_start' : 'lunch_end'] = new Date().toISOString();
+    }
+
+    const { error } = await supabase.from('personnel_shifts').update(update).eq('shift_id', currentShift.shift_id);
+    
+    if (!error) {
+      setCurrentShift({...currentShift, ...update});
+      await supabase.from('caregivers').update({ duty_status: isStarting ? 'busy' : 'available' }).eq('id', user.id);
+    }
+  }
+
+  async function handleSessionEnd() {
+    if (!user || !currentShift) return;
+    const note = prompt("MANDATORY: Enter Clinical Handover Memo for the next practitioner:");
+    if (!note) return;
+
+    await supabase.from('personnel_shifts').update({
+      end_time: new Date().toISOString(),
+      status: 'completed',
+      handover_note: note
+    }).eq('shift_id', currentShift.shift_id);
+
+    await supabase.from('caregivers').update({ duty_status: 'off_duty' }).eq('id', user.id);
+    
+    // Log for audit trail
+    await supabase.from('activity_logs').insert({
+      user_id: user.id,
+      user_type: 'medical_practitioner',
+      action: 'SESSION_END',
+      details: { 
+        shift_id: currentShift.shift_id,
+        duration_formatted: elapsedTime,
+        handover_note: note
+      }
+    });
+
+    setCurrentShift(null);
+    setElapsedTime('00:00:00');
+    fetchSessionData();
+    alert("Session Terminated. Handover Memo transmitted to network.");
+  }
+
   const stats = {
     totalPatients: patientsCount,
     pendingAlerts: alertCount,
@@ -63,6 +192,110 @@ export default function PractitionerOverview({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">
+      {/* ── CLINICAL SESSION HUD ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+         {/* Session Handover Box */}
+         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[32px] shadow-2xl flex flex-col justify-center">
+            <h3 className="text-[10px] font-black text-sky-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+               <MessageSquare size={14} /> Session Handover
+            </h3>
+            {previousHandover ? (
+               <div className="space-y-2">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                     Handover from Practitioner Node: {previousHandover.caregivers?.full_name}
+                  </p>
+                  <div className="p-4 bg-sky-500/5 border-l-2 border-sky-500 rounded-r-2xl">
+                     <p className="text-[11px] text-white italic">"{previousHandover.handover_note}"</p>
+                  </div>
+                  <p className="text-[8px] font-mono text-slate-600 uppercase mt-2">
+                     Terminated: {new Date(previousHandover.end_time).toLocaleTimeString()}
+                  </p>
+               </div>
+            ) : (
+               <div className="py-6 text-center opacity-20 flex flex-col items-center gap-3">
+                   <ShieldCheck size={24} />
+                   <p className="text-[9px] font-black uppercase tracking-widest">No Previous Handover Found</p>
+               </div>
+            )}
+         </div>
+
+         {/* Clinical Session Control Panel */}
+         <div className="lg:col-span-2 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 shadow-xl relative overflow-hidden group">
+          <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-20 transition-opacity ${
+            currentShift?.status === 'active' ? 'bg-emerald-500' :
+            currentShift?.status === 'break' || currentShift?.status === 'lunch' ? 'bg-amber-500' : 'bg-slate-500'
+          }`} />
+
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+               <Clock size={14} /> Clinical Session Management
+            </h3>
+            {currentShift && (
+              <span className={`text-[9px] font-mono animate-pulse ${
+                currentShift.status === 'active' ? 'text-emerald-500' : 'text-amber-500'
+              }`}>
+                LIVE: {currentShift.shift_id.slice(0,8)}
+              </span>
+            )}
+          </div>
+
+          {!currentShift ? (
+            <button onClick={handleSessionStart} className="relative z-10 w-full py-5 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95">
+              Initialize Clinical Session
+            </button>
+          ) : (
+            <div className="space-y-4 relative z-10">
+              <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex items-center justify-between shadow-inner">
+                 <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Session Duration</p>
+                 <p className={`text-3xl font-mono font-black tracking-tight ${
+                   currentShift.status === 'active' ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]'
+                 }`}>
+                   {(() => {
+                     const [h, m, s] = elapsedTime.split(':');
+                     if (!h || !m || !s) return elapsedTime;
+                     return (
+                       <>
+                         {h}<span className="animate-pulse opacity-50">:</span>{m}<span className="animate-pulse opacity-50">:</span>{s}
+                       </>
+                     );
+                   })()}
+                 </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button 
+                  onClick={() => handleBreak('break')} 
+                  disabled={currentShift.status === 'lunch'}
+                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                    currentShift.status === 'break' 
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
+                      : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
+                  } ${currentShift.status === 'lunch' ? 'opacity-30 cursor-not-allowed hover:bg-amber-500/5' : ''}`}
+                >
+                  {currentShift.status === 'break' ? 'End Break' : 'Start Break'}
+                </button>
+                
+                <button 
+                  onClick={() => handleBreak('lunch')} 
+                  disabled={currentShift.status === 'break'}
+                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                    currentShift.status === 'lunch' 
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
+                      : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
+                  } ${currentShift.status === 'break' ? 'opacity-30 cursor-not-allowed hover:bg-amber-500/5' : ''}`}
+                >
+                  {currentShift.status === 'lunch' ? 'End Lunch' : 'Start Lunch'}
+                </button>
+
+                <button onClick={handleSessionEnd} className="py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500">
+                  Terminate Session
+                </button>
+              </div>
+            </div>
+          )}
+         </div>
+      </div>
+
       {/* ── TOP LEVEL: LIVE PERSONNEL NODES ── */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-6 px-2">
