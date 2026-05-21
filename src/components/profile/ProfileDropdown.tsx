@@ -1,4 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+const formatName = (name: string) => {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User as UserIcon, LogOut, ChevronUp,
@@ -70,7 +78,7 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
                           border border-cyan-500/20 text-xs font-light tracking-wider 
                           text-white opacity-0 group-hover:opacity-100 
                           pointer-events-none whitespace-nowrap z-[100]">
-              {user.full_name || `${user.first_name} ${user.last_name}`}
+              {formatName(user.full_name || `${user.first_name} ${user.last_name}`)}
               <div className="text-[10px] tracking-wider uppercase text-cyan-300/80">
                 {formatRole(user.role)}
               </div>
@@ -117,25 +125,30 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
     <div ref={dropdownRef} className="relative w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full backdrop-blur-xl bg-white/5 border border-cyan-500/15 
-                 rounded-xl p-3 hover:bg-white/[0.07] transition-colors"
+        className="w-full text-left p-3 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center gap-3 hover:bg-slate-950/50 transition-all duration-300 cursor-pointer"
       >
-        <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-2 border-sky-500/20 overflow-hidden flex-shrink-0">
           <ProfileAvatar 
             src={user.profile_picture_url} 
             fullName={user.full_name || `${user.first_name} ${user.last_name}`} size="md"
           />
-          <div className="flex-1 min-w-0 text-left">
-            <p className="text-sm font-light text-white truncate">{user.full_name || `${user.first_name} ${user.last_name}`}</p>
-            <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 truncate">
-              {formatRole(user.role)}
-            </p>
-          </div>
-          <ChevronUp className={`w-4 h-4 text-cyan-300/60 flex-shrink-0 
-                              transition-transform duration-200
-                              ${isOpen ? '' : 'rotate-180'}`} 
-                     strokeWidth={1.5} />
         </div>
+        
+        <div className="flex-1 min-w-0">
+          {/* Name: Formal Title Case */}
+          <p className="text-xs font-bold text-white tracking-tight truncate">
+            {formatName(user.full_name || `${user.first_name} ${user.last_name}`)}
+          </p>
+          {/* Role: Clean Muted Subtext */}
+          <p className="text-[9px] font-bold text-sky-500/60 uppercase tracking-widest mt-0.5 animate-pulse">
+            {user.role === 'medical_practitioner' ? 'MD Node' : 'Field Node'}
+          </p>
+        </div>
+
+        <ChevronUp className={`w-4 h-4 text-sky-500/60 flex-shrink-0 
+                            transition-transform duration-200
+                            ${isOpen ? '' : 'rotate-180'}`} 
+                   strokeWidth={1.5} />
       </button>
 
       <AnimatePresence>
@@ -165,8 +178,8 @@ function UserHeader({ user }: { user: Caregiver }) {
     <div className="p-4 border-b border-white/5 flex items-center gap-3">
       <ProfileAvatar src={user.profile_picture_url} fullName={user.full_name || `${user.first_name} ${user.last_name}`} size="md" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-light text-white truncate">{user.full_name || `${user.first_name} ${user.last_name}`}</p>
-        <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 truncate">
+        <p className="text-sm font-bold text-white truncate">{formatName(user.full_name || `${user.first_name} ${user.last_name}`)}</p>
+        <p className="text-xs font-bold tracking-wider uppercase text-sky-500/80 truncate">
           {user.role.replace('_', ' ')}
         </p>
       </div>

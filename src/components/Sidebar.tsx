@@ -23,6 +23,15 @@ import { useSidebar } from '../contexts/SidebarContext';
 import { ProfileDropdown } from './profile/ProfileDropdown';
 import type { UserRole } from '../types/database';
 
+const formatName = (name: string) => {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 interface SidebarProps {
   onLogoutClick: () => void;
 }
@@ -121,14 +130,14 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="fixed lg:sticky top-0 left-0 z-[100] h-screen !bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl lg:shadow-none overflow-visible"
       >
-        {/* ── LOGO SECTION (Simplified) ── */}
-        <div className="flex items-center gap-3 py-8 px-6 overflow-hidden">
-          <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+        {/* ── LOGO SECTION (Reduced Padding) ── */}
+        <div className="flex items-center gap-3 pt-8 pb-4 px-6 overflow-hidden">
+          <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20 flex-shrink-0">
             <Heart size={20} className="text-white" fill="white" />
           </div>
           
           {!(isCollapsed && isDesktop) && (
-            <span className="font-black text-white uppercase tracking-tight text-xl whitespace-nowrap transition-colors">
+            <span className="font-black text-white uppercase tracking-tighter text-xl whitespace-nowrap animate-in fade-in duration-300">
               Bantayan<span className="text-sky-500">Care</span>
             </span>
           )}
@@ -165,8 +174,26 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide py-4">
-          {!(isCollapsed && isDesktop) && (
-            <div className="px-4 mb-4 text-[10px] font-light text-sidebar-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Management</div>
+          {/* ── SECTION LABEL: MANAGEMENT (Tighter & Higher Contrast) ── */}
+          {!isCollapsed && (
+            <div className="px-6 mb-4 mt-2 animate-in fade-in duration-500">
+              <div className="flex items-center gap-2.5">
+                {/* Increased opacity for better visibility */}
+                <div className="w-1 h-3 bg-sky-500 rounded-full" />
+                
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] select-none">
+                  Management <span className="text-sky-500 font-bold ml-0.5">Protocol</span>
+                </span>
+                
+                {/* Subtle faint extension line */}
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
+            </div>
+          )}
+
+          {/* If the sidebar is collapsed, we show a simple horizontal line instead */}
+          {isCollapsed && (
+            <div className="mx-4 my-6 h-px bg-white/5" />
           )}
         
         {navItems.map((item) => {

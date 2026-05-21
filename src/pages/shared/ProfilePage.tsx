@@ -1,16 +1,63 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   User, ShieldCheck, Mail, IdCard, 
   Activity, Camera, Loader2, CheckCircle2, 
-  Briefcase, Hospital
+  Briefcase, Hospital, Edit2, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
+
+const formatName = (name: string) => {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 export default function ProfilePage() {
   const { profile, user, refreshProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
+
+  async function handleUpdateName() {
+    if (!newName.trim() || newName === profile?.full_name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    try {
+      // 1. Update the Master Personnel Record
+      const { error } = await supabase
+        .from('caregivers')
+        .update({ full_name: newName.trim() })
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      // 2. LOG THE CHANGE: This is critical for your thesis accountability
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        action: 'IDENTITY_UPDATE',
+        details: { 
+          old_identity: profile?.full_name, 
+          new_identity: newName.trim(),
+          node_id: profile?.unique_access_id 
+        }
+      });
+
+      // 3. Finalize
+      setIsEditingName(false);
+      if(refreshProfile) await refreshProfile(); // Re-fetches the profile to update the whole app
+      alert("Node Identity Synchronized.");
+    } catch (err: any) {
+      alert("Update Failed: " + err.message);
+    }
+  }
 
   // --- LOGIC: HANDLE IMAGE UPLOAD ---
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -53,14 +100,40 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 px-4 md:px-0">
       
-      {/* ── HEADER ── */}
-      <div className="px-2">
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none mb-3">
-          Operator <span className="text-sky-500">Profile Node</span>
-        </h2>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">
-          Barangay Monitoring Network — Identity Verification
-        </p>
+      {/* ── UNIFIED OPERATOR HEADER ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <div className="flex items-center gap-6">
+          {/* The Standard Node Icon */}
+          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-sky-500/20 flex-shrink-0">
+             <User size={28} />
+          </div>
+
+          <div className="space-y-1">
+            {/* Unified Typography: Heavy weight for clinical identity */}
+            <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-none">
+              Operator <span className="text-sky-500">Profile Node</span>
+            </h2>
+            
+            {/* Unified Subtext: Professional high-tracking protocol label */}
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.35em]">
+                Identity Verification Protocol — Barangay Bantayan Network
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sync Status Telemetry */}
+        <div className="hidden lg:flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+           <div className="text-right">
+              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">System Status</p>
+              <p className="text-[10px] font-mono font-bold text-sky-400 mt-1 uppercase">Synchronized</p>
+           </div>
+           <div className="w-8 h-8 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-500">
+              <RefreshCw size={14} className="animate-spin" />
+           </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -97,13 +170,72 @@ export default function ProfilePage() {
               <input ref={fileInputRef} type="file" className="hidden" onChange={handleUpload} accept="image/*" />
             </div>
 
-            <h3 className="text-2xl font-black text-white uppercase tracking-tight leading-tight mb-2">
-              {profile?.full_name}
-            </h3>
-            <div className="px-4 py-1.5 bg-sky-500/10 border border-sky-500/20 rounded-full">
-               <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest">
-                 {profile?.role?.replace('_', ' ')}
-               </p>
+            {/* ── INTERACTIVE IDENTITY NODE ── */}
+            <div className="w-full mt-4 min-h-[140px] flex flex-col items-center justify-center">
+              {isEditingName ? (
+                /* --- EDITING MODE: Standardized Sizing --- */
+                <div className="w-full space-y-4 animate-in fade-in zoom-in duration-300">
+                  <div className="relative">
+                    <input 
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full bg-slate-950/80 border-2 border-sky-500/50 rounded-2xl p-4 text-center text-white text-xl font-black uppercase outline-none shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all focus:border-sky-400"
+                      autoFocus
+                      placeholder="Enter Full Name"
+                    />
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 bg-[#020617] border border-sky-500/30 rounded-full">
+                       <p className="text-[8px] font-black text-sky-500 uppercase tracking-widest">Editing Name</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                     <button 
+                       onClick={handleUpdateName} 
+                       className="py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                     >
+                       <CheckCircle2 size={14} /> Commit
+                     </button>
+                     <button 
+                       onClick={() => { setIsEditingName(false); setNewName(profile?.full_name || ''); }} 
+                       className="py-3.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+                     >
+                       Abort
+                     </button>
+                  </div>
+                </div>
+              ) : (
+                /* ── CORPORATE IDENTITY NODE ── */
+                <div className="flex flex-col items-center gap-5 animate-in fade-in duration-700 w-full">
+                  <div className="space-y-1 text-center">
+                    {/* Refined Corporate Typography */}
+                    <h3 className="text-3xl font-bold text-white tracking-tight leading-tight">
+                      {formatName(profile?.full_name)}
+                    </h3>
+                    <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.3em]">
+                      {profile?.role?.replace('_', ' ')}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2 w-full max-w-[240px]">
+                    {/* Professional Action Button */}
+                    <button 
+                      onClick={() => { setIsEditingName(true); setNewName(profile?.full_name || ''); }}
+                      className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl hover:bg-sky-500 hover:text-slate-950 hover:border-sky-500 transition-all duration-300 shadow-sm active:scale-95 cursor-pointer animate-in duration-300"
+                    >
+                      <Edit2 size={12} />
+                      Update Identity Node
+                    </button>
+
+                    {/* Personnel Badge */}
+                    <div className="flex items-center justify-center gap-2 py-1.5 bg-slate-950/40 border border-white/5 rounded-lg">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                         System Verified: {profile?.role?.replace('_', ' ')}
+                       </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="w-full mt-10 pt-8 border-t border-white/5 space-y-4">
