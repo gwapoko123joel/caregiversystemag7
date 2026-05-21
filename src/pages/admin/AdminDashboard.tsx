@@ -125,11 +125,17 @@ function AdminLayout() {
     const { data, error: fetchErr } = await supabase
       .from('caregiver_performance_summary')
       .select('*')
-      .order('total_reports', { ascending: false })
-      .limit(5)
 
     if (fetchErr) throw fetchErr
-    setPerformance(data ?? [])
+
+    // Multi-Level Priority Sorting: on_duty first, then total_reports descending
+    const sortedData = (data ?? []).sort((a: any, b: any) => {
+      if (a.duty_status === 'on_duty' && b.duty_status !== 'on_duty') return -1;
+      if (a.duty_status !== 'on_duty' && b.duty_status === 'on_duty') return 1;
+      return (b.total_reports || 0) - (a.total_reports || 0);
+    });
+
+    setPerformance(sortedData)
   }, [])
 
   useEffect(() => {

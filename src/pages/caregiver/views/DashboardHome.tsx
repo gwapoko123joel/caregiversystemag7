@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   User, TrendingUp, ChevronRight, 
   ClipboardList, Activity, Shield, 
-  Phone, Bell, UserPlus
+  Phone, Bell, UserPlus, ShieldCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabaseClient';
@@ -22,6 +22,40 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
     return () => clearInterval(timer);
   }, []);
 
+  const fetchOrders = async () => {
+    if (!user) return;
+
+    // 1. PHASE 1: Find only the patients assigned to VICTOR
+    const { data: myAssignments, error: assignError } = await supabase
+      .from('caregiver_patient_assignments')
+      .select('patient_id')
+      .eq('caregiver_id', user.id);
+
+    // 2. LOGIC GATE: If Victor has no patients, stop here and show nothing
+    if (!myAssignments || myAssignments.length === 0) {
+      setOrders([]); // This clears the "Take medicine" ghost order
+      return;
+    }
+
+    // 3. PHASE 2: Fetch orders ONLY for those specific patient IDs
+    const myPatientIds = myAssignments.map(a => a.patient_id);
+
+    const { data: secureOrders, error: orderError } = await supabase
+      .from('clinical_instructions')
+      .select(`
+        *,
+        doctor:caregivers!doctor_id (last_name),
+        patient:patients!patient_id (first_name, last_name)
+      `)
+      .in('patient_id', myPatientIds) // <--- THIS KILLS THE CONFLICT
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (!orderError) {
+      setOrders(secureOrders || []);
+    }
+  };
+
   // Fetch logic (Preserving essential real-time dashboard data)
   const fetchData = async () => {
     const { data: d } = await supabase
@@ -31,12 +65,7 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       .neq('duty_status', 'off_duty');
     setOnlineDoctors(d || []);
 
-    const { data: o } = await supabase
-      .from('clinical_instructions')
-      .select('*, doctor:caregivers!doctor_id(last_name), patient:patients!patient_id(first_name)')
-      .order('created_at', { ascending: false })
-      .limit(3);
-    setOrders(o || []);
+    await fetchOrders();
 
     const { data: ann } = await supabase
       .from('system_announcements')
@@ -211,19 +240,28 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
           </div>
 
           {/* Orders Widget */}
-          <div className="bg-slate-900/60 backdrop-blur-md border border-sky-500/20 rounded-[40px] p-8 shadow-2xl ring-1 ring-sky-500/10">
+          <div className="bg-card border border-white/5 rounded-[40px] p-8 shadow-2xl">
             <h3 className="text-[10px] font-black text-sky-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                <Bell size={14} /> Medical Orders
             </h3>
+            
             <div className="space-y-4">
-              {orders.map(order => (
-                <div key={order.instruction_id} className="p-4 bg-sky-500/5 border-l-2 border-sky-500 rounded-r-2xl">
-                   <p className="text-[11px] text-white leading-relaxed italic mb-2">"{order.instruction_text}"</p>
-                   <p className="text-[8px] font-black text-slate-500 uppercase">— DR. {order.doctor?.last_name}</p>
+              {orders.length === 0 ? (
+                <div className="py-10 text-center opacity-20 flex flex-col items-center gap-3">
+                   <ShieldCheck size={32} />
+                   <p className="text-[10px] font-black uppercase tracking-widest">No Active Instructions</p>
                 </div>
-              ))}
-              {orders.length === 0 && (
-                <p className="text-center py-4 text-[10px] font-bold text-slate-700 uppercase italic">Clear protocol</p>
+              ) : (
+                orders.map(order => (
+                  <div key={order.instruction_id} className="p-4 bg-sky-500/5 border-l-2 border-sky-500 rounded-r-2xl">
+                     {/* Added Patient Name for clarity */}
+                     <p className="text-[9px] font-black text-sky-400 uppercase mb-1">
+                       FOR: {order.patient?.first_name}
+                     </p>
+                     <p className="text-[11px] text-white italic mb-2">"{order.instruction_text}"</p>
+                     <p className="text-[8px] font-black text-slate-500 uppercase">— DR. {order.doctor?.last_name}</p>
+                  </div>
+                ))
               )}
             </div>
           </div>

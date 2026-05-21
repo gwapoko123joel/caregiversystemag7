@@ -15,6 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from './ProfileAvatar';
 import type { Caregiver } from '../../types/database';
+import { supabase } from '../../lib/supabaseClient';
 
 interface ProfileDropdownProps {
   user: Caregiver;
@@ -127,21 +128,33 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
         onClick={() => setIsOpen(!isOpen)}
         className="w-full text-left p-3 bg-slate-950/30 border border-white/5 rounded-2xl flex items-center gap-3 hover:bg-slate-950/50 transition-all duration-300 cursor-pointer"
       >
-        <div className="w-10 h-10 rounded-full border-2 border-sky-500/20 overflow-hidden flex-shrink-0">
-          <ProfileAvatar 
-            src={user.profile_picture_url} 
-            fullName={user.full_name || `${user.first_name} ${user.last_name}`} size="md"
-          />
+        <div className="w-11 h-11 relative flex-shrink-0 border border-sky-500/20 rounded-full">
+          <div className="absolute inset-[3px] rounded-full overflow-hidden bg-slate-900 border border-slate-950">
+            {user.profile_picture_url ? (
+              <img 
+                src={user.profile_picture_url.startsWith('http') || user.profile_picture_url.startsWith('data:') 
+                  ? user.profile_picture_url 
+                  : supabase.storage.from('avatars').getPublicUrl(user.profile_picture_url).data.publicUrl}
+                alt={user.full_name || ''}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-cyan-100 font-light text-xs bg-gradient-to-br from-cyan-500/30 to-violet-500/30">
+                {(user.full_name || `${user.first_name} ${user.last_name}`).split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#020617] rounded-full flex items-center justify-center">
+            <div className={`w-2.5 h-2.5 rounded-full ${user.is_on_duty ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+          </div>
         </div>
         
         <div className="flex-1 min-w-0">
-          {/* Name: Formal Title Case */}
-          <p className="text-xs font-bold text-white tracking-tight truncate">
+          <p className="text-[13px] font-bold text-white tracking-tight truncate">
             {formatName(user.full_name || `${user.first_name} ${user.last_name}`)}
           </p>
-          {/* Role: Clean Muted Subtext */}
-          <p className="text-[9px] font-bold text-sky-500/60 uppercase tracking-widest mt-0.5 animate-pulse">
-            {user.role === 'medical_practitioner' ? 'MD Node' : 'Field Node'}
+          <p className="text-[9px] font-black text-sky-500/80 uppercase tracking-[0.2em] mt-1">
+            {user.role === 'medical_practitioner' ? 'MD NODE' : 'FIELD NODE'}
           </p>
         </div>
 

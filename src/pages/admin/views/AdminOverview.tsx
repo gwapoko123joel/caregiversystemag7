@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Users, Activity, ShieldAlert, Cpu, User, Clock, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Users, Activity, ShieldAlert, Cpu, User, Clock, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react'
 import { useOutletContext, Link } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
@@ -10,6 +10,76 @@ export default function AdminOverview() {
 
   const [inspectingNode, setInspectingNode] = useState<any>(null);
   const [nodePatients, setNodePatients] = useState<any[]>([]);
+
+  const [stats, setStats] = useState({
+    authorizedNodes: 0,
+    onDutyFleet: 0,
+    dailyTelemetry: 0,
+    criticalTriage: 0
+  });
+
+  const fetchAdminStats = async () => {
+    // Authorized Nodes
+    const { count: authorizedCount } = await supabase
+      .from('caregivers')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'authorized');
+
+    // On-Duty Fleet
+    const { count: onDutyCount } = await supabase
+      .from('caregivers')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'caregiver')
+      .eq('duty_status', 'on_duty');
+
+    // Daily Telemetry
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: telemetryCount } = await supabase
+      .from('patient_monitoring_logs')
+      .select('*', { count: 'exact', head: true })
+      .gte('recorded_at', yesterday);
+
+    // Critical Triage
+    const { count: criticalCount } = await supabase
+      .from('patients')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'critical');
+
+    setStats({
+      authorizedNodes: authorizedCount || 0,
+      onDutyFleet: onDutyCount || 0,
+      dailyTelemetry: telemetryCount || 0,
+      criticalTriage: criticalCount || 0
+    });
+  };
+
+  useEffect(() => {
+    fetchAdminStats();
+
+    const channel1 = supabase.channel('admin-overview-caregivers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'caregivers' }, () => {
+        fetchAdminStats();
+      })
+      .subscribe();
+
+    const channel2 = supabase.channel('admin-overview-logs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'patient_monitoring_logs' }, () => {
+        fetchAdminStats();
+      })
+      .subscribe();
+
+    const channel3 = supabase.channel('admin-overview-patients')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, () => {
+        fetchAdminStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel1);
+      supabase.removeChannel(channel2);
+      supabase.removeChannel(channel3);
+    };
+  }, []);
 
   async function handleInspectNode(caregiver: any) {
     setInspectingNode(caregiver);
@@ -48,12 +118,6 @@ export default function AdminOverview() {
     )
   }
 
-  const stats = {
-    caregivers: users.length,
-    reports: health.reportsToday,
-    alerts: health.criticalAlerts
-  }
-
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
       
@@ -73,10 +137,36 @@ export default function AdminOverview() {
 
       {/* ── SECTION 1: GLOBAL HUD ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatItem label="Network Fleet" value={stats.caregivers} sub="Personnel Active" icon={<Users size={18}/>} color="sky" />
-        <StatItem label="Active reports" value={stats.reports} sub="Telemetry Logs" icon={<Activity size={18}/>} color="emerald" />
-        <StatItem label="Security Alerts" value={stats.alerts} sub="Breach Detection" icon={<ShieldAlert size={18}/>} color="rose" />
-        <StatItem label="System Uptime" value="99.98%" sub="Node Stability" icon={<Cpu size={18}/>} color="sky" />
+        <StatItem 
+          label="Authorized Nodes" 
+          value={stats.authorizedNodes} 
+          sub="Verified Personnel" 
+          icon={<ShieldCheck size={18}/>} 
+          color="sky" 
+        />
+        <StatItem 
+          label="On-Duty Fleet" 
+          value={stats.onDutyFleet} 
+          sub="Active in Field" 
+          icon={<Users size={18}/>} 
+          color="emerald" 
+          pulse={stats.onDutyFleet > 0}
+        />
+        <StatItem 
+          label="Daily Telemetry" 
+          value={stats.dailyTelemetry} 
+          sub="Logs (Last 24h)" 
+          icon={<Activity size={18}/>} 
+          color="sky" 
+        />
+        <StatItem 
+          label="Critical Triage" 
+          value={stats.criticalTriage} 
+          sub="Active Emergencies" 
+          icon={<AlertCircle size={18}/>} 
+          color="rose" 
+          pulse={stats.criticalTriage > 0}
+        />
       </div>
 
       {/* ── SECTION 2: PERSONNEL NODE PERFORMANCE (PRIORITIZED TOP) ── */}
@@ -111,17 +201,30 @@ export default function AdminOverview() {
                  </div>
               </div>
               
-              <p className="text-xs font-black text-white uppercase truncate">{staff.full_name}</p>
-              <p className="text-[8px] font-bold text-slate-600 uppercase mt-1 tracking-widest">{staff.unique_access_id}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs font-black text-white uppercase truncate">{staff.full_name}</p>
+                {staff.status === 'pending' && (
+                  <span className="text-[7px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                    Awaiting Auth
+                  </span>
+                )}
+              </div>
+              <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{staff.unique_access_id}</p>
               
               <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
                  <div className="flex items-center gap-1.5">
-                    <Clock size={10} className="text-slate-700" />
-                    <p className="text-[8px] text-slate-500 font-bold uppercase">
-                      {staff.last_report_sent ? new Date(staff.last_report_sent).toLocaleDateString() : 'Inactive'}
-                    </p>
+                    <Clock size={10} className={staff.duty_status === 'on_duty' ? 'text-emerald-500 animate-pulse' : 'text-slate-700'} />
+                    {staff.duty_status === 'on_duty' ? (
+                      <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest animate-pulse">
+                        Active Now
+                      </p>
+                    ) : (
+                      <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">
+                        {staff.last_report_sent ? new Date(staff.last_report_sent).toLocaleDateString() : 'Inactive'}
+                      </p>
+                    )}
                  </div>
-                 <div className={`w-1.5 h-1.5 rounded-full ${staff.last_report_sent ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-800'}`} />
+                 <div className={`w-1.5 h-1.5 rounded-full ${staff.duty_status === 'on_duty' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse' : 'bg-slate-800'}`} />
               </div>
             </div>
           ))}
@@ -249,18 +352,29 @@ export default function AdminOverview() {
 }
 
 // --- HELPER COMPONENT: STAT ITEM ---
-function StatItem({ label, value, sub, icon, color }: any) {
+function StatItem({ label, value, sub, icon, color, pulse = false }: any) {
   const colors: any = {
     sky: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
     emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     rose: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
   };
 
+  const pulseBorderColors: any = {
+    sky: 'border-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.3)]',
+    emerald: 'border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]',
+    rose: 'border-rose-500/50 shadow-[0_0_15px_rgba(244,63,94,0.3)]',
+  };
+
+  const bgPulse = pulse ? 'animate-pulse' : '';
+
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[32px] flex flex-col justify-between h-36 shadow-xl hover:bg-slate-900/60 transition-all group">
+    <div className={`bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[32px] flex flex-col justify-between h-36 shadow-xl hover:bg-slate-900/60 transition-all group ${pulse ? pulseBorderColors[color] : ''} ${bgPulse}`}>
       <div className="flex justify-between items-center">
         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{label}</p>
-        <div className={`p-2 rounded-xl ${colors[color]}`}>{icon}</div>
+        <div className={`p-2 rounded-xl ${colors[color]} relative overflow-hidden`}>
+          {pulse && <div className={`absolute inset-0 ${color === 'rose' ? 'bg-rose-500' : 'bg-emerald-500'} opacity-20 animate-ping rounded-xl`} />}
+          {icon}
+        </div>
       </div>
       <div>
         <h3 className="text-3xl font-black text-white tracking-tighter">{value}</h3>
@@ -269,4 +383,3 @@ function StatItem({ label, value, sub, icon, color }: any) {
     </div>
   );
 }
-
