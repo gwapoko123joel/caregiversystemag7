@@ -190,6 +190,11 @@ export default function PractitionerOverview({
     totalLogs: totalAlerts
   };
 
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return '--:--';
+    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">
       {/* ── CLINICAL SESSION HUD ── */}
@@ -290,6 +295,42 @@ export default function PractitionerOverview({
                 <button onClick={handleSessionEnd} className="py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500">
                   Terminate Session
                 </button>
+              </div>
+
+              <div className="pt-4 border-t border-white/5 mt-4">
+                <h4 className="text-[8px] font-black uppercase text-slate-500 mb-3 tracking-widest">Session Activity Ledger</h4>
+                <div className="relative pl-3 space-y-3 border-l border-sky-500/20">
+                  {/* Start Milestone */}
+                  <div className="relative">
+                    <div className="absolute -left-[17px] top-1 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Node Initialization</p>
+                       <p className="text-[10px] font-mono text-sky-400">{formatTime(currentShift.start_time)}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Break Milestone */}
+                  <div className="relative">
+                    <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.break_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Clinical Break</p>
+                       <p className={`text-[10px] font-mono ${currentShift.break_start ? 'text-amber-400' : 'text-slate-600'}`}>
+                         {formatTime(currentShift.break_start)} {currentShift.break_end ? `- ${formatTime(currentShift.break_end)}` : (currentShift.status === 'break' ? '- ACTIVE' : '')}
+                       </p>
+                    </div>
+                  </div>
+
+                  {/* Lunch Milestone */}
+                  <div className="relative">
+                    <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.lunch_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
+                    <div className="flex justify-between items-center">
+                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Meal Intermission</p>
+                       <p className={`text-[10px] font-mono ${currentShift.lunch_start ? 'text-amber-400' : 'text-slate-600'}`}>
+                         {formatTime(currentShift.lunch_start)} {currentShift.lunch_end ? `- ${formatTime(currentShift.lunch_end)}` : (currentShift.status === 'lunch' ? '- ACTIVE' : '')}
+                       </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

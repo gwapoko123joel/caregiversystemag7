@@ -242,6 +242,13 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
     return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const calculateAge = (dob: string | undefined) => {
+    if (!dob) return '--';
+    const diff = Date.now() - new Date(dob).getTime();
+    const age = new Date(diff);
+    return Math.abs(age.getUTCFullYear() - 1970);
+  };
+
   const caregiverName = userProfile?.full_name?.split(' ')[0] || 'Caregiver';
 
   return (
@@ -251,15 +258,17 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[40px] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-             <div className={`w-2 h-2 rounded-full ${localDutyStatus === 'on_duty' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : localDutyStatus === 'on_break' ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-slate-500'} animate-pulse`} />
-             <span className={`text-[10px] font-black uppercase tracking-[0.4em] ${localDutyStatus === 'on_duty' ? 'text-emerald-500' : localDutyStatus === 'on_break' ? 'text-amber-500' : 'text-slate-500'}`}>
-               {localDutyStatus === 'on_duty' ? 'Node Active' : localDutyStatus === 'on_break' ? 'Node Paused' : 'Node Offline'}
+             <div className={`w-2 h-2 rounded-full ${currentShift ? 'bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse' : 'bg-slate-500'}`} />
+             <span className={`text-[10px] font-black uppercase tracking-[0.4em] ${currentShift ? 'text-emerald-500 animate-pulse' : 'text-slate-500'}`}>
+               {currentShift ? 'NODE ONLINE' : 'NODE OFFLINE'}
              </span>
           </div>
           <h2 className="text-4xl font-black text-white uppercase tracking-tighter">
-            Welcome, {caregiverName}
+            System Login: {caregiverName}
           </h2>
-          <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest">Barangay Bantayan Health Network • Coordination Hub</p>
+          <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest">
+            {userProfile?.role?.replace('_', ' ') || 'CAREGIVER'} • AGE: {calculateAge(userProfile?.date_of_birth)} • BARANGAY BANTAYAN HEALTH NETWORK
+          </p>
         </div>
         
         <div className="flex items-center gap-4">
