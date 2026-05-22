@@ -145,7 +145,7 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
             )}
           </div>
           <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#020617] rounded-full flex items-center justify-center">
-            <div className={`w-2.5 h-2.5 rounded-full ${user.is_on_duty ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+            <div className={`w-2.5 h-2.5 rounded-full ${(user as any).duty_status === 'on_duty' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
           </div>
         </div>
         

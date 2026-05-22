@@ -209,7 +209,7 @@ export default function ProfilePage() {
                   <div className="space-y-1 text-center">
                     {/* Refined Corporate Typography */}
                     <h3 className="text-3xl font-bold text-white tracking-tight leading-tight">
-                      {formatName(profile?.full_name)}
+                      {formatName(profile?.full_name || '')}
                     </h3>
                     <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.3em]">
                       {profile?.role?.replace('_', ' ')}

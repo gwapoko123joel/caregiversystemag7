@@ -1,24 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
-  Users, 
-  ArrowUpRight, 
-  Activity, 
-  Clock,
   Heart,
   ArrowRight,
   ShieldCheck,
   Globe,
   Mail,
   Navigation,
-  User,
-  Stethoscope,
-  AlertTriangle,
   Lock
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
 
   useEffect(() => {
     document.body.style.backgroundColor = '#020617';
@@ -253,149 +245,6 @@ function FeatureInfo({ title, desc }: { title: string, desc: string }) {
   )
 }
 
-const LiveNodeVisual: React.FC = () => {
-  const [isEmergency, setIsEmergency] = useState(false);
 
-  useEffect(() => {
-    // Randomly trigger emergency every 8 seconds for 3 seconds
-    const interval = setInterval(() => {
-      setIsEmergency(true);
-      setTimeout(() => setIsEmergency(false), 3000);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="relative w-full aspect-square max-w-[500px] flex items-center justify-center mt-12 md:mt-0">
-      <style>{`
-        @keyframes flow-bhw1 {
-          0% { top: 25%; left: 15%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-          10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { top: 50%; left: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-        }
-        @keyframes flow-bhw2 {
-          0% { top: 75%; left: 15%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-          10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { top: 50%; left: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-        }
-        @keyframes flow-doc {
-          0% { top: 50%; left: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-          10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { top: 25%; left: 85%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-        }
-        .animate-flow-1 { animation: flow-bhw1 4s linear infinite; }
-        .animate-flow-2 { animation: flow-bhw2 5s linear infinite 1.5s; }
-        .animate-flow-3 { animation: flow-doc 4.5s linear infinite 0.5s; }
-        
-        .emergency-line {
-          stroke: #f43f5e !important;
-          stroke-dasharray: 4 8;
-          animation: march-fast 0.5s linear infinite !important;
-        }
-        
-        @keyframes march {
-          to { stroke-dashoffset: -24; }
-        }
-        @keyframes march-fast {
-          to { stroke-dashoffset: -12; }
-        }
-      `}</style>
-
-      {/* SVG Network Lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        {/* Core to BHW 1 */}
-        <line x1="15%" y1="25%" x2="50%" y2="50%" className="stroke-sky-500/20" strokeWidth="2" />
-        <line x1="15%" y1="25%" x2="50%" y2="50%" className="stroke-sky-400" strokeWidth="2" strokeDasharray="4 20" strokeLinecap="round" style={{ animation: 'march 2s linear infinite reverse' }} />
-
-        {/* Core to BHW 2 */}
-        <line x1="15%" y1="75%" x2="50%" y2="50%" className="stroke-sky-500/20" strokeWidth="2" />
-        <line x1="15%" y1="75%" x2="50%" y2="50%" className="stroke-sky-400" strokeWidth="2" strokeDasharray="4 30" strokeLinecap="round" style={{ animation: 'march 3s linear infinite reverse' }} />
-
-        {/* Core to Doctor */}
-        <line x1="50%" y1="50%" x2="85%" y2="25%" className={`stroke-sky-500/20 transition-all duration-300 ${isEmergency ? 'emergency-line' : ''}`} strokeWidth="2" />
-        {!isEmergency && (
-          <line x1="50%" y1="50%" x2="85%" y2="25%" className="stroke-sky-400" strokeWidth="2" strokeDasharray="4 25" strokeLinecap="round" style={{ animation: 'march 2.5s linear infinite' }} />
-        )}
-      </svg>
-
-      {/* Flowing Data Packets */}
-      <div className="absolute px-2 py-1 rounded backdrop-blur-xl border border-white/5 bg-[#020617]/80 text-sky-400 font-mono text-[9px] font-black uppercase tracking-widest animate-flow-1 flex items-center gap-1 shadow-lg shadow-sky-500/10">
-        <Activity size={10} /> BP: 120/80 - SYNCED
-      </div>
-      <div className="absolute px-2 py-1 rounded backdrop-blur-xl border border-white/5 bg-[#020617]/80 text-sky-400 font-mono text-[9px] font-black uppercase tracking-widest animate-flow-2 flex items-center gap-1 shadow-lg shadow-sky-500/10 z-10">
-        <Activity size={10} /> HR: 72 BPM - LOGGED
-      </div>
-      <div className={`absolute px-2 py-1 rounded backdrop-blur-xl border flex items-center gap-1 font-mono text-[9px] font-black uppercase tracking-widest animate-flow-3 shadow-lg z-10 ${isEmergency ? 'bg-rose-950/90 border-rose-500/50 text-rose-400 shadow-rose-500/20' : 'bg-[#020617]/80 border-white/5 text-sky-400 shadow-sky-500/10'}`}>
-        {isEmergency ? (
-          <>
-            <AlertTriangle size={10} /> SOS DISPATCHED
-          </>
-        ) : (
-          <>
-             <Activity size={10} /> ALL CLEAR
-          </>
-        )}
-      </div>
-
-      {/* Center Node (Core) */}
-      <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-20">
-        <div className={`relative flex items-center justify-center p-6 rounded-3xl backdrop-blur-2xl border transition-all duration-500 ${isEmergency ? 'bg-rose-950/40 border-rose-500/30 shadow-[0_0_50px_rgba(244,63,94,0.3)]' : 'bg-[#020617]/60 border-sky-500/20 shadow-[0_0_50px_rgba(0,186,255,0.15)]'}`}>
-          <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-            <div className={`absolute -inset-1/2 opacity-20 blur-2xl rounded-full ${isEmergency ? 'bg-rose-500 animate-pulse' : 'bg-sky-500 animate-[spin_10s_linear_infinite]'}`} />
-          </div>
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border transition-all duration-500 relative z-10 ${isEmergency ? 'bg-rose-500/20 border-rose-500/50' : 'bg-sky-500/20 border-sky-500/50'}`}>
-            <Heart size={32} className={`${isEmergency ? 'text-rose-400 animate-bounce' : 'text-sky-400 animate-pulse'} drop-shadow-[0_0_15px_currentColor]`} fill="currentColor" />
-          </div>
-          {/* Label */}
-          <div className="absolute -bottom-8 whitespace-nowrap px-3 py-1 bg-[#020617]/80 backdrop-blur-xl border border-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400">
-            Regional Core
-          </div>
-        </div>
-      </div>
-
-      {/* Personnel Node 1: BHW 1 */}
-      <div className="absolute top-[25%] left-[15%] -translate-x-1/2 -translate-y-1/2 z-20 group">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-slate-900/80 backdrop-blur-xl border border-slate-700 flex items-center justify-center shadow-xl group-hover:border-sky-500/50 transition-colors">
-            <User size={20} className="text-slate-400 group-hover:text-sky-400 transition-colors" />
-          </div>
-          <div className="px-2 py-1 bg-[#020617]/80 backdrop-blur-xl border border-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            BHW 1
-          </div>
-        </div>
-      </div>
-
-      {/* Personnel Node 2: BHW 2 */}
-      <div className="absolute top-[75%] left-[15%] -translate-x-1/2 -translate-y-1/2 z-20 group">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-slate-900/80 backdrop-blur-xl border border-slate-700 flex items-center justify-center shadow-xl group-hover:border-sky-500/50 transition-colors">
-            <User size={20} className="text-slate-400 group-hover:text-sky-400 transition-colors" />
-          </div>
-          <div className="px-2 py-1 bg-[#020617]/80 backdrop-blur-xl border border-white/5 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            BHW 2
-          </div>
-        </div>
-      </div>
-
-      {/* Personnel Node 3: Doctor */}
-      <div className="absolute top-[25%] left-[85%] -translate-x-1/2 -translate-y-1/2 z-20 group">
-        <div className="flex flex-col items-center gap-2">
-          <div className={`w-14 h-14 rounded-full backdrop-blur-xl border flex items-center justify-center shadow-xl transition-all duration-500 ${isEmergency ? 'bg-rose-900/60 border-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.2)]' : 'bg-slate-900/80 border-slate-700 group-hover:border-sky-500/50'}`}>
-            <Stethoscope size={24} className={`transition-colors ${isEmergency ? 'text-rose-400' : 'text-slate-400 group-hover:text-sky-400'}`} />
-          </div>
-          <div className={`px-2 py-1 backdrop-blur-xl border rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors ${isEmergency ? 'bg-rose-950/80 border-rose-500/30 text-rose-400' : 'bg-[#020617]/80 border-white/5 text-slate-400'}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${isEmergency ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'}`} />
-            Dr. Gajilomo
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default LandingPage;

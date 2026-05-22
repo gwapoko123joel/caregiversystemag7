@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   User, TrendingUp, ChevronRight, 
-  ClipboardList, Activity, Shield, 
-  Phone, Bell, UserPlus, ShieldCheck, AlertTriangle
+  ClipboardList, 
+  Phone, Bell, UserPlus, ShieldCheck, AlertTriangle, MessageSquare, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabaseClient';
@@ -13,10 +13,11 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   const [onlineDoctors, setOnlineDoctors] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [latestAnnouncement, setLatestAnnouncement] = useState<any>(null);
-  const [localDutyStatus, setLocalStatus] = useState(userProfile?.duty_status || 'off_duty');
   const [currentShift, setCurrentShift] = useState<any>(null);
   const [elapsedTime, setElapsedTime] = useState('00:00:00');
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [handoverData, setHandoverData] = useState<any>(null);
+  const [showHandover, setShowHandover] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -63,6 +64,10 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       .select('patient_id')
       .eq('caregiver_id', user.id);
 
+    if (assignError) {
+      console.error(assignError);
+    }
+
     // 2. LOGIC GATE: If Victor has no patients, stop here and show nothing
     if (!myAssignments || myAssignments.length === 0) {
       setOrders([]); // This clears the "Take medicine" ghost order
@@ -85,6 +90,21 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
 
     if (!orderError) {
       setOrders(secureOrders || []);
+    }
+  };
+
+  const fetchLastHandover = async () => {
+    const { data: prev } = await supabase
+      .from('personnel_shifts')
+      .select('handover_note, end_time, caregivers!inner(full_name, role)')
+      .eq('status', 'completed')
+      .eq('caregivers.role', 'caregiver')
+      .not('handover_note', 'is', null)
+      .order('end_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (prev) {
+      setHandoverData(prev);
     }
   };
 
@@ -112,6 +132,7 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
     setOnlineDoctors(d || []);
 
     await fetchOrders();
+    await fetchLastHandover();
 
     const { data: ann } = await supabase
       .from('system_announcements')
@@ -154,8 +175,6 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
         action: 'SHIFT_START',
         details: { shift_id: data.shift_id }
       });
-
-      setLocalStatus('on_duty');
     }
   }
 
@@ -177,7 +196,6 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       setCurrentShift({...currentShift, ...update});
       const newDutyStatus = isStartingBreak ? 'on_break' : 'on_duty';
       await supabase.from('caregivers').update({ duty_status: newDutyStatus }).eq('id', user.id);
-      setLocalStatus(newDutyStatus);
     }
   }
 
@@ -199,7 +217,6 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       setCurrentShift({...currentShift, ...update});
       const newDutyStatus = isStartingLunch ? 'on_break' : 'on_duty';
       await supabase.from('caregivers').update({ duty_status: newDutyStatus }).eq('id', user.id);
-      setLocalStatus(newDutyStatus);
     }
   }
 
@@ -230,7 +247,6 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       }
     });
 
-    setLocalStatus('off_duty');
     setCurrentShift(null);
     setElapsedTime('00:00:00');
     setElapsedMs(0);
@@ -254,6 +270,37 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 pb-12 px-4 md:px-0">
       
+      {/* ── INCOMING HANDOVER BRIEFING ── */}
+      {handoverData && showHandover && (
+        <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-[32px] relative shadow-lg animate-in slide-in-from-top duration-700">
+           <button 
+             onClick={() => setShowHandover(false)}
+             className="absolute top-6 right-6 p-2 bg-amber-500/10 text-amber-500 rounded-full hover:bg-amber-500 hover:text-white transition-all active:scale-95"
+           >
+             <X size={16} />
+           </button>
+           <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 shrink-0 border border-amber-500/30">
+                 <MessageSquare size={24} />
+              </div>
+              <div className="flex-1 pr-12">
+                 <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-amber-500 text-white text-[7px] font-black px-2 py-0.5 rounded tracking-widest uppercase">Field Briefing</span>
+                    <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest">Incoming Shift Handover</h4>
+                 </div>
+                 <p className="text-sm text-amber-100/90 font-medium italic leading-relaxed mb-3">
+                   "{handoverData.handover_note}"
+                 </p>
+                 <div className="flex items-center gap-4 text-[9px] font-black text-amber-500/60 uppercase tracking-widest">
+                    <span>— {handoverData.caregivers?.full_name}</span>
+                    <span>•</span>
+                    <span className="font-mono">{new Date(handoverData.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* ── HEADER: PERSONAL NODE STATUS ── */}
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[40px] flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
         <div className="space-y-2">

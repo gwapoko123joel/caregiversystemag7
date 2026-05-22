@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Users, Activity, ShieldAlert, Cpu, User, Clock, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Users, Activity, User, Clock, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react'
 import { useOutletContext, Link } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import { EmptyState } from '../../../components/ClinicalPolish'
 
 export default function AdminOverview() {
-  const { users, logs, health, performance, error, loadData } = useOutletContext<AdminDashboardContextType>()
+  const { users, logs, performance, error, loadData } = useOutletContext<AdminDashboardContextType>()
 
   const [inspectingNode, setInspectingNode] = useState<any>(null);
   const [nodePatients, setNodePatients] = useState<any[]>([]);
@@ -83,7 +83,7 @@ export default function AdminOverview() {
 
   async function handleInspectNode(caregiver: any) {
     setInspectingNode(caregiver);
-    
+
     // Fetch all patients assigned to THIS specific caregiver
     const { data, error } = await supabase
       .from('caregiver_patient_assignments')
@@ -109,7 +109,7 @@ export default function AdminOverview() {
 
   if (error) {
     return (
-      <EmptyState 
+      <EmptyState
         title="Sync Pipeline Error"
         message={`The administrative node failed to synchronize clinical data: ${error}`}
         onRetry={handleRetry}
@@ -120,7 +120,7 @@ export default function AdminOverview() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
-      
+
       {/* ── HEADER ── */}
       <div className="px-2">
         <div className="flex items-center gap-3 mb-2">
@@ -137,34 +137,34 @@ export default function AdminOverview() {
 
       {/* ── SECTION 1: GLOBAL HUD ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatItem 
-          label="Authorized Nodes" 
-          value={stats.authorizedNodes} 
-          sub="Verified Personnel" 
-          icon={<ShieldCheck size={18}/>} 
-          color="sky" 
+        <StatItem
+          label="Authorized Nodes"
+          value={stats.authorizedNodes}
+          sub="Verified Personnel"
+          icon={<ShieldCheck size={18} />}
+          color="sky"
         />
-        <StatItem 
-          label="On-Duty Fleet" 
-          value={stats.onDutyFleet} 
-          sub="Active in Field" 
-          icon={<Users size={18}/>} 
-          color="emerald" 
+        <StatItem
+          label="On-Duty Fleet"
+          value={stats.onDutyFleet}
+          sub="Active in Field"
+          icon={<Users size={18} />}
+          color="emerald"
           pulse={stats.onDutyFleet > 0}
         />
-        <StatItem 
-          label="Daily Telemetry" 
-          value={stats.dailyTelemetry} 
-          sub="Logs (Last 24h)" 
-          icon={<Activity size={18}/>} 
-          color="sky" 
+        <StatItem
+          label="Daily Telemetry"
+          value={stats.dailyTelemetry}
+          sub="Logs (Last 24h)"
+          icon={<Activity size={18} />}
+          color="sky"
         />
-        <StatItem 
-          label="Critical Triage" 
-          value={stats.criticalTriage} 
-          sub="Active Emergencies" 
-          icon={<AlertCircle size={18}/>} 
-          color="rose" 
+        <StatItem
+          label="Critical Triage"
+          value={stats.criticalTriage}
+          sub="Active Emergencies"
+          icon={<AlertCircle size={18} />}
+          color="rose"
           pulse={stats.criticalTriage > 0}
         />
       </div>
@@ -172,35 +172,35 @@ export default function AdminOverview() {
       {/* ── SECTION 2: PERSONNEL NODE PERFORMANCE (PRIORITIZED TOP) ── */}
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-8">
-           <div className="flex items-center gap-3">
-              <div className="w-1.5 h-6 bg-sky-500 rounded-full" />
-              <h3 className="text-sm font-black text-white uppercase tracking-widest">Personnel Node Performance</h3>
-           </div>
-           <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Live Efficiency Matrix</span>
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-sky-500 rounded-full" />
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">Personnel Node Performance</h3>
+          </div>
+          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Live Efficiency Matrix</span>
         </div>
-        
+
         {/* 4-Column Grid for high-density overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {performance.map(staff => (
-            <div 
-              key={staff.caregiver_id} 
+            <div
+              key={staff.caregiver_id}
               onClick={() => handleInspectNode(staff)}
               className="p-5 bg-slate-950/40 border border-white/5 rounded-[32px] hover:border-sky-500/50 hover:bg-slate-900/60 transition-all group cursor-pointer relative overflow-hidden"
             >
               {/* Background Accent */}
               <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-10 transition-opacity">
-                 <Activity size={60} />
+                <Activity size={60} />
               </div>
 
               <div className="flex justify-between items-start mb-5">
-                 <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center text-slate-600 group-hover:text-sky-500 transition-colors">
-                    <User size={18} />
-                 </div>
-                 <div className="bg-sky-500/10 text-sky-500 border border-sky-500/20 px-2.5 py-1 rounded-xl text-[9px] font-black tracking-tighter">
-                    {staff.total_reports} LOGS
-                 </div>
+                <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center text-slate-600 group-hover:text-sky-500 transition-colors">
+                  <User size={18} />
+                </div>
+                <div className="bg-sky-500/10 text-sky-500 border border-sky-500/20 px-2.5 py-1 rounded-xl text-[9px] font-black tracking-tighter">
+                  {staff.total_reports} LOGS
+                </div>
               </div>
-              
+
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-xs font-black text-white uppercase truncate">{staff.full_name}</p>
                 {staff.status === 'pending' && (
@@ -210,21 +210,21 @@ export default function AdminOverview() {
                 )}
               </div>
               <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{staff.unique_access_id}</p>
-              
+
               <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
-                 <div className="flex items-center gap-1.5">
-                    <Clock size={10} className={staff.duty_status === 'on_duty' ? 'text-emerald-500 animate-pulse' : 'text-slate-700'} />
-                    {staff.duty_status === 'on_duty' ? (
-                      <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest animate-pulse">
-                        Active Now
-                      </p>
-                    ) : (
-                      <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">
-                        {staff.last_report_sent ? new Date(staff.last_report_sent).toLocaleDateString() : 'Inactive'}
-                      </p>
-                    )}
-                 </div>
-                 <div className={`w-1.5 h-1.5 rounded-full ${staff.duty_status === 'on_duty' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse' : 'bg-slate-800'}`} />
+                <div className="flex items-center gap-1.5">
+                  <Clock size={10} className={staff.duty_status === 'on_duty' ? 'text-emerald-500 animate-pulse' : 'text-slate-700'} />
+                  {staff.duty_status === 'on_duty' ? (
+                    <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest animate-pulse">
+                      Active Now
+                    </p>
+                  ) : (
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">
+                      {staff.last_report_sent ? new Date(staff.last_report_sent).toLocaleDateString() : 'Inactive'}
+                    </p>
+                  )}
+                </div>
+                <div className={`w-1.5 h-1.5 rounded-full ${staff.duty_status === 'on_duty' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse' : 'bg-slate-800'}`} />
               </div>
             </div>
           ))}
@@ -233,15 +233,15 @@ export default function AdminOverview() {
 
       {/* ── SECTION 3: THE LOWER HUB (60/40 Split) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-        
+
         {/* LEFT: ENROLLMENT (6 Spans) */}
         <div className="lg:col-span-6 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
           <div className="flex items-center justify-between mb-8">
-             <div className="flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Recent Enrollments</h3>
-             </div>
-             <Link to="/dashboard/admin/users" className="text-[9px] font-black text-sky-500 uppercase tracking-[0.2em] hover:text-sky-400">Manage All →</Link>
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+              <h3 className="text-sm font-black text-white uppercase tracking-widest">Recent Enrollments</h3>
+            </div>
+            <Link to="/dashboard/admin/users" className="text-[9px] font-black text-sky-500 uppercase tracking-[0.2em] hover:text-sky-400">Manage All →</Link>
           </div>
 
           <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
@@ -257,8 +257,8 @@ export default function AdminOverview() {
                   </div>
                 </div>
                 <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase ${u.status === 'authorized' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                   <div className={`w-1 h-1 rounded-full ${u.status === 'authorized' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-                   {u.status}
+                  <div className={`w-1 h-1 rounded-full ${u.status === 'authorized' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                  {u.status}
                 </div>
               </div>
             ))}
@@ -271,16 +271,16 @@ export default function AdminOverview() {
           <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2">
             {logs.map((log) => (
               <div key={log.log_id} className="relative pl-6 pb-6 border-l border-white/5 last:border-l-0">
-                 <div className="absolute -left-[4.5px] top-0 w-2 h-2 rounded-full bg-slate-800 border border-sky-500/50" />
-                 <div>
-                    <div className="flex items-center justify-between">
-                       <p className="text-[9px] font-black text-white uppercase tracking-tight">{log.action.replace('_', ' ')}</p>
-                       <p className="text-[7px] font-bold text-slate-600 font-mono">{new Date(log.timestamp).toLocaleTimeString()}</p>
-                    </div>
-                    <p className="text-[8px] text-slate-500 mt-1 uppercase tracking-tighter truncate opacity-70">
-                      Audit ID: {log.user_id?.slice(-6)}
-                    </p>
-                 </div>
+                <div className="absolute -left-[4.5px] top-0 w-2 h-2 rounded-full bg-slate-800 border border-sky-500/50" />
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] font-black text-white uppercase tracking-tight">{log.action.replace('_', ' ')}</p>
+                    <p className="text-[7px] font-bold text-slate-600 font-mono">{new Date(log.timestamp).toLocaleTimeString()}</p>
+                  </div>
+                  <p className="text-[8px] text-slate-500 mt-1 uppercase tracking-tighter truncate opacity-70">
+                    Audit ID: {log.user_id?.slice(-6)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -291,7 +291,7 @@ export default function AdminOverview() {
       {inspectingNode && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-lg animate-in fade-in duration-300">
           <div className="max-w-2xl w-full bg-slate-900 border border-white/10 rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
-            
+
             {/* Header */}
             <div className="flex items-center gap-6 mb-10">
               <div className="w-20 h-20 bg-sky-500/10 rounded-[2rem] flex items-center justify-center text-sky-500 border border-sky-500/20">
@@ -307,14 +307,14 @@ export default function AdminOverview() {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-2 gap-4 mb-8">
-               <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
-                  <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Total Impact</p>
-                  <p className="text-xl font-black text-white">{inspectingNode.total_reports} Reports Sent</p>
-               </div>
-               <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
-                  <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Node Vitality</p>
-                  <p className="text-xl font-black text-emerald-500 uppercase">Optimal</p>
-               </div>
+              <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
+                <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Total Impact</p>
+                <p className="text-xl font-black text-white">{inspectingNode.total_reports} Reports Sent</p>
+              </div>
+              <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5">
+                <p className="text-[8px] font-black text-slate-500 uppercase mb-1">Node Vitality</p>
+                <p className="text-xl font-black text-emerald-500 uppercase">Optimal</p>
+              </div>
             </div>
 
             {/* Assigned Subjects List */}
@@ -327,9 +327,8 @@ export default function AdminOverview() {
                   nodePatients.map(p => (
                     <div key={p.patient_id} className="p-4 bg-white/5 rounded-2xl flex items-center justify-between border border-white/5">
                       <span className="text-xs font-bold text-white uppercase">{p.first_name} {p.last_name}</span>
-                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${
-                        p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-                      }`}>
+                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border ${p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                        }`}>
                         {p.status}
                       </span>
                     </div>

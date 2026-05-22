@@ -23,15 +23,6 @@ import { useSidebar } from '../contexts/SidebarContext';
 import { ProfileDropdown } from './profile/ProfileDropdown';
 import type { UserRole } from '../types/database';
 
-const formatName = (name: string) => {
-  if (!name) return "";
-  return name
-    .toLowerCase()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
 interface SidebarProps {
   onLogoutClick: () => void;
 }
