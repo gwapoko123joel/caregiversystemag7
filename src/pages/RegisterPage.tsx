@@ -158,7 +158,7 @@ export default function RegisterPage() {
   // ── RENDER SUCCESS SCREEN ──
   if (success) {
     return (
-      <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+      <div className="min-h-screen bg-[#020617] text-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[140px]" />
            <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[140px]" />
@@ -168,7 +168,7 @@ export default function RegisterPage() {
           <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={32} className="text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter uppercase">
+          <h2 className="text-2xl font-semibold text-slate-50 mb-2 tracking-tighter uppercase leading-tight">
             Enrollment <span className="text-sky-500">Success</span>
           </h2>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
@@ -176,11 +176,11 @@ export default function RegisterPage() {
           </p>
 
           <div className="bg-slate-950/60 border border-white/5 rounded-2xl p-6 mb-8">
-            <p className="text-[9px] text-slate-500 uppercase tracking-[0.3em] mb-2 font-black">Secure Access ID</p>
+            <p className="text-[9px] text-slate-500 uppercase tracking-[0.3em] mb-2 font-semibold leading-relaxed">Secure Access ID</p>
             <code className="text-2xl font-mono text-sky-400 font-bold tracking-[0.2em]">{accessId}</code>
           </div>
 
-          <button onClick={() => navigate('/login')} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+          <button onClick={() => navigate('/login')} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
             <span>Return to Terminal</span>
             <ArrowRight size={16} />
           </button>
@@ -191,7 +191,7 @@ export default function RegisterPage() {
 
   // ── MAIN RENDER ──
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#020617] text-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
       
       {/* Background Ambience */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -199,9 +199,9 @@ export default function RegisterPage() {
          <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[120px]" />
       </div>
 
-      <button onClick={() => navigate('/login')} className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-white transition-all z-50">
+      <button onClick={() => navigate('/login')} className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-slate-50 transition-all z-50">
         <ArrowLeft size={16} />
-        <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest">Back</span>
       </button>
 
       <div className="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[40px] p-8 shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500">
@@ -209,17 +209,17 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/20">
-             <UserPlus size={24} className="text-white" />
+             <UserPlus size={24} className="text-slate-50" />
           </div>
-          <h1 className="text-xl font-black tracking-tighter uppercase">Personnel Enrollment</h1>
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Initialization Protocol</p>
+          <h1 className="text-xl font-semibold tracking-tighter uppercase leading-tight">Personnel Enrollment</h1>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 leading-relaxed">Initialization Protocol</p>
         </div>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-3 mb-8">
            <button 
              onClick={() => setStep(1)}
-             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all cursor-pointer ${step >= 1 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
+             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all cursor-pointer ${step >= 1 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
            >
              1
            </button>
@@ -227,7 +227,7 @@ export default function RegisterPage() {
            <button 
              disabled={!verifiedInfo}
              onClick={() => setStep(2)}
-             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border transition-all ${verifiedInfo ? 'cursor-pointer hover:border-sky-500/50' : 'cursor-not-allowed'} ${step >= 2 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
+             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all ${verifiedInfo ? 'cursor-pointer hover:border-sky-500/50' : 'cursor-not-allowed'} ${step >= 2 ? 'bg-sky-500 border-sky-500 text-slate-950 shadow-lg shadow-sky-500/20' : 'border-slate-800 text-slate-600'}`}
            >
              2
            </button>
@@ -244,16 +244,16 @@ export default function RegisterPage() {
         {step === 1 && (
           <form onSubmit={handleVerify} className="space-y-6 animate-in slide-in-from-right duration-300">
             <div className="flex p-1 bg-slate-950/50 rounded-xl border border-white/5 mb-2">
-              <button type="button" onClick={() => setActiveTab('caregiver')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === 'caregiver' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
+              <button type="button" onClick={() => setActiveTab('caregiver')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-bold uppercase transition-all ${activeTab === 'caregiver' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
                 <User size={12} /> Caregiver
               </button>
-              <button type="button" onClick={() => setActiveTab('medical_practitioner')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${activeTab === 'medical_practitioner' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
+              <button type="button" onClick={() => setActiveTab('medical_practitioner')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-bold uppercase transition-all ${activeTab === 'medical_practitioner' ? 'bg-sky-500 text-slate-950' : 'text-slate-500'}`}>
                 <Stethoscope size={12} /> Practitioner
               </button>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Access Token</label>
+              <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-1">Access Token</label>
               <div className="relative group">
                 <Key size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
                 <input 
@@ -261,7 +261,7 @@ export default function RegisterPage() {
                   value={accessId}
                   onChange={(e) => handleIdChange(e.target.value)}
                   placeholder="e.g. CG-XXXX"
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white font-mono font-bold tracking-widest outline-none focus:border-sky-500/50 uppercase"
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-slate-50 font-mono font-bold tracking-widest outline-none focus:border-sky-500/50 uppercase"
                 />
               </div>
             </div>
@@ -269,7 +269,7 @@ export default function RegisterPage() {
             <button 
               type="submit"
               disabled={loading || !accessId}
-              className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <><ShieldCheck size={16} /> Verify Node Identity</>}
             </button>
@@ -282,9 +282,9 @@ export default function RegisterPage() {
              <div className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl mb-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-500" />
-                  <p className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest">{accessId}</p>
+                  <p className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest leading-relaxed">{accessId}</p>
                 </div>
-                <button type="button" onClick={() => setStep(1)} className="text-[8px] font-black text-slate-500 hover:text-white uppercase tracking-widest">Reset</button>
+                <button type="button" onClick={() => setStep(1)} className="text-[8px] font-semibold text-slate-500 hover:text-slate-50 uppercase tracking-widest">Reset</button>
              </div>
 
              <div className="grid grid-cols-2 gap-3">
@@ -310,14 +310,14 @@ export default function RegisterPage() {
                 placeholder="e.g. 0123456" 
              />
 
-             <button type="submit" disabled={loading} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 mt-4">
+             <button type="submit" disabled={loading} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-slate-50 font-semibold uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 mt-4">
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Initialize Account</>}
              </button>
           </form>
         )}
 
         <div className="mt-8 pt-6 border-t border-white/5 text-center">
-           <Link to="/login" className="text-[9px] font-black text-slate-500 hover:text-sky-400 uppercase tracking-widest transition-all">
+           <Link to="/login" className="text-[9px] font-semibold text-slate-500 hover:text-sky-400 uppercase tracking-widest transition-all">
              Already active? <span className="text-sky-500 border-b border-sky-500/20">Sign in to Node</span>
            </Link>
         </div>
@@ -329,14 +329,14 @@ export default function RegisterPage() {
 function Input({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
     <div className="space-y-1.5 w-full">
-      <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest ml-1">{label}</label>
+      <label className="text-[8px] font-semibold text-slate-500 uppercase tracking-widest ml-1">{label}</label>
       <input 
         type={type}
         required
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-slate-950/50 border border-white/10 rounded-lg py-2.5 px-4 text-xs text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-800"
+        className="w-full bg-slate-950/50 border border-white/10 rounded-lg py-2.5 px-4 text-xs text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-800"
       />
     </div>
   );

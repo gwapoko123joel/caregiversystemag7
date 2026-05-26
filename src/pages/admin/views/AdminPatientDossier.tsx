@@ -29,14 +29,14 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20 opacity-30">
-      <p className="text-xs font-black uppercase tracking-[0.4em] animate-pulse">Synchronizing Clinical Archive...</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.4em] animate-pulse leading-relaxed">Synchronizing Clinical Archive...</p>
     </div>
   );
 
   if (!patient) return (
     <div className="p-8 text-center bg-slate-900/40 rounded-[32px] border border-white/5">
-      <p className="text-slate-500 font-bold uppercase text-[10px]">Patient Record Not Found</p>
-      <button onClick={onBack} className="mt-4 text-sky-500 font-black text-[10px] uppercase tracking-widest">Return to Roster</button>
+      <p className="text-slate-500 font-bold uppercase text-[10px] leading-relaxed">Patient Record Not Found</p>
+      <button onClick={onBack} className="mt-4 text-sky-500 font-semibold text-[10px] uppercase tracking-widest">Return to Roster</button>
     </div>
   );
 
@@ -53,12 +53,12 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
         </button>
         <div>
           <div className="flex items-center gap-3">
-             <h2 className="text-3xl font-black text-white uppercase tracking-tight">{patient.first_name} {patient.last_name}</h2>
-             <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[9px] font-black uppercase tracking-widest">
+             <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">{patient.first_name} {patient.last_name}</h2>
+             <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[9px] font-semibold uppercase tracking-widest">
                Status: {patient.status}
              </span>
           </div>
-          <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.4em] mt-1">
+          <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.4em] mt-1 leading-relaxed">
             Administrative Clinical Audit • Registry Node: PT-{patient.patient_id.toString().padStart(4, '0')}
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
             </div>
 
             <div className="relative z-10 space-y-6">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-2 tracking-tighter leading-tight">
                  <Activity size={14} className="text-sky-500" /> Subject Intel
               </h3>
 
@@ -86,7 +86,7 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
               </div>
 
               <div className="pt-6 border-t border-white/5">
-                 <p className="text-[8px] font-black text-slate-600 uppercase mb-2 tracking-widest">Node Synchronization</p>
+                 <p className="text-[8px] font-semibold text-slate-600 uppercase mb-2 tracking-widest leading-relaxed">Node Synchronization</p>
                  <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     UP TO DATE
@@ -101,15 +101,15 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
           <div className="flex items-center justify-between mb-8">
              <div className="flex items-center gap-3">
                 <div className="w-1.5 h-6 bg-sky-500 rounded-full" />
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Historical Telemetry Stream</h3>
+                <h3 className="text-sm font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Historical Telemetry Stream</h3>
              </div>
-             <span className="text-[9px] font-black text-slate-600 uppercase">{logs.length} Total Snapshots</span>
+             <span className="text-[9px] font-semibold text-slate-600 uppercase">{logs.length} Total Snapshots</span>
           </div>
 
           <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[600px]">
             {logs.length === 0 ? (
                <div className="py-20 text-center opacity-20">
-                 <p className="text-[10px] font-black uppercase tracking-widest">No telemetry records processed</p>
+                 <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">No telemetry records processed</p>
                </div>
             ) : (
               logs.map((log) => (
@@ -120,8 +120,8 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
                       log.physical_status === 'warning' ? 'bg-amber-500 shadow-[0_0_10px_#f59e0b]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'
                     }`} />
                     <div>
-                      <p className="text-sm font-black text-white uppercase tracking-tight group-hover:text-sky-400 transition-colors">{log.physical_status} Payload</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">
+                      <p className="text-sm font-semibold text-slate-50 uppercase tracking-tight group-hover:text-sky-400 transition-colors leading-relaxed">{log.physical_status} Payload</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 leading-relaxed">
                         {new Date(log.recorded_at).toLocaleDateString()} • {new Date(log.recorded_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </p>
                     </div>
@@ -133,8 +133,8 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
                   </div>
 
                   <div className="text-right hidden md:block">
-                     <p className="text-[8px] text-slate-600 uppercase font-black tracking-widest">Field Personnel</p>
-                     <p className="text-[10px] text-sky-400 font-bold uppercase truncate max-w-[120px]">{log.caregiver?.full_name || 'System'}</p>
+                     <p className="text-[8px] text-slate-600 uppercase font-semibold tracking-widest leading-relaxed">Field Personnel</p>
+                     <p className="text-[10px] text-sky-400 font-bold uppercase truncate max-w-[120px] leading-relaxed">{log.caregiver?.full_name || 'System'}</p>
                   </div>
                 </div>
               ))
@@ -150,8 +150,8 @@ export default function AdminPatientDossier({ patientId, onBack }: any) {
 function IntelItem({ label, value }: any) {
   return (
     <div>
-      <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-xs font-bold text-white uppercase tracking-tight">{value || 'N/A'}</p>
+      <p className="text-[8px] font-semibold text-slate-600 uppercase tracking-widest mb-1 leading-relaxed">{label}</p>
+      <p className="text-xs font-bold text-slate-50 uppercase tracking-tight leading-relaxed">{value || 'N/A'}</p>
     </div>
   );
 }
@@ -159,8 +159,8 @@ function IntelItem({ label, value }: any) {
 function VitalsBox({ label, value }: any) {
   return (
     <div className="bg-slate-950/50 px-4 py-2 rounded-xl border border-white/5 text-center min-w-[80px]">
-       <p className="text-[7px] font-black text-slate-600 uppercase">{label}</p>
-       <p className="text-xs font-mono font-bold text-white">{value}</p>
+       <p className="text-[7px] font-semibold text-slate-600 uppercase leading-relaxed">{label}</p>
+       <p className="text-xs font-mono font-bold text-slate-50 leading-relaxed">{value}</p>
     </div>
   );
 }

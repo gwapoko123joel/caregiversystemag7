@@ -72,9 +72,9 @@ export const BantayanLogo = ({ size = 'default' }: { size?: 'default' | 'large' 
     <div className="flex items-center gap-3">
       <div className={`${s.icon} rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 
                         flex items-center justify-center shadow-lg shadow-cyan-500/25`}>
-        <Heart className="w-5 h-5 text-white fill-white" />
+        <Heart className="w-5 h-5 text-slate-50 fill-white" />
       </div>
-      <span className={`${s.text} font-black tracking-tight text-white`}>
+      <span className={`${s.text} font-bold tracking-tight text-slate-50`}>
         BANTAYAN<span className="text-cyan-400">CARE</span>
       </span>
     </div>
@@ -125,7 +125,7 @@ export const AuthInput: React.FC<AuthInputProps> = ({
         disabled={disabled}
         autoComplete={autoComplete}
         className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 
-                   text-sm text-white placeholder-slate-500
+                   text-sm text-slate-50 placeholder-slate-500
                    focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 
                    focus:bg-slate-800/80 outline-none transition-all duration-300
                    disabled:opacity-50 disabled:cursor-not-allowed"
@@ -165,7 +165,7 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ loading, children, onCli
       type="submit"
       onClick={onClick}
       disabled={loading}
-      className={`w-full py-3.5 rounded-xl text-white text-sm font-bold tracking-wider uppercase
+      className={`w-full py-3.5 rounded-xl text-slate-50 text-sm font-bold tracking-wider uppercase
                   shadow-lg transition-all duration-300 
                   disabled:opacity-60 disabled:cursor-not-allowed
                   flex items-center justify-center gap-2
@@ -198,7 +198,7 @@ export const AuthError = ({ message, onDismiss }: { message: string, onDismiss?:
       >
         <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm text-red-300">{message}</p>
+          <p className="text-sm text-red-300 leading-relaxed">{message}</p>
         </div>
         {onDismiss && (
           <button
@@ -218,13 +218,13 @@ export const AuthError = ({ message, onDismiss }: { message: string, onDismiss?:
 // ============================================
 export const AuthNodeFooter = ({ variant = 'default' }: { variant?: 'default' | 'governance' }) => (
   <div className="text-center space-y-1">
-    <p className="text-[10px] tracking-[0.25em] text-slate-600 uppercase">
+    <p className="text-[10px] tracking-[0.25em] text-slate-600 uppercase leading-relaxed">
       {variant === 'governance'
         ? '🔒 This access point is monitored and logged'
         : '⊙ Secured connection — Barangay Bantayan Network'
       }
     </p>
-    <p className="text-[9px] tracking-[0.2em] text-slate-700 uppercase">
+    <p className="text-[9px] tracking-[0.2em] text-slate-700 uppercase leading-relaxed">
       Encrypted Node: DUMAGUETE-X01
     </p>
   </div>

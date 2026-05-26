@@ -182,7 +182,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
+    <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-slate-50 pb-20 md:pb-0">
       <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
 
       <div className="flex-1 flex flex-col min-h-screen">
@@ -205,15 +205,15 @@ function AdminLayout() {
                 </button>
               )}
               <div>
-                <h1 className="text-2xl font-black tracking-tight uppercase text-text-main transition-colors leading-tight">{title}</h1>
-                <p className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors">{subTitle}</p>
+                <h1 className="text-2xl font-semibold uppercase text-text-main transition-colors leading-tight tracking-tighter">{title}</h1>
+                <p className="text-[10px] font-semibold text-sidebar-text-muted uppercase tracking-[0.2em] mt-1 transition-colors leading-relaxed">{subTitle}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
               <button
                 onClick={() => { loadUsers(); loadLogs(); loadSystemData(); }}
-                className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
+                className="px-6 py-3 bg-card hover:bg-slate-50 dark:hover:bg-white/5 border border-card-border rounded-xl flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest transition-all text-text-main active:scale-95 shadow-sm"
               >
                 <RefreshCw size={14} className="text-sky-500" /> Sync Node
               </button>

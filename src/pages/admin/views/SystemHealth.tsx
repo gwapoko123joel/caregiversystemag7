@@ -12,12 +12,12 @@ export default function SystemHealth() {
       <div className="px-2">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-          <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Status: Operational</span>
+          <span className="text-[10px] font-semibold text-emerald-500 uppercase tracking-[0.4em]">Status: Operational</span>
         </div>
-        <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
           System <span className="text-sky-500">Infrastructure</span>
         </h2>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
           Core Delivery Pipeline • Global Operations Console
         </p>
       </div>
@@ -27,12 +27,12 @@ export default function SystemHealth() {
         {/* ── LEFT: PIPELINE DIAGNOSTICS (7/10) ── */}
         <div className="lg:col-span-7 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl flex flex-col">
           <div className="flex items-center gap-3 mb-10">
-             <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+             <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-slate-50 shadow-lg shadow-sky-500/20">
                 <Cpu size={20} />
              </div>
              <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Core Delivery Pipeline</h3>
-                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">Real-time Backend Node Synchronization</p>
+                <h3 className="text-sm font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Core Delivery Pipeline</h3>
+                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 leading-relaxed">Real-time Backend Node Synchronization</p>
              </div>
           </div>
 
@@ -70,16 +70,16 @@ export default function SystemHealth() {
           <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
              <div className="flex items-center gap-4">
                 <div className="text-center">
-                   <p className="text-[8px] font-black text-slate-600 uppercase">Primary Region</p>
-                   <p className="text-[10px] font-bold text-white uppercase">PH-Dumaguete-01</p>
+                   <p className="text-[8px] font-semibold text-slate-600 uppercase leading-relaxed">Primary Region</p>
+                   <p className="text-[10px] font-bold text-slate-50 uppercase leading-relaxed">PH-Dumaguete-01</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                   <p className="text-[8px] font-black text-slate-600 uppercase">Provider</p>
-                   <p className="text-[10px] font-bold text-white uppercase">Supabase Cloud</p>
+                   <p className="text-[8px] font-semibold text-slate-600 uppercase leading-relaxed">Provider</p>
+                   <p className="text-[10px] font-bold text-slate-50 uppercase leading-relaxed">Supabase Cloud</p>
                 </div>
              </div>
-             <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">
+             <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-50 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all">
                 Download Node Logs
              </button>
           </div>
@@ -93,23 +93,23 @@ export default function SystemHealth() {
              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:rotate-12 transition-transform">
                 <ShieldCheck size={120} />
              </div>
-             <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4">System Node Health</p>
-             <h4 className="text-4xl font-black text-white uppercase tracking-tighter">Optimal</h4>
-             <p className="text-[10px] text-emerald-500/60 font-bold uppercase mt-2 tracking-widest">— Stable Core —</p>
+             <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-[0.2em] mb-4 leading-relaxed">System Node Health</p>
+             <h4 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter">Optimal</h4>
+             <p className="text-[10px] text-emerald-500/60 font-bold uppercase mt-2 tracking-widest leading-relaxed">— Stable Core —</p>
           </div>
 
           {/* METRICS HUD */}
           <div className="bg-slate-900/40 border border-white/5 rounded-[40px] p-8 shadow-2xl space-y-8">
              <div className="flex items-center gap-2 mb-2">
                 <Zap size={14} className="text-sky-500" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Live Metrics</h3>
+                <h3 className="text-[10px] font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Live Metrics</h3>
              </div>
 
              <MetricBar label="Reporting Rate" value="Daily Total" count={health.reportsToday} percent={65} />
              <MetricBar label="Node Uptime" value={health.serverUptime} count="" percent={99} />
              
              <div className="pt-6 border-t border-white/5">
-                <div className="flex items-center justify-between text-[9px] font-black text-slate-500 uppercase mb-4">
+                <div className="flex items-center justify-between text-[9px] font-semibold text-slate-500 uppercase mb-4">
                    <span>Encryption Level</span>
                    <span className="text-sky-400">AES-256</span>
                 </div>
@@ -139,11 +139,11 @@ function PipelineRow({ label, status, meta, icon, color }: any) {
             {icon}
           </div>
           <div>
-            <p className="text-[11px] font-black text-white uppercase tracking-tight">{label}</p>
-            <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5">{meta}</p>
+            <p className="text-[11px] font-semibold text-slate-50 uppercase tracking-tight leading-relaxed">{label}</p>
+            <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5 leading-relaxed">{meta}</p>
           </div>
        </div>
-       <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${colors[color]}`}>
+       <div className={`px-4 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-widest ${colors[color]}`}>
           {status}
        </div>
     </div>
@@ -155,8 +155,8 @@ function MetricBar({ label, value, count, percent }: any) {
   return (
     <div className="space-y-3">
        <div className="flex justify-between items-end px-1">
-          <p className="text-[9px] font-black text-slate-500 uppercase">{label}</p>
-          <p className="text-[11px] font-black text-white uppercase">
+          <p className="text-[9px] font-semibold text-slate-500 uppercase leading-relaxed">{label}</p>
+          <p className="text-[11px] font-semibold text-slate-50 uppercase leading-relaxed">
             {count} <span className="text-[8px] text-slate-600 ml-1">{value}</span>
           </p>
        </div>

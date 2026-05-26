@@ -31,7 +31,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
             <User size={24} />
           </div>
           <div>
-            <h3 className="text-lg font-light tracking-[0.1em] text-white uppercase">{fullName}</h3>
+            <h3 className="text-lg font-light tracking-[0.1em] text-slate-50 uppercase tracking-tighter leading-tight">{fullName}</h3>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
                 <Calendar size={10} /> {calculateAge(patient.date_of_birth)}
@@ -80,7 +80,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
             <>
               <button 
                 onClick={() => onViewDetails?.(patient)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-slate-50 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
               >
                 DETAILS →
               </button>

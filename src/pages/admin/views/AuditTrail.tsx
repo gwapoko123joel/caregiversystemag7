@@ -27,12 +27,12 @@ export default function AuditTrail() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Governance: System Audit</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Governance: System Audit</span>
           </div>
-          <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Immutable <span className="text-sky-500">Activity Stream</span>
           </h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Global Ledger • Encrypted Forensic Trace
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function AuditTrail() {
             <input 
               type="text"
               placeholder="Search by Action or Node ID..."
-              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
               value={logSearch}
               onChange={(e) => setLogSearch(e.target.value)}
             />
@@ -70,7 +70,7 @@ export default function AuditTrail() {
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] overflow-hidden flex flex-col shadow-2xl flex-1 min-h-0">
         
         {/* ── TABLE HEADER ── */}
-        <div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-white/5 bg-white/[0.02] text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-white/5 bg-white/[0.02] text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
           <div className="col-span-2">Timeline Index</div>
           <div className="col-span-3">Principal Identity</div>
           <div className="col-span-2 text-center">Action Token</div>
@@ -85,10 +85,10 @@ export default function AuditTrail() {
                 
                 {/* 1. Timeline */}
                 <div className="col-span-2 space-y-1">
-                  <p className="text-xs font-mono font-bold text-white leading-none">
+                  <p className="text-xs font-mono font-bold text-slate-50 leading-none">
                     {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </p>
-                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-tighter">
+                  <p className="text-[8px] font-semibold text-slate-600 uppercase tracking-tighter leading-relaxed">
                     {new Date(log.timestamp).toLocaleDateString()}
                   </p>
                 </div>
@@ -100,17 +100,17 @@ export default function AuditTrail() {
                       <User size={14} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-mono text-sky-500/80 font-bold truncate max-w-[120px]">
+                      <p className="text-[10px] font-mono text-sky-500/80 font-bold truncate max-w-[120px] leading-relaxed">
                         {log.user_id?.toUpperCase().slice(0, 8)}...
                       </p>
-                      <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest">{log.user_type} Authorized Session</p>
+                      <p className="text-[7px] font-semibold text-slate-600 uppercase tracking-widest leading-relaxed">{log.user_type} Authorized Session</p>
                     </div>
                   </div>
                 </div>
 
                 {/* 3. Action Badge */}
                 <div className="col-span-2 flex justify-center">
-                  <span className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border shadow-sm ${
+                  <span className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase tracking-widest border shadow-sm ${
                     log.action === 'SOS_TRIGGERED' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
                     log.action === 'CLINICAL_SIGN_OFF' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' :
                     'bg-white/5 border-white/10 text-slate-400'
@@ -124,7 +124,7 @@ export default function AuditTrail() {
                    {log.details && typeof log.details === 'object' ? (
                      Object.entries(log.details).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-1.5 px-2 py-1 bg-slate-950/50 border border-white/5 rounded-lg">
-                         <span className="text-[7px] font-black text-slate-600 uppercase">{key}:</span>
+                         <span className="text-[7px] font-semibold text-slate-600 uppercase">{key}:</span>
                          <span className="text-[9px] font-bold text-slate-300 truncate max-w-[150px]">
                            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                          </span>

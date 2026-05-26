@@ -58,10 +58,10 @@ export default function PractitionerVerificationView() {
       
       {/* ── HEADER ── */}
       <div className="px-2">
-        <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
           Practitioner <span className="text-sky-500">Verification</span>
         </h2>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2 leading-relaxed">
           Credential Validation Hub • Security Governance Node
         </p>
       </div>
@@ -71,7 +71,7 @@ export default function PractitionerVerificationView() {
         {/* LEFT: PENDING QUEUE (4 Spans) */}
         <div className="lg:col-span-4 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] overflow-hidden flex flex-col shadow-2xl">
           <div className="p-6 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Verification Queue ({pendingUsers.length})</h3>
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-tighter leading-tight">Verification Queue ({pendingUsers.length})</h3>
             <div className="flex items-center gap-2">
                <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
             </div>
@@ -83,7 +83,7 @@ export default function PractitionerVerificationView() {
             ) : pendingUsers.length === 0 ? (
               <div className="text-center py-20 opacity-30">
                 <ShieldCheck size={40} className="mx-auto mb-4" />
-                <p className="text-[10px] font-black uppercase tracking-widest">All Nodes Verified</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">All Nodes Verified</p>
               </div>
             ) : (
               pendingUsers.map(u => (
@@ -96,8 +96,8 @@ export default function PractitionerVerificationView() {
                       : 'bg-white/[0.02] border-white/5 hover:border-white/10'
                   }`}
                 >
-                  <p className="text-sm font-black text-white uppercase tracking-tight">{u.full_name}</p>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-tighter">Registered: {new Date(u.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm font-semibold text-slate-50 uppercase tracking-tight leading-relaxed">{u.full_name}</p>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-tighter leading-relaxed">Registered: {new Date(u.created_at).toLocaleDateString()}</p>
                 </button>
               ))
             )}
@@ -116,11 +116,11 @@ export default function PractitionerVerificationView() {
                     <User size={48} className="group-hover:scale-110 transition-transform duration-500" />
                   </div>
                   <div>
-                    <span className="bg-sky-500/10 text-sky-400 border border-sky-500/20 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em]">Practitioner Identity</span>
-                    <h3 className="text-4xl font-black text-white uppercase tracking-tighter mt-3">{selectedUser.full_name}</h3>
+                    <span className="bg-sky-500/10 text-sky-400 border border-sky-500/20 px-3 py-1 rounded-full text-[8px] font-semibold uppercase tracking-[0.2em]">Practitioner Identity</span>
+                    <h3 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter mt-3 leading-tight">{selectedUser.full_name}</h3>
                     <div className="flex items-center gap-3 mt-1">
                         <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                        <p className="text-[11px] text-amber-500 font-bold uppercase tracking-widest">Awaiting Verification Handshake</p>
+                        <p className="text-[11px] text-amber-500 font-bold uppercase tracking-widest leading-relaxed">Awaiting Verification Handshake</p>
                     </div>
                   </div>
                 </div>
@@ -130,16 +130,16 @@ export default function PractitionerVerificationView() {
                   <div className="p-6 bg-slate-950/50 rounded-3xl border border-white/5 flex flex-col justify-between h-32">
                       <div className="flex items-center gap-2 text-slate-500">
                         <Mail size={16} />
-                        <p className="text-[9px] font-black uppercase tracking-widest">Communication Node</p>
+                        <p className="text-[9px] font-semibold uppercase tracking-widest leading-relaxed">Communication Node</p>
                       </div>
-                      <p className="text-sm font-bold text-white lowercase">{selectedUser.email}</p>
+                      <p className="text-sm font-bold text-slate-50 lowercase leading-relaxed">{selectedUser.email}</p>
                   </div>
                   <div className="p-6 bg-slate-950/50 rounded-3xl border border-white/5 flex flex-col justify-between h-32">
                       <div className="flex items-center gap-2 text-sky-500">
                         <ShieldCheck size={16} />
-                        <p className="text-[9px] font-black uppercase tracking-widest">PRC Clinical License</p>
+                        <p className="text-[9px] font-semibold uppercase tracking-widest leading-relaxed">PRC Clinical License</p>
                       </div>
-                      <p className="text-xl font-black text-sky-400 font-mono tracking-[0.2em]">{selectedUser.prc_license || 'NOT_FOUND'}</p>
+                      <p className="text-xl font-semibold text-sky-400 font-mono tracking-[0.2em] leading-relaxed">{selectedUser.prc_license || 'NOT_FOUND'}</p>
                   </div>
                 </div>
 
@@ -158,12 +158,12 @@ export default function PractitionerVerificationView() {
                 <button 
                   disabled={processing}
                   onClick={() => handleVerify(selectedUser.id)}
-                  className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
+                  className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-3xl text-[10px] font-semibold uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
                 >
                   {processing ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={18} /> Authorize Practitioner</>}
                 </button>
                 <button 
-                  className="flex-1 py-4 bg-white/5 hover:bg-rose-600 border border-white/10 text-slate-500 hover:text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] transition-all"
+                  className="flex-1 py-4 bg-white/5 hover:bg-rose-600 border border-white/10 text-slate-500 hover:text-slate-50 rounded-3xl text-[10px] font-semibold uppercase tracking-[0.3em] transition-all"
                 >
                   Flag Credentials
                 </button>
@@ -172,7 +172,7 @@ export default function PractitionerVerificationView() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-20 space-y-6">
                <Briefcase size={80} strokeWidth={1} />
-               <p className="text-xs font-black uppercase tracking-[0.4em]">Select a pending practitioner for audit</p>
+               <p className="text-xs font-semibold uppercase tracking-[0.4em] leading-relaxed">Select a pending practitioner for audit</p>
             </div>
           )}
         </div>

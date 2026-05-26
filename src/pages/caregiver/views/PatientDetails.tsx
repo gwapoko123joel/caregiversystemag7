@@ -70,7 +70,7 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
     return (
       <div className="flex flex-col items-center justify-center h-64 text-slate-500">
         <Loader2 size={32} className="animate-spin mb-4 text-sky-500" />
-        <p className="text-[10px] font-black uppercase tracking-widest">Retrieving Clinical Dossier...</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">Retrieving Clinical Dossier...</p>
       </div>
     );
   }
@@ -87,10 +87,10 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Patient <span className="text-sky-500">Dossier</span>
           </h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2 leading-relaxed">
             Clinical History • Case ID: PT-{patient.patient_id.toString().padStart(4, '0')}
           </p>
         </div>
@@ -109,8 +109,8 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
               <div className="w-24 h-24 bg-sky-500/10 rounded-full border-2 border-sky-500/20 flex items-center justify-center mb-6">
                 <User size={48} className="text-sky-500" />
               </div>
-              <h3 className="text-2xl font-black text-white uppercase tracking-tight leading-none mb-1">{patient.first_name} {patient.last_name}</h3>
-              <p className="text-[9px] font-black text-sky-500 uppercase tracking-widest mb-8">{patient.gender || 'MALE'}</p>
+              <h3 className="text-2xl font-semibold text-slate-50 uppercase mb-1 tracking-tighter leading-tight">{patient.first_name} {patient.last_name}</h3>
+              <p className="text-[9px] font-semibold text-sky-500 uppercase tracking-widest mb-8 leading-relaxed">{patient.gender || 'MALE'}</p>
               
               <div className="w-full space-y-3">
                  <ProfileDetail label="Date of Birth" value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'} icon={<Calendar size={12}/>} />
@@ -124,13 +124,13 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
           <div className="bg-slate-950/50 rounded-3xl p-6 border border-rose-500/20 mb-6 shadow-2xl">
             <div className="flex items-center gap-2 mb-4 text-rose-500">
               <ShieldAlert size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Emergency Metadata</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest">Emergency Metadata</span>
             </div>
             
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-[9px] font-bold text-slate-500 uppercase">Blood Type</span>
-                <span className="text-sm font-black text-white">{patient.blood_type || 'Unknown'}</span>
+                <span className="text-sm font-bold text-slate-50">{patient.blood_type || 'Unknown'}</span>
               </div>
               
               <div className="space-y-1">
@@ -142,14 +142,14 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
 
               <div className="pt-3 border-t border-white/5 space-y-1">
                 <span className="text-[9px] font-bold text-slate-500 uppercase">Emergency Contact</span>
-                <p className="text-xs font-bold text-white uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
-                <p className="text-[10px] font-mono text-sky-500">{patient.emergency_contact_phone || 'None'}</p>
+                <p className="text-xs font-bold text-slate-50 uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
+                <p className="text-[10px] font-mono text-sky-500 leading-relaxed">{patient.emergency_contact_phone || 'None'}</p>
               </div>
             </div>
           </div>
 
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Medical Context</h3>
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-4 tracking-tighter leading-tight">Medical Context</h3>
             <div className="p-4 bg-slate-950/50 border border-white/5 rounded-2xl">
                <p className="text-xs text-slate-300 leading-relaxed italic">"{patient.medical_history || patient.medical_conditions || 'No pre-existing conditions recorded.'}"</p>
             </div>
@@ -169,9 +169,9 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
 
           <div className="flex items-center gap-3 px-2">
              <div className="w-1.5 h-6 bg-sky-500 rounded-full" />
-             <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Clinical Observation Stream</h3>
+             <h3 className="text-sm font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Clinical Observation Stream</h3>
              <div className="h-px flex-1 bg-white/5" />
-             <span className="text-[10px] font-black text-slate-500 uppercase">{logs.length} Updates</span>
+             <span className="text-[10px] font-semibold text-slate-500 uppercase">{logs.length} Updates</span>
           </div>
 
           <div className="space-y-4">
@@ -180,8 +180,8 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
                 <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 text-slate-500">
                   <AlertCircle size={32} />
                 </div>
-                <h3 className="text-sm font-black text-white uppercase tracking-tight">No Monitoring Logs</h3>
-                <p className="text-xs text-slate-500 mt-2">There are no health logs recorded for this patient yet.</p>
+                <h3 className="text-sm font-semibold text-slate-50 uppercase tracking-tighter leading-tight">No Monitoring Logs</h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">There are no health logs recorded for this patient yet.</p>
               </div>
             ) : (
               logs.map((log) => (
@@ -197,20 +197,20 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
                           <Activity size={20} />
                         </div>
                         <div>
-                          <h4 className="text-sm font-black text-white uppercase tracking-tight">
+                          <h4 className="text-sm font-semibold text-slate-50 uppercase tracking-tight">
                             {log.physical_status === 'stable' ? 'Stable Condition' : log.physical_status === 'warning' ? 'Observation Required' : 'Critical Update'}
                           </h4>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">{new Date(log.recorded_at).toLocaleString()}</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 leading-relaxed">{new Date(log.recorded_at).toLocaleString()}</p>
                         </div>
                       </div>
                       
                       {/* Status Indicator */}
                       {log.verified_by ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-500 text-[8px] font-black uppercase">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-500 text-[8px] font-semibold uppercase">
                            <ShieldCheck size={12} /> Validated
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-slate-500 text-[8px] font-black uppercase">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-slate-500 text-[8px] font-semibold uppercase">
                            <Clock size={12} /> Pending Review
                         </div>
                       )}
@@ -227,18 +227,18 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
                     {/* Observations & Photos */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
                        <div className="space-y-3">
-                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Caregiver Observations</p>
+                          <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest leading-relaxed">Caregiver Observations</p>
                           <div className="p-4 bg-slate-950/30 rounded-2xl border border-white/5">
                             <p className="text-xs text-slate-300 italic leading-relaxed">"{log.notes || 'No notes provided.'}"</p>
                           </div>
                        </div>
                        {log.image_url && (
                          <div className="space-y-3">
-                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Visual Telemetry</p>
+                            <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest leading-relaxed">Visual Telemetry</p>
                             <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group/img">
                                <img src={supabase.storage.from('patient-photos').getPublicUrl(log.image_url).data.publicUrl} className="w-full h-full object-cover transition-transform group-hover/img:scale-105" />
                                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                  <span className="text-[8px] font-black text-white uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-md">View Full Resolution</span>
+                                  <span className="text-[8px] font-semibold text-slate-50 uppercase tracking-widest bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-md">View Full Resolution</span>
                                </div>
                             </div>
                          </div>
@@ -256,12 +256,12 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
 }
 
 // ── HELPER: PROFILE DETAIL ──
-function ProfileDetail({ label, value, icon, color = "text-white" }: any) {
+function ProfileDetail({ label, value, icon, color = "text-slate-50" }: any) {
   return (
     <div className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5 text-left">
       <div className="text-slate-500">{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest truncate">{label}</p>
+        <p className="text-[8px] font-semibold text-slate-600 uppercase tracking-widest truncate leading-relaxed">{label}</p>
         <p className={`text-[11px] font-bold uppercase truncate ${color}`}>{value || 'N/A'}</p>
       </div>
     </div>
@@ -269,12 +269,12 @@ function ProfileDetail({ label, value, icon, color = "text-white" }: any) {
 }
 
 // ── HELPER: VITALS NODE ──
-function VitalsNode({ label, value, unit, color = "text-white" }: any) {
+function VitalsNode({ label, value, unit, color = "text-slate-50" }: any) {
   return (
     <div className="bg-slate-950/50 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
-      <p className="text-[8px] font-black text-slate-600 uppercase tracking-tighter mb-1">{label}</p>
-      <p className={`text-sm font-mono font-black ${color}`}>{value}</p>
-      <p className="text-[7px] font-bold text-slate-700 uppercase mt-1">{unit}</p>
+      <p className="text-[8px] font-semibold text-slate-600 uppercase tracking-tighter mb-1 leading-relaxed">{label}</p>
+      <p className={`text-sm font-mono font-bold ${color}`}>{value}</p>
+      <p className="text-[7px] font-bold text-slate-700 uppercase mt-1 leading-relaxed">{unit}</p>
     </div>
   );
 }
@@ -285,14 +285,14 @@ function TrendCard({ label, trend, current, previous }: any) {
   return (
     <div className="bg-slate-900/60 backdrop-blur-md border border-white/5 p-6 rounded-[32px] flex items-center justify-between shadow-xl">
       <div>
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
-        <div className={`flex items-center gap-2 font-black uppercase text-sm ${trend.color}`}>
+        <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest mb-1 leading-relaxed">{label}</p>
+        <div className={`flex items-center gap-2 font-bold uppercase text-sm ${trend.color}`}>
           {trend.icon} {trend.label}
         </div>
       </div>
       <div className="text-right">
-        <p className="text-xs font-mono text-white font-bold">{previous} → {current}</p>
-        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-tighter">Last 2 Readings</p>
+        <p className="text-xs font-mono text-slate-50 font-bold leading-relaxed">{previous} → {current}</p>
+        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-tighter leading-relaxed">Last 2 Readings</p>
       </div>
     </div>
   );

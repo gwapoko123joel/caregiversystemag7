@@ -52,10 +52,10 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
           <AlertTriangle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" 
                           strokeWidth={1.5} />
           <div className="flex-1">
-            <h3 className="text-sm font-light tracking-[0.2em] uppercase text-amber-300 mb-2">
+            <h3 className="text-sm font-light tracking-[0.2em] uppercase text-amber-300 mb-2 tracking-tighter leading-tight">
               Credentials Required
             </h3>
-            <p className="text-sm font-light text-white/70 mb-4">
+            <p className="text-sm font-light text-slate-50/70 mb-4 leading-relaxed">
               You haven't submitted your medical credentials yet. Please complete your 
               practitioner profile to start receiving patient consultations.
             </p>
@@ -144,7 +144,7 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
                    flex items-center gap-3"
         >
           <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0" strokeWidth={1.5} />
-          <p className="text-sm font-light text-orange-200">
+          <p className="text-sm font-light text-orange-200 leading-relaxed">
             Your PRC license expires in {daysUntilExpiry} days. Please renew soon.
           </p>
         </motion.div>
@@ -196,7 +196,7 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
       {/* Specializations */}
       {credentials.specializations && credentials.specializations.length > 0 && (
         <div className="mt-6 pt-6 border-t border-white/5">
-          <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-3">
+          <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-3 leading-relaxed">
             Specializations
           </p>
           <div className="flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
       {/* Hospital affiliations */}
       {credentials.hospital_affiliations && credentials.hospital_affiliations.length > 0 && (
         <div className="mt-6 pt-6 border-t border-white/5">
-          <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-3">
+          <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-3 leading-relaxed">
             Hospital Affiliations
           </p>
           <div className="space-y-2">
@@ -225,9 +225,9 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
                 key={idx}
                 className="p-3 rounded-xl bg-white/5 border border-white/10"
               >
-                <p className="text-sm font-light text-white">{hospital.name}</p>
+                <p className="text-sm font-light text-slate-50 leading-relaxed">{hospital.name}</p>
                 {hospital.role && (
-                  <p className="text-xs font-light text-white/60 mt-1">{hospital.role}</p>
+                  <p className="text-xs font-light text-slate-50/60 mt-1 leading-relaxed">{hospital.role}</p>
                 )}
               </div>
             ))}
@@ -259,7 +259,7 @@ export function PractitionerProfileSection({ caregiverId }: Props) {
           <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
           Request Credential Update
         </button>
-        <p className="text-xs font-light text-white/40 mt-2">
+        <p className="text-xs font-light text-slate-50/40 mt-2 leading-relaxed">
           Credential changes require admin re-verification
         </p>
       </div>
@@ -275,10 +275,10 @@ function CredentialField({ icon: Icon, label, value }: any) {
         <Icon className="w-4 h-4 text-cyan-300" strokeWidth={1.5} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-light tracking-wider uppercase text-cyan-300/60 mb-1">
+        <p className="text-xs font-light tracking-wider uppercase text-cyan-300/60 mb-1 leading-relaxed">
           {label}
         </p>
-        <p className="text-sm font-light text-white truncate">{value}</p>
+        <p className="text-sm font-light text-slate-50 truncate leading-relaxed">{value}</p>
       </div>
     </div>
   );
@@ -291,7 +291,7 @@ function PreferenceBadge({ label, enabled }: { label: string; enabled: boolean }
                      ? 'bg-emerald-500/10 border-emerald-500/30' 
                      : 'bg-white/5 border-white/10'}`}>
       <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-emerald-400' : 'bg-white/30'}`} />
-      <span className={`text-sm font-light ${enabled ? 'text-emerald-200' : 'text-white/50'}`}>
+      <span className={`text-sm font-light ${enabled ? 'text-emerald-200' : 'text-slate-50/50'}`}>
         {label}
       </span>
     </div>

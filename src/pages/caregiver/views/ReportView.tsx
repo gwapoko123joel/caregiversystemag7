@@ -32,11 +32,11 @@ export default function ReportView({
           <div className="w-20 h-20 bg-sky-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-sky-500/20">
             <UserSearch size={40} className="text-sky-500" />
           </div>
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">No Patient Selected</h2>
-          <p className="text-sm text-slate-500 mb-10 max-w-xs mx-auto font-medium">To ensure medical accuracy, you must select a subject from your roster before transmitting telemetry.</p>
+          <h2 className="text-2xl font-semibold text-slate-50 uppercase mb-2 tracking-tighter leading-tight">No Patient Selected</h2>
+          <p className="text-sm text-slate-500 mb-10 max-w-xs mx-auto font-medium leading-relaxed">To ensure medical accuracy, you must select a subject from your roster before transmitting telemetry.</p>
           <button
             onClick={onBack}
-            className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3 mx-auto"
+            className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3 mx-auto"
           >
             <ArrowLeft size={16} /> Return to Patient Roster
           </button>
@@ -51,12 +51,12 @@ export default function ReportView({
       {/* ── CLINICAL HEADER ── */}
       <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[40px] flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-6">
-          <div className="w-14 h-14 bg-sky-500 rounded-3xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+          <div className="w-14 h-14 bg-sky-500 rounded-3xl flex items-center justify-center text-slate-50 shadow-lg shadow-sky-500/20">
              <FileText size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight leading-none">Submit Telemetry</h1>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+            <h1 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Submit Telemetry</h1>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2 leading-relaxed">
               Field Reporter: {patient.first_name} {patient.last_name} • PT-ID: {patient.patient_id}
             </p>
           </div>
@@ -64,7 +64,7 @@ export default function ReportView({
         <div className="hidden md:block text-right">
            <div className="flex items-center gap-2 text-emerald-500">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black uppercase">Secure Node Link</span>
+              <span className="text-[9px] font-semibold uppercase">Secure Node Link</span>
            </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function ReportView({
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-8">
              <Activity size={18} className="text-sky-500" />
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Subject Status Triage</h3>
+             <h3 className="text-xs font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Subject Status Triage</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -101,7 +101,7 @@ export default function ReportView({
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-8">
              <Heart size={18} className="text-rose-500" />
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Clinical Telemetry</h3>
+             <h3 className="text-xs font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Clinical Telemetry</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -119,13 +119,13 @@ export default function ReportView({
               }`}>
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    form.allergic_reaction_detected ? 'bg-rose-500 text-white animate-pulse' : 'bg-white/5 text-slate-500'
+                    form.allergic_reaction_detected ? 'bg-rose-500 text-slate-50 animate-pulse' : 'bg-white/5 text-slate-500'
                   }`}>
                     <ShieldAlert size={20} />
                   </div>
                   <div>
-                    <p className="text-[11px] font-black text-white uppercase tracking-tight">Acute Allergic Reaction?</p>
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Check for rashes, swelling, or itching</p>
+                    <p className="text-[11px] font-semibold text-slate-50 uppercase tracking-tight leading-relaxed">Acute Allergic Reaction?</p>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Check for rashes, swelling, or itching</p>
                   </div>
                 </div>
                 
@@ -149,23 +149,23 @@ export default function ReportView({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
            {/* Notes */}
            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Clinical Observations</h3>
+              <h3 className="text-[10px] font-semibold text-slate-500 uppercase mb-6 tracking-tighter leading-tight">Clinical Observations</h3>
               <textarea 
                 value={form.notes}
                 onChange={e => setField('notes', e.target.value)}
                 placeholder="Describe current patient condition..."
-                className="w-full bg-slate-950/50 border border-white/10 rounded-[28px] p-6 text-sm text-white focus:border-sky-500/50 transition-all outline-none min-h-[160px] resize-none font-medium placeholder:text-slate-700"
+                className="w-full bg-slate-950/50 border border-white/10 rounded-[28px] p-6 text-sm text-slate-50 focus:border-sky-500/50 transition-all outline-none min-h-[160px] resize-none font-medium placeholder:text-slate-700"
               />
            </div>
 
            {/* Photo Upload */}
            <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 flex flex-col justify-between">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Visual Telemetry (Optional)</h3>
+              <h3 className="text-[10px] font-semibold text-slate-500 uppercase mb-6 tracking-tighter leading-tight">Visual Telemetry (Optional)</h3>
               
               {imagePreview ? (
                 <div className="relative aspect-video rounded-[28px] overflow-hidden border border-white/10 group">
                   <img src={imagePreview} className="w-full h-full object-cover" />
-                  <button onClick={removeImage} className="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-rose-500 transition-all">
+                  <button onClick={removeImage} className="absolute top-4 right-4 p-2 bg-black/60 text-slate-50 rounded-full hover:bg-rose-500 transition-all">
                     <X size={16} />
                   </button>
                 </div>
@@ -178,7 +178,7 @@ export default function ReportView({
                   <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-600 group-hover:text-sky-500 transition-all">
                     <Plus size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Add Clinical Photo</p>
+                  <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest leading-relaxed">Add Clinical Photo</p>
                   <input ref={fileInputRef} type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
                 </button>
               )}
@@ -189,10 +189,10 @@ export default function ReportView({
         <button 
           type="submit"
           disabled={submitting}
-          className={`w-full py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.3em] flex items-center justify-center gap-3 transition-all shadow-2xl ${
+          className={`w-full py-6 rounded-[2rem] font-bold uppercase text-sm tracking-[0.3em] flex items-center justify-center gap-3 transition-all shadow-2xl ${
             form.physical_status === 'critical' 
-              ? 'bg-rose-600 text-white shadow-rose-500/20' 
-              : 'bg-sky-500 text-white shadow-sky-500/20'
+              ? 'bg-rose-600 text-slate-50 shadow-rose-500/20' 
+              : 'bg-sky-500 text-slate-50 shadow-sky-500/20'
           } hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50`}
         >
           {submitting ? <Loader2 className="animate-spin" /> : <><Send size={20} /> Transmit Field Report</>}
@@ -228,8 +228,8 @@ function TriageButton({ active, label, sub, color, icon, onClick }: TriageButton
     >
       <div className={active ? 'scale-110 transition-transform' : 'opacity-40'}>{icon}</div>
       <div className="text-center">
-        <p className="text-sm font-black uppercase tracking-tight">{label}</p>
-        <p className="text-[8px] font-bold uppercase tracking-widest opacity-60">{sub}</p>
+        <p className="text-sm font-semibold uppercase tracking-tight leading-relaxed">{label}</p>
+        <p className="text-[8px] font-bold uppercase tracking-widest opacity-60 leading-relaxed">{sub}</p>
       </div>
     </button>
   );
@@ -249,8 +249,8 @@ function VitalInput({ label, unit, icon, placeholder, value, onChange }: VitalIn
   return (
     <div className="space-y-3">
       <div className="flex justify-between px-2">
-        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
-        <span className="text-[9px] font-black text-sky-500/40 uppercase tracking-widest">{unit}</span>
+        <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest">{label}</label>
+        <span className="text-[9px] font-semibold text-sky-500/40 uppercase tracking-widest">{unit}</span>
       </div>
       <div className="relative group">
         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors">
@@ -260,7 +260,7 @@ function VitalInput({ label, unit, icon, placeholder, value, onChange }: VitalIn
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white font-mono text-lg outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-slate-50 font-mono text-lg outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
         />
       </div>
     </div>

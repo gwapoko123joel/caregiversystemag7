@@ -225,7 +225,7 @@ export default function AvailabilityToggle() {
             >
               <div className="flex items-center gap-3 pb-2 border-b border-white/5">
                 <Clock size={16} className="text-sky-500" />
-                <h4 className="text-[10px] font-light text-white uppercase tracking-widest">Update Availability</h4>
+                <h4 className="text-[10px] font-light text-slate-50 uppercase tracking-widest">Update Availability</h4>
               </div>
 
               <div className="grid grid-cols-1 gap-2">
@@ -236,14 +236,14 @@ export default function AvailabilityToggle() {
                     disabled={loading}
                     className={`flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-white/5 group ${status === opt.id ? 'bg-white/5 ring-1 ring-white/10' : ''}`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${status === opt.id ? (`bg-${opt.color}-500/20 text-${opt.color}-500`) : 'bg-slate-950 text-slate-500 group-hover:text-white'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${status === opt.id ? (`bg-${opt.color}-500/20 text-${opt.color}-500`) : 'bg-slate-950 text-slate-500 group-hover:text-slate-50'}`}>
                       <opt.icon size={18} />
                     </div>
                     <div className="text-left">
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${status === opt.id ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${status === opt.id ? 'text-slate-50' : 'text-slate-400 group-hover:text-slate-50'}`}>
                         {opt.label}
                       </p>
-                      <p className="text-[8px] text-slate-600 uppercase tracking-tighter">{opt.description}</p>
+                      <p className="text-[8px] text-slate-600 uppercase tracking-tighter leading-relaxed">{opt.description}</p>
                     </div>
                   </button>
                 ))}
@@ -259,7 +259,7 @@ export default function AvailabilityToggle() {
                       value={statusMessage}
                       onChange={(e) => setStatusMessage(e.target.value)}
                       placeholder="e.g. In surgery until 3pm"
-                      className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all placeholder:text-slate-700 italic"
+                      className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-slate-50 focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all placeholder:text-slate-700 italic"
                     />
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export default function AvailabilityToggle() {
                         type="time"
                         value={busyUntil}
                         onChange={(e) => setBusyUntil(e.target.value)}
-                        className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-white focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all text-white"
+                        className="w-full bg-slate-950/50 border border-white/5 rounded-lg py-2 pl-8 pr-3 text-[10px] text-slate-50 focus:outline-none focus:ring-1 focus:ring-sky-500/50 transition-all text-slate-50"
                       />
                     </div>
                   </div>
@@ -281,7 +281,7 @@ export default function AvailabilityToggle() {
 
                 <button
                   onClick={() => handleUpdateStatus(status)}
-                  className="w-full py-2 bg-sky-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-sky-400 active:scale-[0.98] transition-all shadow-lg shadow-sky-500/20"
+                  className="w-full py-2 bg-sky-500 text-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-sky-400 active:scale-[0.98] transition-all shadow-lg shadow-sky-500/20"
                 >
                   Apply Status Update
                 </button>

@@ -131,10 +131,10 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
       
       {/* ── HEADER SECTION ── */}
       <div className="px-2">
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none mb-3">
+        <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter mb-3 leading-tight">
           Command & <span className="text-sky-500">Consult</span>
         </h2>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
+        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.3em] leading-relaxed">
           Barangay Monitoring Network — Secure Intervention Pipeline
         </p>
       </div>
@@ -157,8 +157,8 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
               <UserCheck size={32} />
             </div>
             <div>
-              <h3 className="text-xl font-black text-white uppercase tracking-tight">Operator Availability System</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">Broadcast clinical presence to field nodes</p>
+              <h3 className="text-xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Operator Availability System</h3>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 leading-relaxed">Broadcast clinical presence to field nodes</p>
             </div>
           </div>
 
@@ -176,13 +176,13 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
                   key={btn.id}
                   onClick={() => handleStatusUpdate(btn.id)}
                   disabled={isSaving}
-                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  className={`px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${
                     dutyStatus === btn.id 
                       ? btn.color === 'emerald' ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg'
                         : btn.color === 'sky' ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-lg'
                         : btn.color === 'rose' ? 'bg-rose-500 text-slate-950 border-rose-400 shadow-lg'
                         : 'bg-slate-500 text-slate-950 border-slate-400 shadow-lg'
-                      : 'bg-transparent border-transparent text-slate-500 hover:text-white'
+                      : 'bg-transparent border-transparent text-slate-500 hover:text-slate-50'
                   }`}
                 >
                   {btn.label}
@@ -201,13 +201,13 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
                     onChange={(e) => setCustomMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleStatusUpdate(dutyStatus)}
                     placeholder="Set custom status message (e.g. In surgery until 3 PM)"
-                    className="w-full lg:w-96 bg-slate-950/40 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 italic"
+                    className="w-full lg:w-96 bg-slate-950/40 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 italic"
                  />
                </div>
                <button 
                   onClick={() => handleStatusUpdate(dutyStatus)}
                   disabled={isSaving}
-                  className="px-6 py-3 bg-white/5 hover:bg-sky-500 hover:text-white text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 hover:border-sky-400 whitespace-nowrap disabled:opacity-50"
+                  className="px-6 py-3 bg-white/5 hover:bg-sky-500 hover:text-slate-50 text-slate-400 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all border border-white/5 hover:border-sky-400 whitespace-nowrap disabled:opacity-50"
                >
                  {isSaving ? 'Saving...' : 'Save'}
                </button>
@@ -229,13 +229,13 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button 
                 onClick={onInitiateCall}
-                className="flex-1 px-8 py-5 bg-sky-500 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl shadow-lg shadow-sky-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
+                className="flex-1 px-8 py-5 bg-sky-500 text-slate-50 font-semibold uppercase text-[11px] tracking-[0.2em] rounded-2xl shadow-lg shadow-sky-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4"
               >
                  <Phone size={20} className="fill-current" /> Voice Consultation
               </button>
               <button 
                 onClick={onInitiateSMS}
-                className="flex-1 px-8 py-5 bg-slate-950 border border-white/5 text-white font-bold uppercase text-[10px] tracking-[0.2em] rounded-2xl shadow-lg hover:border-brand-cyan/30 active:scale-95 transition-all flex items-center justify-center gap-4"
+                className="flex-1 px-8 py-5 bg-slate-950 border border-white/5 text-slate-50 font-bold uppercase text-[10px] tracking-[0.2em] rounded-2xl shadow-lg hover:border-brand-cyan/30 active:scale-95 transition-all flex items-center justify-center gap-4"
               >
                  <MessageSquare size={20} /> SMS Inquiry
               </button>
@@ -255,10 +255,10 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
 
         <div className="max-w-2xl relative z-10">
           <div className="flex items-center gap-3 mb-8">
-             <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+             <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-slate-50 shadow-lg">
                 <Radio size={20} className="animate-pulse" />
              </div>
-             <h3 className="text-xl font-black text-white uppercase tracking-tight">Network Broadcast Hub</h3>
+             <h3 className="text-xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Network Broadcast Hub</h3>
           </div>
 
           <div className="space-y-4">
@@ -266,7 +266,7 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
               <input 
                 id="broadcast-title"
                 placeholder="Subject (e.g. Dengue Alert, Weather Warning)"
-                className="w-full bg-slate-950/80 border border-white/10 rounded-2xl p-5 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-600"
+                className="w-full bg-slate-950/80 border border-white/10 rounded-2xl p-5 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-600"
               />
             </div>
             
@@ -274,14 +274,14 @@ export default function ContactConsole({ onInitiateCall, onInitiateSMS }: Contac
               <textarea 
                 id="broadcast-msg"
                 placeholder="Type instructions for the BHW fleet..."
-                className="w-full bg-slate-950/80 border border-white/10 rounded-2xl p-5 text-sm text-white outline-none focus:border-sky-500/50 min-h-[140px] resize-none transition-all placeholder:text-slate-600"
+                className="w-full bg-slate-950/80 border border-white/10 rounded-2xl p-5 text-sm text-slate-50 outline-none focus:border-sky-500/50 min-h-[140px] resize-none transition-all placeholder:text-slate-600"
               />
             </div>
 
             <button 
               onClick={sendBroadcast}
               disabled={isTransmitting}
-              className="w-full py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full py-5 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-3xl text-[11px] font-semibold uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {isTransmitting ? 'Transmitting...' : <><Send size={18} /> Transmit Announcement</>}
             </button>
@@ -299,8 +299,8 @@ function StatusMiniCard({ label, value, icon, color = "text-slate-400" }: any) {
     <div className="bg-slate-900/40 border border-white/5 p-5 rounded-[24px] flex flex-col justify-between h-28 shadow-lg">
       <div className={`p-2 w-fit bg-white/5 rounded-lg ${color}`}>{icon}</div>
       <div>
-        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{label}</p>
-        <p className="text-sm font-bold text-white mt-1">{value}</p>
+        <p className="text-[8px] font-semibold text-slate-500 uppercase tracking-widest leading-relaxed">{label}</p>
+        <p className="text-sm font-bold text-slate-50 mt-1 leading-relaxed">{value}</p>
       </div>
     </div>
   );

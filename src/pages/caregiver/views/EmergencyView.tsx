@@ -128,12 +128,12 @@ export default function EmergencyView() {
       <div className="px-2">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_#f43f5e]" />
-          <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.4em]">Protocol: Emergency Dispatch</span>
+          <span className="text-[10px] font-semibold text-rose-500 uppercase tracking-[0.4em]">Protocol: Emergency Dispatch</span>
         </div>
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
           Emergency <span className="text-rose-500">Support</span>
         </h2>
-        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
           Direct Crisis Intervention • Global SOS Broadcast Node
         </p>
       </div>
@@ -146,12 +146,12 @@ export default function EmergencyView() {
 
         <div className="max-w-2xl relative z-10 text-center md:text-left">
           <div className="flex flex-col md:flex-row items-center gap-6 mb-10">
-             <div className="w-20 h-20 bg-rose-500 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-rose-500/40 animate-pulse">
+             <div className="w-20 h-20 bg-rose-500 rounded-[2rem] flex items-center justify-center text-slate-50 shadow-2xl shadow-rose-500/40 animate-pulse">
                 <ShieldAlert size={40} />
              </div>
              <div>
-                <h3 className="text-3xl font-black text-white uppercase tracking-tight">Global Crisis SOS</h3>
-                <p className="text-xs text-rose-400/80 font-bold uppercase tracking-widest mt-1">Life-Threatening Emergency Protocol Only</p>
+                <h3 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Global Crisis SOS</h3>
+                <p className="text-xs text-rose-400/80 font-bold uppercase tracking-widest mt-1 leading-relaxed">Life-Threatening Emergency Protocol Only</p>
              </div>
           </div>
 
@@ -166,11 +166,11 @@ export default function EmergencyView() {
                 key={p.patient_id}
                 disabled={isDispatching}
                 onClick={() => triggerSOS(p.patient_id)}
-                className="group relative flex items-center justify-between p-6 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 text-white rounded-3xl transition-all shadow-xl shadow-rose-900/20 active:scale-95"
+                className="group relative flex items-center justify-between p-6 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 text-slate-50 rounded-3xl transition-all shadow-xl shadow-rose-900/20 active:scale-95"
               >
                 <div className="flex flex-col items-start">
-                   <span className="text-[8px] font-black text-rose-200 uppercase tracking-widest mb-1">Trigger Alarm for:</span>
-                   <span className="text-sm font-black uppercase tracking-tight">{p.first_name} {p.last_name}</span>
+                   <span className="text-[8px] font-semibold text-rose-200 uppercase tracking-widest mb-1">Trigger Alarm for:</span>
+                   <span className="text-sm font-semibold uppercase tracking-tight">{p.first_name} {p.last_name}</span>
                 </div>
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                    {isDispatching ? <Loader2 className="animate-spin" size={20} /> : <Siren size={20} />}
@@ -187,17 +187,17 @@ export default function EmergencyView() {
         <div className="lg:col-span-6 space-y-6">
           {/* ACTIVE PATIENT CONTEXT */}
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Subject Identity Context</h3>
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-6 tracking-tighter leading-tight">Subject Identity Context</h3>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 border border-white/5">
                   <User size={20} />
                 </div>
                 <div>
-                  <p className="text-lg font-black text-white uppercase tracking-tight">
+                  <p className="text-lg font-semibold text-slate-50 uppercase tracking-tight leading-relaxed">
                     {patient?.first_name || 'No Active'} {patient?.last_name || 'Subject'}
                   </p>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase">
+                  <p className="text-[9px] text-slate-500 font-bold uppercase leading-relaxed">
                     {patient?.patient_monitoring_logs?.[0] 
                       ? `Last Sync: ${patient.patient_monitoring_logs[0].vital_signs.blood_pressure} BP • ${patient.patient_monitoring_logs[0].vital_signs.heart_rate} BPM`
                       : 'No Telemetry Recorded'}
@@ -205,7 +205,7 @@ export default function EmergencyView() {
                 </div>
               </div>
               <div className="text-right">
-                 <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase tracking-widest ${
+                 <span className={`text-[10px] font-bold px-2 py-1 rounded border uppercase tracking-widest ${
                    patient?.status === 'active' ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-500 bg-white/5 border-white/10'
                  }`}>
                    {patient?.status || 'Unknown'}
@@ -217,8 +217,8 @@ export default function EmergencyView() {
           {/* NETWORK PRACTITIONERS */}
           <div className="bg-slate-900/40 border border-white/5 rounded-[32px] p-8">
              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Network Availability</h3>
-                <button className="text-[8px] font-black text-sky-500 uppercase tracking-widest hover:text-sky-400">View All Practitioners</button>
+                <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] tracking-tighter leading-tight">Network Availability</h3>
+                <button className="text-[8px] font-semibold text-sky-500 uppercase tracking-widest hover:text-sky-400">View All Practitioners</button>
              </div>
              
              <div className="space-y-3">
@@ -229,7 +229,7 @@ export default function EmergencyView() {
                 ) : practitioners.length === 0 ? (
                   <div className="py-10 text-center border border-dashed border-white/10 rounded-3xl opacity-40">
                     <Phone size={24} className="mx-auto mb-2 text-slate-600" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">No available doctors on-call</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">No available doctors on-call</p>
                   </div>
                 ) : (
                   practitioners.map(dr => (
@@ -237,11 +237,11 @@ export default function EmergencyView() {
                        <div className="flex items-center gap-3">
                           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                           <div>
-                             <p className="text-xs font-black text-white uppercase">Dr. {dr.last_name}</p>
-                             <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{dr.prc_license || 'Verified Node'}</p>
+                             <p className="text-xs font-semibold text-slate-50 uppercase leading-relaxed">Dr. {dr.last_name}</p>
+                             <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">{dr.prc_license || 'Verified Node'}</p>
                           </div>
                        </div>
-                       <a href={`tel:${dr.phone_number}`} className="p-2 bg-sky-500/10 text-sky-500 rounded-lg hover:bg-sky-500 hover:text-white transition-all">
+                       <a href={`tel:${dr.phone_number}`} className="p-2 bg-sky-500/10 text-sky-500 rounded-lg hover:bg-sky-500 hover:text-slate-50 transition-all">
                           <Phone size={14} />
                        </a>
                     </div>
@@ -253,11 +253,11 @@ export default function EmergencyView() {
 
         {/* ── SECTION 3: LOCAL SERVICE DISPATCH (4/10) ── */}
         <div className="lg:col-span-4 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl flex flex-col">
-          <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Local Service Dispatch</h3>
+          <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-8 tracking-tighter leading-tight">Local Service Dispatch</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
             {registry.length === 0 ? (
-               <p className="text-[10px] text-center text-slate-700 uppercase font-black py-10 col-span-2">Syncing Registry...</p>
+               <p className="text-[10px] text-center text-slate-700 uppercase font-semibold py-10 col-span-2 leading-relaxed">Syncing Registry...</p>
             ) : (
               registry.map((item) => (
                 <a 
@@ -274,8 +274,8 @@ export default function EmergencyView() {
                     {getIcon(item.icon_type)}
                   </div>
                   <div>
-                    <p className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-1">{item.service_name}</p>
-                    <p className="text-xs font-mono font-bold whitespace-nowrap">{item.phone_number}</p>
+                    <p className="text-[8px] font-semibold uppercase tracking-widest opacity-60 mb-1 leading-relaxed">{item.service_name}</p>
+                    <p className="text-xs font-mono font-bold whitespace-nowrap leading-relaxed">{item.phone_number}</p>
                   </div>
                 </a>
               ))
@@ -284,7 +284,7 @@ export default function EmergencyView() {
 
           <button 
             onClick={() => setIsEditing(true)}
-            className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all"
+            className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-slate-50 rounded-2xl text-[9px] font-semibold uppercase tracking-widest transition-all"
           >
             Update Dispatch Registry
           </button>
@@ -295,23 +295,23 @@ export default function EmergencyView() {
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="max-w-md w-full bg-slate-900 border border-white/10 rounded-[40px] p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-slate-50 shadow-lg">
                 <RefreshCw size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white uppercase tracking-tight">Registry Update</h3>
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Update Authorized Dispatch Nodes</p>
+                <h3 className="text-xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Registry Update</h3>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Update Authorized Dispatch Nodes</p>
               </div>
             </div>
 
             <div className="space-y-4">
               {registry.map((item) => (
                 <div key={item.id} className="space-y-1">
-                  <label className="text-[8px] font-black text-slate-600 uppercase ml-2">{item.service_name}</label>
+                  <label className="text-[8px] font-semibold text-slate-600 uppercase ml-2">{item.service_name}</label>
                   <input 
                     defaultValue={item.phone_number}
                     onBlur={(e) => handleUpdateRegistry(item.id, e.target.value)}
-                    className="w-full bg-slate-950/50 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-sky-500/50 transition-all font-mono"
+                    className="w-full bg-slate-950/50 border border-white/5 rounded-xl p-3 text-xs text-slate-50 outline-none focus:border-sky-500/50 transition-all font-mono"
                   />
                 </div>
               ))}
@@ -319,7 +319,7 @@ export default function EmergencyView() {
 
             <button 
               onClick={() => setIsEditing(false)}
-              className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+              className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all"
             >
               Finalize Registry
             </button>

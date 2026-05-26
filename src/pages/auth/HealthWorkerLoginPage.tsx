@@ -76,15 +76,15 @@ const HealthWorkerLoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#020617] text-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
       
       {/* Abort Button */}
       <button 
         onClick={() => navigate('/')} 
-        className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white transition-all group z-50 cursor-pointer"
+        className="absolute top-6 left-6 flex items-center gap-2 p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-slate-50 transition-all group z-50 cursor-pointer"
       >
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-[10px] font-black uppercase tracking-widest">Abort</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest">Abort</span>
       </button>
 
       {/* High-Fidelity Terminal Container */}
@@ -93,12 +93,12 @@ const HealthWorkerLoginPage = () => {
         {/* Branding */}
         <div className="flex flex-col items-center text-center mb-10">
           <div className="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20 mb-4">
-             <Heart size={32} fill="white" className="text-white" />
+             <Heart size={32} fill="white" className="text-slate-50" />
           </div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase text-white">
+          <h1 className="text-3xl font-semibold tracking-tighter uppercase text-slate-50 leading-tight">
             Bantayan<span className="text-sky-500">Care</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Authorization Node</p>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.3em] mt-1 leading-relaxed">Authorization Node</p>
         </div>
 
         {/* Role Switcher */}
@@ -106,10 +106,10 @@ const HealthWorkerLoginPage = () => {
           <button 
             type="button" 
             onClick={() => setUserType('medical_practitioner')} 
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer ${
               userType === 'medical_practitioner' 
                 ? 'bg-sky-500 !text-slate-950 shadow-md' 
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-slate-50'
             }`}
           >
             <Stethoscope size={12} /> Practitioner
@@ -117,10 +117,10 @@ const HealthWorkerLoginPage = () => {
           <button 
             type="button" 
             onClick={() => setUserType('caregiver')} 
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer ${
               userType === 'caregiver' 
                 ? 'bg-sky-500 !text-slate-950 shadow-md' 
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-slate-50'
             }`}
           >
             <User size={12} /> Caregiver
@@ -136,7 +136,7 @@ const HealthWorkerLoginPage = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Access ID */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-500/70 ml-1">Unique Access ID</label>
+            <label className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-500/70 ml-1">Unique Access ID</label>
             <div className="relative group">
               <Fingerprint size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors" />
               <input 
@@ -144,14 +144,14 @@ const HealthWorkerLoginPage = () => {
                 value={accessId}
                 onChange={(e) => handleAccessIdChange(e.target.value)}
                 placeholder="e.g. CG-0001"
-                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base text-white placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all font-mono"
+                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base text-slate-50 placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all font-mono"
               />
             </div>
           </div>
 
           {/* Email */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-500/70 ml-1">Network Email</label>
+            <label className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-500/70 ml-1">Network Email</label>
             <div className="relative group">
               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors" />
               <input 
@@ -159,14 +159,14 @@ const HealthWorkerLoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@bantayancare.node"
-                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base text-white placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all"
+                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-base text-slate-50 placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all"
               />
             </div>
           </div>
 
           {/* Password with Eye Icon */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-500/70 ml-1">Passkey</label>
+            <label className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-500/70 ml-1">Passkey</label>
             <div className="relative group">
               <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors" />
               <input 
@@ -174,7 +174,7 @@ const HealthWorkerLoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-base text-white placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all"
+                className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-base text-slate-50 placeholder-slate-600 outline-none focus:border-sky-500/50 transition-all"
               />
               <button 
                 type="button"
@@ -188,7 +188,7 @@ const HealthWorkerLoginPage = () => {
               <button 
                 type="button"
                 onClick={() => alert("SECURITY PROTOCOL: Please contact your Barangay Administrator to initiate a Manual Node Reset.")}
-                className="text-[9px] font-black text-sky-500/50 hover:text-sky-400 uppercase tracking-widest transition-all"
+                className="text-[9px] font-semibold text-sky-500/50 hover:text-sky-400 uppercase tracking-widest transition-all"
               >
                 Forgot Passkey?
               </button>
@@ -197,14 +197,14 @@ const HealthWorkerLoginPage = () => {
 
           <button 
             type="submit" disabled={loading}
-            className="w-full py-4.5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 !text-slate-950 font-black uppercase text-xs tracking-[0.3em] rounded-2xl transition-all shadow-lg shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-2 mt-8 cursor-pointer"
+            className="w-full py-4.5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 !text-slate-950 font-semibold uppercase text-xs tracking-[0.3em] rounded-2xl transition-all shadow-lg shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-2 mt-8 cursor-pointer"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <><ShieldCheck size={16} /> Initialize Session</>}
           </button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-white/5 text-center">
-          <Link to="/register" className="inline-flex items-center gap-2 text-[10px] font-black text-sky-400 hover:text-white uppercase tracking-[0.2em] transition-all">
+          <Link to="/register" className="inline-flex items-center gap-2 text-[10px] font-semibold text-sky-400 hover:text-slate-50 uppercase tracking-[0.2em] transition-all">
             <UserPlus size={14} />
             Initialize account with Access Key
           </Link>
@@ -214,15 +214,15 @@ const HealthWorkerLoginPage = () => {
         <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-between opacity-60 text-slate-400">
            <div className="flex items-center gap-2">
               <ShieldCheck size={12} className="text-sky-500" />
-              <span className="text-[8px] font-black uppercase tracking-widest">ID Verified</span>
+              <span className="text-[8px] font-semibold uppercase tracking-widest">ID Verified</span>
            </div>
            <div className="flex items-center gap-2">
               <Activity size={12} className="text-sky-500" />
-              <span className="text-[8px] font-black uppercase tracking-widest">Real-time Node</span>
+              <span className="text-[8px] font-semibold uppercase tracking-widest">Real-time Node</span>
            </div>
            <div className="flex items-center gap-2">
               <Lock size={12} className="text-sky-500" />
-              <span className="text-[8px] font-black uppercase tracking-widest">Encrypted</span>
+              <span className="text-[8px] font-semibold uppercase tracking-widest">Encrypted</span>
            </div>
         </div>
       </div>
@@ -236,17 +236,17 @@ const HealthWorkerLoginPage = () => {
           className="flex items-center gap-2 px-4 py-2 bg-slate-950/20 border border-white/10 hover:border-sky-500/30 rounded-full transition-all group"
         >
           <Shield size={12} className="text-slate-400 group-hover:text-sky-500" />
-          <span className="text-[9px] font-black text-slate-400 group-hover:text-white uppercase tracking-[0.3em]">
+          <span className="text-[9px] font-semibold text-slate-400 group-hover:text-slate-50 uppercase tracking-[0.3em]">
             Access Governance Node
           </span>
         </Link>
 
         {/* Environment Info */}
         <div className="text-center space-y-1">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">
+          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.3em] leading-relaxed">
             © Secured Connection — Barangay Bantayan Network
           </p>
-          <p className="text-[8px] font-mono text-slate-500 uppercase">
+          <p className="text-[8px] font-mono text-slate-500 uppercase leading-relaxed">
             Encrypted Node: DUMAGUETE-X01
           </p>
         </div>

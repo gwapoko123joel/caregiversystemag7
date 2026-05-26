@@ -105,12 +105,12 @@ export default function HistoryLogs() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Archive: Telemetry Stream</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Archive: Telemetry Stream</span>
           </div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Historical <span className="text-sky-500">Audit Trail</span>
           </h2>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Full Clinical Telemetry History • Barangay Bantayan Node
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function HistoryLogs() {
             placeholder="Search clinical logs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
           />
         </div>
       </div>
@@ -132,10 +132,10 @@ export default function HistoryLogs() {
         
         {/* Table Header */}
         <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-6 border-b border-white/5 bg-white/[0.02]">
-          <div className="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Node Identity</div>
-          <div className="col-span-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Telemetry Payload</div>
-          <div className="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Verification Node</div>
-          <div className="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Timestamp</div>
+          <div className="col-span-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Node Identity</div>
+          <div className="col-span-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Telemetry Payload</div>
+          <div className="col-span-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Verification Node</div>
+          <div className="col-span-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest text-right">Timestamp</div>
         </div>
 
         {/* Table Body */}
@@ -143,11 +143,11 @@ export default function HistoryLogs() {
           {loading ? (
              <div className="py-20 text-center opacity-30 flex flex-col items-center gap-4">
                 <RefreshCw size={24} className="animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Synchronizing Telemetry Archive...</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">Synchronizing Telemetry Archive...</p>
              </div>
           ) : filteredLogs.length === 0 ? (
             <div className="py-20 text-center opacity-30">
-              <p className="text-xs font-black uppercase tracking-widest">No matching node telemetry found</p>
+              <p className="text-xs font-semibold uppercase tracking-widest leading-relaxed">No matching node telemetry found</p>
             </div>
           ) : (
             filteredLogs.map((log) => (
@@ -160,8 +160,8 @@ export default function HistoryLogs() {
                     log.physical_status === 'warning' ? 'bg-amber-500' : 'bg-sky-500'
                   }`} />
                   <div>
-                    <p className="text-sm font-black text-white uppercase truncate">{log.patient?.first_name} {log.patient?.last_name}</p>
-                    <p className={`text-[8px] font-black uppercase tracking-tighter mt-0.5 ${
+                    <p className="text-sm font-semibold text-slate-50 uppercase truncate leading-relaxed">{log.patient?.first_name} {log.patient?.last_name}</p>
+                    <p className={`text-[8px] font-bold uppercase tracking-tighter mt-0.5 ${
                       log.physical_status === 'critical' ? 'text-rose-400' : 'text-slate-500'
                     }`}>
                       {log.physical_status} Payload
@@ -182,13 +182,13 @@ export default function HistoryLogs() {
                     <User size={14} />
                   </div>
                   <div>
-                     <p className="text-[10px] font-black text-slate-300 uppercase truncate">
+                     <p className="text-[10px] font-semibold text-slate-300 uppercase truncate leading-relaxed">
                        {log.caregiver?.full_name || 'System Auto'}
                      </p>
                      {log.verified_by ? (
                        <div className="flex items-center gap-1.5 mt-0.5">
                           <ShieldCheck size={10} className="text-emerald-500" />
-                          <p className="text-[7px] font-bold text-emerald-500 uppercase tracking-widest">Signed: Dr. {log.verifier?.last_name}</p>
+                          <p className="text-[7px] font-bold text-emerald-500 uppercase tracking-widest leading-relaxed">Signed: Dr. {log.verifier?.last_name}</p>
                        </div>
                      ) : (
                        <button 
@@ -196,7 +196,7 @@ export default function HistoryLogs() {
                          className="flex items-center gap-1.5 mt-1 opacity-40 group-hover:opacity-100 transition-opacity"
                        >
                           <div className="w-1.5 h-1.5 rounded-full bg-slate-600" />
-                          <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest group-hover:text-sky-500 transition-colors">Pending Sign-off</p>
+                          <p className="text-[7px] font-semibold text-slate-500 uppercase tracking-widest group-hover:text-sky-500 transition-colors leading-relaxed">Pending Sign-off</p>
                        </button>
                      )}
                   </div>
@@ -204,10 +204,10 @@ export default function HistoryLogs() {
 
                 {/* 4. Timestamp */}
                 <div className="col-span-2 text-right self-center">
-                  <p className="text-sm font-black text-white font-mono tracking-tighter">
+                  <p className="text-sm font-bold text-slate-50 font-mono tracking-tighter leading-relaxed">
                     {new Date(log.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
-                  <p className="text-[9px] font-bold text-slate-600 uppercase mt-0.5 tracking-widest">
+                  <p className="text-[9px] font-bold text-slate-600 uppercase mt-0.5 tracking-widest leading-relaxed">
                     {new Date(log.recorded_at).toLocaleDateString()}
                   </p>
                 </div>
@@ -223,11 +223,11 @@ export default function HistoryLogs() {
 
 // ── HELPER COMPONENTS ──
 
-function VitalsPill({ icon, label, value, color = "text-white" }: any) {
+function VitalsPill({ icon, label, value, color = "text-slate-50" }: any) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/50 border border-white/5 rounded-xl transition-all hover:border-white/10 group/pill">
       <div className="text-slate-600 group-hover/pill:text-sky-500 transition-colors">{icon}</div>
-      <span className="text-[8px] font-black text-slate-500 uppercase">{label}</span>
+      <span className="text-[8px] font-semibold text-slate-500 uppercase">{label}</span>
       <span className={`text-[10px] font-mono font-bold ${color}`}>{value}</span>
     </div>
   );

@@ -84,8 +84,8 @@ export default function PatientFeed({ patients: propPatients, loading: propLoadi
                  <Users size={20} className="text-sky-500" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Telemetry Feed</h3>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Global Barangay Node Network</p>
+                <h3 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Telemetry Feed</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 leading-relaxed">Global Barangay Node Network</p>
               </div>
            </div>
 
@@ -133,8 +133,8 @@ export default function PatientFeed({ patients: propPatients, loading: propLoadi
                       )}
 
                       <div className="flex justify-between items-start mb-6">
-                        <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                          status === 'critical' ? 'bg-rose-500 text-white border-rose-400/50 animate-pulse' :
+                        <div className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border ${
+                          status === 'critical' ? 'bg-rose-500 text-slate-50 border-rose-400/50 animate-pulse' :
                           status === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
                           'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
                         }`}>
@@ -143,19 +143,19 @@ export default function PatientFeed({ patients: propPatients, loading: propLoadi
                         <span className="text-[9px] font-mono text-slate-500">Node: PT-{p.patient_id.toString().padStart(4, '0')}</span>
                       </div>
 
-                      <h3 className="text-xl font-black text-white uppercase tracking-tight mb-4">{p.first_name} {p.last_name}</h3>
+                      <h3 className="text-xl font-semibold text-slate-50 uppercase mb-4 tracking-tighter leading-tight">{p.first_name} {p.last_name}</h3>
 
                       {/* ── LIVE TELEMETRY SNAPSHOT ── */}
                       <div className="grid grid-cols-2 gap-2 mb-6">
                         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 flex flex-col items-center">
-                           <p className="text-[7px] font-black text-slate-500 uppercase mb-1">Last BP</p>
-                           <p className={`text-xs font-mono font-bold ${status === 'critical' ? 'text-rose-400' : 'text-white'}`}>
+                           <p className="text-[7px] font-semibold text-slate-500 uppercase mb-1 leading-relaxed">Last BP</p>
+                           <p className={`text-xs font-mono font-bold ${status === 'critical' ? 'text-rose-400' : 'text-slate-50'}`}>
                              {p.latest_log?.vital_signs?.blood_pressure || '--/--'}
                            </p>
                         </div>
                         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 flex flex-col items-center">
-                           <p className="text-[7px] font-black text-slate-500 uppercase mb-1">Last O2</p>
-                           <p className="text-xs font-mono font-bold text-sky-400">
+                           <p className="text-[7px] font-semibold text-slate-500 uppercase mb-1 leading-relaxed">Last O2</p>
+                           <p className="text-xs font-mono font-bold text-sky-400 leading-relaxed">
                              {p.latest_log?.vital_signs?.oxygen_saturation || '--'}%
                            </p>
                         </div>

@@ -77,7 +77,7 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
             <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
                           px-3 py-2 rounded-lg bg-[#0a1628]/95 backdrop-blur-xl 
                           border border-cyan-500/20 text-xs font-light tracking-wider 
-                          text-white opacity-0 group-hover:opacity-100 
+                          text-slate-50 opacity-0 group-hover:opacity-100 
                           pointer-events-none whitespace-nowrap z-[100]">
               {formatName(user.full_name || `${user.first_name} ${user.last_name}`)}
               <div className="text-[10px] tracking-wider uppercase text-cyan-300/80">
@@ -94,7 +94,7 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
                    flex items-center justify-center transition-colors group"
           aria-label="Sign out"
         >
-          <LogOut className="w-4 h-4 text-white/70 group-hover:text-red-300" 
+          <LogOut className="w-4 h-4 text-slate-50/70 group-hover:text-red-300" 
                   strokeWidth={1.5} />
         </button>
 
@@ -150,10 +150,10 @@ export function ProfileDropdown({ user, isCollapsed, onSignOut }: ProfileDropdow
         </div>
         
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-bold text-white tracking-tight truncate">
+          <p className="text-[13px] font-bold text-slate-50 tracking-tight truncate leading-relaxed">
             {formatName(user.full_name || `${user.first_name} ${user.last_name}`)}
           </p>
-          <p className="text-[9px] font-black text-sky-500/80 uppercase tracking-[0.2em] mt-1">
+          <p className="text-[9px] font-semibold text-sky-500/80 uppercase tracking-[0.2em] mt-1 leading-relaxed">
             {user.role === 'medical_practitioner' ? 'MD NODE' : 'FIELD NODE'}
           </p>
         </div>
@@ -191,8 +191,8 @@ function UserHeader({ user }: { user: Caregiver }) {
     <div className="p-4 border-b border-white/5 flex items-center gap-3">
       <ProfileAvatar src={user.profile_picture_url} fullName={user.full_name || `${user.first_name} ${user.last_name}`} size="md" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-white truncate">{formatName(user.full_name || `${user.first_name} ${user.last_name}`)}</p>
-        <p className="text-xs font-bold tracking-wider uppercase text-sky-500/80 truncate">
+        <p className="text-sm font-bold text-slate-50 truncate leading-relaxed">{formatName(user.full_name || `${user.first_name} ${user.last_name}`)}</p>
+        <p className="text-xs font-bold tracking-wider uppercase text-sky-500/80 truncate leading-relaxed">
           {user.role.replace('_', ' ')}
         </p>
       </div>
@@ -209,7 +209,7 @@ function MenuItems({ items, onNavigate }: { items: any[]; onNavigate: (path: str
           onClick={() => onNavigate(item.path)}
           className="w-full px-4 py-2.5 flex items-center gap-3
                    hover:bg-cyan-500/10 transition-colors
-                   text-sm font-light text-white text-left"
+                   text-sm font-light text-slate-50 text-left"
         >
           <item.icon className="w-4 h-4 text-cyan-300" strokeWidth={1.5} />
           {item.label}

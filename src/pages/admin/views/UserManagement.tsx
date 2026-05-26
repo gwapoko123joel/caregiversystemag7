@@ -2,9 +2,10 @@ import { useState } from 'react'
 import {
   Search, Plus, RefreshCw,
   MoreVertical, CheckCircle2, XCircle,
-  ShieldCheck, Loader2, ShieldAlert
+  ShieldCheck, Loader2, ShieldAlert,
+  Activity, Edit2, Trash2
 } from 'lucide-react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import type { AdminDashboardContextType } from '../AdminDashboard'
 import type { Profile } from '../../../types/database'
@@ -22,6 +23,7 @@ function generateAccessId(role: string): string {
 
 export default function UserManagement() {
   const { users, user, profile, loadUsers, loadLogs, isLoading } = useOutletContext<AdminDashboardContextType>()
+  const navigate = useNavigate();
 
   // State
   const [searchUser, setSearchUser] = useState('')
@@ -36,6 +38,7 @@ export default function UserManagement() {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Handshake State
   const [showHandshake, setShowHandshake] = useState(false)
@@ -210,6 +213,32 @@ export default function UserManagement() {
     }
   }
 
+  // Action: View specific user logs
+  const handleViewLogs = (userId: string) => {
+    // Navigate to Audit Trail with a search query for this user ID
+    navigate(`/dashboard/admin/logs?search=${userId}`);
+    setOpenMenuId(null);
+  };
+
+  // Action: Delete user
+  async function handlePurgeNode(userId: string, name: string) {
+    if (!confirm(`CAUTION: Permanently purge ${name} from the network?`)) return;
+
+    const { error } = await supabase.from('caregivers').delete().eq('id', userId);
+
+    if (!error) {
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        user_type: profile?.role ?? 'admin',
+        action: 'PERSONNEL_PURGED',
+        details: { target: name, purged_by: 'ADMIN' }
+      });
+      await loadUsers();
+      await loadLogs();
+      setOpenMenuId(null);
+    }
+  }
+
   const filteredUsers = (users as any[]).filter(u =>
     u.full_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchUser.toLowerCase()) ||
@@ -236,19 +265,19 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-40">
       
       {/* ── HEADER & SEARCH ACTION BAR ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Governance: Identity Hub</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Governance: Identity Hub</span>
           </div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Personnel <span className="text-sky-500">Manager</span>
           </h2>
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Provisioning, Access Governance, & Policy Enforcement
           </p>
         </div>
@@ -259,14 +288,14 @@ export default function UserManagement() {
             <input 
               type="text"
               placeholder="Search personnel by name, email, or ID..."
-              className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+              className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
             />
           </div>
           <button 
             onClick={() => setShowAddUser(true)}
-            className="w-full sm:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
+            className="w-full sm:w-auto px-8 py-4 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
           >
             <Plus size={18} /> Issue Access Key
           </button>
@@ -276,7 +305,7 @@ export default function UserManagement() {
       {/* ── PERSONNEL ROSTER GRID ── */}
       <div className="space-y-4">
         {/* Table Headers (Visible on Desktop) */}
-        <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-2 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+        <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-2 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
           <div className="col-span-4">Identity & Credentials</div>
           <div className="col-span-3 text-center">Unique Access Token</div>
           <div className="col-span-2 text-center">Clearance Level</div>
@@ -298,22 +327,23 @@ export default function UserManagement() {
           filteredUsers.map((u) => (
             <div 
               key={u.id}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 lg:px-8 hover:bg-slate-900/60 transition-all group shadow-xl"
+              className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-6 lg:px-8 hover:bg-slate-900/60 transition-all group shadow-xl"
+              style={{ zIndex: openMenuId === u.id ? 50 : 0 }}
             >
               {/* 1. Identity */}
               <div className="col-span-4 flex items-center gap-5">
-                <div className="w-14 h-14 bg-sky-500/10 rounded-[1.5rem] flex items-center justify-center text-sky-500 border border-sky-500/20 font-black text-xl group-hover:scale-110 transition-transform duration-500">
+                <div className="w-14 h-14 bg-sky-500/10 rounded-[1.5rem] flex items-center justify-center text-sky-500 border border-sky-500/20 font-bold text-xl group-hover:scale-110 transition-transform duration-500">
                   {u.full_name?.[0] || 'U'}
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-base font-black text-white uppercase tracking-tight">{u.full_name || 'Unregistered Node'}</h4>
+                  <h4 className="text-base font-semibold text-slate-50 uppercase tracking-tight">{u.full_name || 'Unregistered Node'}</h4>
                   <p className="text-[10px] text-slate-500 font-bold lowercase leading-none mb-2">{u.email || 'pending_assignment@bantayan.node'}</p>
                   <div className="flex items-center gap-2">
-                     <span className="text-[8px] font-black px-2 py-0.5 bg-white/5 rounded border border-white/10 text-slate-400 uppercase">
+                     <span className="text-[8px] font-semibold px-2 py-0.5 bg-white/5 rounded border border-white/10 text-slate-400 uppercase">
                        {u.role.replace('_', ' ')}
                      </span>
                      {(u.prc_license || u.bhw_id) && (
-                       <div className="flex items-center gap-1 text-[8px] font-black text-emerald-500 uppercase tracking-tighter">
+                       <div className="flex items-center gap-1 text-[8px] font-semibold text-emerald-500 uppercase tracking-tighter">
                           <ShieldCheck size={10} /> {u.prc_license || u.bhw_id}
                        </div>
                      )}
@@ -342,7 +372,7 @@ export default function UserManagement() {
                    u.status === 'authorized' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'
                  }`}>
                     <div className={`w-1.5 h-1.5 rounded-full ${u.status === 'authorized' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">{u.status}</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-widest">{u.status}</span>
                  </div>
               </div>
 
@@ -354,14 +384,14 @@ export default function UserManagement() {
                   <>
                     <button 
                       onClick={() => handleUpdateStatus(u.id, 'authorized')}
-                      className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2"
+                      className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-50 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10 active:scale-95 flex items-center gap-2"
                       disabled={updatingStatus === u.id}
                     >
                       {updatingStatus === u.id ? <Loader2 className="animate-spin" size={12} /> : <CheckCircle2 size={12} />} Authorize
                     </button>
                     <button 
                       onClick={() => handleReject(u.id, u.full_name)}
-                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-rose-500/20 transition-all active:scale-95"
+                      className="p-2.5 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-slate-50 rounded-xl border border-rose-500/20 transition-all active:scale-95"
                       title="Reject & Delete Slot"
                     >
                       <XCircle size={16} />
@@ -373,7 +403,7 @@ export default function UserManagement() {
                 {u.status === 'authorized' && (
                   <button 
                     onClick={() => handleRevoke(u.id, u.full_name)}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/5 hover:border-rose-500/50 active:scale-95 flex items-center gap-2"
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-slate-50 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all border border-white/5 hover:border-rose-500/50 active:scale-95 flex items-center gap-2"
                   >
                     <ShieldAlert size={12} /> Revoke Access
                   </button>
@@ -389,9 +419,53 @@ export default function UserManagement() {
                 </button>
 
                 {/* Settings / More Button */}
-                <button className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-500 rounded-xl transition-all">
-                  <MoreVertical size={18} />
-                </button>
+                <div className="relative">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(openMenuId === u.id ? null : u.id);
+                    }}
+                    className={`p-2.5 rounded-xl transition-all ${openMenuId === u.id ? 'bg-sky-500 text-slate-950' : 'bg-white/5 text-slate-500 hover:text-slate-50'}`}
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {/* ── THE FLOATING MENU ── */}
+                  {openMenuId === u.id && (
+                    <>
+                      {/* Invisible backdrop to close menu when clicking outside */}
+                      <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                      
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[999] py-2 animate-in fade-in zoom-in duration-200">
+                        <button 
+                          onClick={() => handleViewLogs(u.id)}
+                          className="w-full px-4 py-3 text-left text-[10px] font-bold uppercase text-slate-300 hover:bg-sky-500 hover:text-slate-950 flex items-center gap-3 transition-colors"
+                        >
+                          <Activity size={14} className="text-sky-500 group-hover:text-slate-950" /> 
+                          View Audit Logs
+                        </button>
+                        
+                        <button 
+                          onClick={() => alert("Metadata Edit Node: Feature coming in v1.1")}
+                          className="w-full px-4 py-3 text-left text-[10px] font-bold uppercase text-slate-300 hover:bg-sky-500 hover:text-slate-950 flex items-center gap-3 transition-colors"
+                        >
+                          <Edit2 size={14} className="text-sky-500" /> 
+                          Edit Metadata
+                        </button>
+
+                        <div className="h-px bg-white/5 my-1" />
+
+                        <button 
+                          onClick={() => handlePurgeNode(u.id, u.full_name)}
+                          className="w-full px-4 py-3 text-left text-[10px] font-bold uppercase text-rose-500 hover:bg-rose-600 hover:text-slate-50 flex items-center gap-3 transition-colors"
+                        >
+                          <Trash2 size={14} /> 
+                          Purge Node
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
             </div>
@@ -404,12 +478,12 @@ export default function UserManagement() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowAddUser(false)} />
           <div className="relative w-full max-w-lg bg-card border border-card-border rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-300 transition-colors">
-            <h3 className="text-2xl font-black text-text-main uppercase tracking-tight mb-2 transition-colors">Issue Access Key</h3>
-            <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors">GRANT SECURE NETWORK ACCESS TO NEW STAFF</p>
+            <h3 className="text-2xl font-semibold text-text-main uppercase mb-2 transition-colors tracking-tighter leading-tight">Issue Access Key</h3>
+            <p className="text-sidebar-text-muted font-bold text-xs uppercase tracking-widest mb-8 transition-colors leading-relaxed">GRANT SECURE NETWORK ACCESS TO NEW STAFF</p>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Full Name</label>
+                <label className="text-[10px] font-semibold text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Full Name</label>
                 <input
                   type="text"
                   className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
@@ -420,7 +494,7 @@ export default function UserManagement() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Email Instance (Optional)</label>
+                <label className="text-[10px] font-semibold text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Email Instance (Optional)</label>
                 <input
                   type="email"
                   className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm transition-colors"
@@ -431,7 +505,7 @@ export default function UserManagement() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Network Role</label>
+                <label className="text-[10px] font-semibold text-sidebar-text-muted uppercase tracking-widest ml-1 transition-colors">Network Role</label>
                 <select
                   className="w-full px-5 py-4 bg-primary/50 border border-card-border rounded-2xl text-text-main focus:outline-none focus:border-sky-500 transition-all font-medium text-sm appearance-none cursor-pointer transition-colors"
                   value={newUser.role}
@@ -447,14 +521,14 @@ export default function UserManagement() {
             <div className="flex gap-3 mt-10">
               <button
                 onClick={() => setShowAddUser(false)}
-                className="flex-1 py-4 text-xs font-black text-sidebar-text-muted uppercase tracking-widest hover:text-text-main transition-all"
+                className="flex-1 py-4 text-xs font-semibold text-sidebar-text-muted uppercase tracking-widest hover:text-text-main transition-all"
               >
                 Abort Provisioning
               </button>
               <button
                 onClick={handleIssueNewKey}
                 disabled={submitting}
-                className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+                className="flex-[2] py-4 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-50 rounded-2xl text-xs font-semibold uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95"
               >
                 {submitting ? <Loader2 className="animate-spin mx-auto" /> : 'Commit to Network'}
               </button>

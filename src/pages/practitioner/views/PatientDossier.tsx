@@ -243,7 +243,7 @@ export default function PatientDossier({
         <div className="w-16 h-16 bg-sky-500/10 rounded-full flex items-center justify-center">
           <Zap size={32} className="text-sky-500 animate-bounce" />
         </div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Accessing Dossier Node...</p>
+        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.3em] leading-relaxed">Accessing Dossier Node...</p>
       </div>
     )
   }
@@ -253,12 +253,12 @@ export default function PatientDossier({
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-6">
         <XCircle size={48} className="text-rose-500/50" />
         <div className="text-center">
-          <h3 className="text-xl font-black text-white uppercase tracking-tight">Node Not Found</h3>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2">The requested subject identity is not synchronized with this sector.</p>
+          <h3 className="text-xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Node Not Found</h3>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 leading-relaxed">The requested subject identity is not synchronized with this sector.</p>
         </div>
         <button 
           onClick={() => navigate(-1)}
-          className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+          className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-semibold uppercase tracking-widest hover:bg-white/10 transition-all"
         >
           Return to Operations
         </button>
@@ -272,7 +272,7 @@ export default function PatientDossier({
       {/* MAGNIFY LIGHTBOX */}
       {magnifiedImage && (
          <div className="fixed inset-0 z-[200] bg-slate-900/95 backdrop-blur-xl flex justify-center items-center p-8 animate-in fade-in duration-300">
-            <button onClick={() => setMagnifiedImage(null)} className="absolute top-8 right-8 w-12 h-12 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-white transition-all border border-white/10">
+            <button onClick={() => setMagnifiedImage(null)} className="absolute top-8 right-8 w-12 h-12 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-slate-50 transition-all border border-white/10">
                <X size={28} />
             </button>
             <div className="max-w-[90vw] max-h-[90vh] rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(0,229,255,0.15)] ring-1 ring-white/10">
@@ -287,24 +287,24 @@ export default function PatientDossier({
       {/* ── HEADER ── */}
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate(-1)} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-white transition-all group">
+          <button onClick={() => navigate(-1)} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 hover:text-slate-50 transition-all group">
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           </button>
           <div>
             <div className="flex items-center gap-3">
-               <h2 className="text-3xl font-black text-white uppercase tracking-tight">{patient.first_name} {patient.last_name}</h2>
-               <span className="px-3 py-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-full text-[9px] font-black uppercase tracking-widest">
+               <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">{patient.first_name} {patient.last_name}</h2>
+               <span className="px-3 py-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-full text-[9px] font-semibold uppercase tracking-widest">
                  ID: PT-{patient.patient_id.toString().padStart(4, '0')}
                </span>
             </div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 leading-relaxed">
               {calculateAge(patient.date_of_birth)} • {patient.gender || 'Not Specified'} • {patient.address}
             </p>
           </div>
         </div>
         <button 
           onClick={() => initiateCall(logs?.[0]?.caregiver?.full_name, `${patient?.first_name} ${patient?.last_name}`)}
-          className="px-8 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 active:scale-95 flex items-center gap-2"
+          className="px-8 py-4 bg-rose-600 hover:bg-rose-500 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 active:scale-95 flex items-center gap-2"
         >
           <Phone size={16} /> Initiate Remote Consult
         </button>
@@ -319,13 +319,13 @@ export default function PatientDossier({
           <div className="bg-slate-950/50 rounded-3xl p-6 border border-rose-500/20 mb-6 shadow-2xl">
             <div className="flex items-center gap-2 mb-4 text-rose-500">
               <ShieldAlert size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Emergency Metadata</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest">Emergency Metadata</span>
             </div>
             
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-[9px] font-bold text-slate-500 uppercase">Blood Type</span>
-                <span className="text-sm font-black text-white">{patient.blood_type || 'Unknown'}</span>
+                <span className="text-sm font-bold text-slate-50">{patient.blood_type || 'Unknown'}</span>
               </div>
               
               <div className="space-y-1">
@@ -337,22 +337,22 @@ export default function PatientDossier({
 
               <div className="pt-3 border-t border-white/5 space-y-1">
                 <span className="text-[9px] font-bold text-slate-500 uppercase">Emergency Contact</span>
-                <p className="text-xs font-bold text-white uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
-                <p className="text-[10px] font-mono text-sky-500">{patient.emergency_contact_phone || 'None'}</p>
+                <p className="text-xs font-bold text-slate-50 uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
+                <p className="text-[10px] font-mono text-sky-500 leading-relaxed">{patient.emergency_contact_phone || 'None'}</p>
               </div>
             </div>
           </div>
 
           {/* PHOTO INVENTORY */}
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2 tracking-tighter leading-tight">
               <Camera size={14} className="text-sky-500" /> Visual Health Inventory
             </h3>
             
             <div className="grid grid-cols-3 gap-4">
                {logs.filter(l => l.image_url).length === 0 ? (
                  <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] opacity-30">
-                   <p className="text-[10px] font-black uppercase">No visual telemetry</p>
+                   <p className="text-[10px] font-semibold uppercase leading-relaxed">No visual telemetry</p>
                  </div>
                ) : (
                  logs.filter(l => l.image_url).map(l => (
@@ -366,7 +366,7 @@ export default function PatientDossier({
                        className="w-full h-full object-cover transition-transform group-hover:scale-110" 
                        alt="Patient status"
                      />
-                     <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-[8px] text-white font-mono">
+                     <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-[8px] text-slate-50 font-mono">
                        {new Date(l.recorded_at).toLocaleDateString()}
                      </div>
                    </div>
@@ -377,19 +377,19 @@ export default function PatientDossier({
 
           {/* ── REFERRAL HISTORY ── */}
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2 tracking-tighter leading-tight">
               <FileText size={14} className="text-sky-500" /> Transfer of Care Archive
             </h3>
             
             <div className="space-y-4">
               {referrals.length === 0 ? (
-                <p className="text-[10px] text-center opacity-30 uppercase font-black py-4">No active referrals recorded</p>
+                <p className="text-[10px] text-center opacity-30 uppercase font-semibold py-4 leading-relaxed">No active referrals recorded</p>
               ) : (
                 referrals.map(ref => (
                   <div key={ref.referral_id} className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center justify-between group">
                     <div>
-                      <p className="text-[10px] font-black text-sky-400 uppercase tracking-tight">TO: {ref.target_facility}</p>
-                      <p className="text-[8px] text-slate-500 font-bold uppercase mt-1">
+                      <p className="text-[10px] font-semibold text-sky-400 uppercase tracking-tight leading-relaxed">TO: {ref.target_facility}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase mt-1 leading-relaxed">
                         Issued {new Date(ref.created_at).toLocaleDateString()} • Dr. {ref.doctor?.last_name || 'Practitioner'}
                       </p>
                     </div>
@@ -404,41 +404,41 @@ export default function PatientDossier({
 
           {/* CLINICAL INTERVENTION (The Send Box) */}
           <div className="bg-slate-900/60 backdrop-blur-md border border-sky-500/20 rounded-[40px] p-8 shadow-2xl ring-1 ring-sky-500/10">
-            <h3 className="text-sm font-black text-white uppercase tracking-tight mb-6 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-50 uppercase mb-6 flex items-center gap-2 tracking-tighter leading-tight">
                <ShieldCheck size={18} className="text-sky-500" /> Clinical Intervention
             </h3>
             <textarea 
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
               placeholder="Type clinical orders for field staff..."
-              className="w-full bg-slate-950/50 border border-white/10 rounded-3xl p-6 text-sm text-white focus:outline-none focus:border-sky-500/50 min-h-[150px] transition-all resize-none mb-6"
+              className="w-full bg-slate-950/50 border border-white/10 rounded-3xl p-6 text-sm text-slate-50 focus:outline-none focus:border-sky-500/50 min-h-[150px] transition-all resize-none mb-6"
             />
             <button 
               onClick={sendInstruction}
               disabled={isSending || !instruction.trim()}
-              className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-xl shadow-sky-500/30"
+              className="w-full py-5 bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-50 rounded-3xl text-[10px] font-semibold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-xl shadow-sky-500/30"
             >
               {isSending ? <Loader2 className="animate-spin" /> : <><Send size={16} /> Dispatch Clinical Order</>}
             </button>
 
             {/* ── INSTRUCTION HISTORY ── */}
             <div className="mt-8 pt-8 border-t border-white/5">
-              <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-6">Recent Dispatch History</h4>
+              <h4 className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest mb-6">Recent Dispatch History</h4>
               <div className="space-y-4">
                 {instructions.length === 0 ? (
-                  <p className="text-[10px] text-center opacity-20 uppercase font-black py-4">No past instructions</p>
+                  <p className="text-[10px] text-center opacity-20 uppercase font-semibold py-4 leading-relaxed">No past instructions</p>
                 ) : (
                   instructions.map(inst => (
                     <div key={inst.instruction_id} className="flex gap-4">
                       <div className={`w-1 h-10 rounded-full ${inst.status === 'completed' ? 'bg-emerald-500' : 'bg-sky-500'}`} />
                       <div>
                         <div className="flex items-center gap-2">
-                           <span className={`text-[8px] font-black uppercase ${inst.status === 'completed' ? 'text-emerald-500' : 'text-sky-500'}`}>
+                           <span className={`text-[8px] font-bold uppercase ${inst.status === 'completed' ? 'text-emerald-500' : 'text-sky-500'}`}>
                              {inst.status === 'completed' ? '✓ Actioned' : '• Dispatched'}
                            </span>
                            <span className="text-[8px] text-slate-600 font-mono">{new Date(inst.created_at).toLocaleString()}</span>
                         </div>
-                        <p className="text-[11px] text-slate-300 mt-1">"{inst.instruction_text}"</p>
+                        <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">"{inst.instruction_text}"</p>
                       </div>
                     </div>
                   ))
@@ -451,13 +451,13 @@ export default function PatientDossier({
         {/* RIGHT: TELEMETRY STREAM (4 Spans) */}
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl flex flex-col min-h-[600px]">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2 tracking-tighter leading-tight">
               <Activity size={14} className="text-rose-500" /> Clinical Protocol Stream
             </h3>
 
             <div className="space-y-6 flex-1 overflow-y-auto pr-2 scrollbar-hide">
               {logs.length === 0 ? (
-                <div className="text-center py-20 opacity-20 uppercase font-black text-[10px] tracking-widest">Empty History</div>
+                <div className="text-center py-20 opacity-20 uppercase font-semibold text-[10px] tracking-widest">Empty History</div>
               ) : (
                 logs.map((log) => (
                   <div key={log.log_id} className="relative pl-6 pb-6 border-l-2 border-white/5 last:border-l-0">
@@ -467,8 +467,8 @@ export default function PatientDossier({
                     
                     <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-5 hover:bg-white/[0.05] transition-all">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-[9px] font-black text-slate-500 uppercase">{new Date(log.recorded_at).toLocaleString()}</p>
-                        <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border ${
+                        <p className="text-[9px] font-semibold text-slate-500 uppercase leading-relaxed">{new Date(log.recorded_at).toLocaleString()}</p>
+                        <span className={`text-[7px] font-bold uppercase px-2 py-0.5 rounded border ${
                           log.physical_status === 'critical' ? 'text-rose-500 border-rose-500/20 bg-rose-500/5' : 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5'
                         }`}>
                           {log.physical_status}
@@ -477,27 +477,27 @@ export default function PatientDossier({
                       
                       <div className="grid grid-cols-2 gap-3 mb-4">
                          <div className="bg-slate-950/40 p-2 rounded-xl text-center">
-                            <p className="text-[7px] font-bold text-slate-600 uppercase">BP</p>
-                            <p className="text-xs font-mono text-white">{log.vital_signs.blood_pressure}</p>
+                            <p className="text-[7px] font-bold text-slate-600 uppercase leading-relaxed">BP</p>
+                            <p className="text-xs font-mono text-slate-50 leading-relaxed">{log.vital_signs.blood_pressure}</p>
                          </div>
                          <div className="bg-slate-950/40 p-2 rounded-xl text-center">
-                            <p className="text-[7px] font-bold text-slate-600 uppercase">O2 Sat</p>
-                            <p className="text-xs font-mono text-sky-400">{log.vital_signs.oxygen_saturation}%</p>
+                            <p className="text-[7px] font-bold text-slate-600 uppercase leading-relaxed">O2 Sat</p>
+                            <p className="text-xs font-mono text-sky-400 leading-relaxed">{log.vital_signs.oxygen_saturation}%</p>
                          </div>
                       </div>
 
-                      <p className="text-[11px] text-slate-400 italic">"{log.notes || 'No observations'}"</p>
+                      <p className="text-[11px] text-slate-400 italic leading-relaxed">"{log.notes || 'No observations'}"</p>
                       
                       {/* SIGN-OFF BUTTON */}
                       {!log.verified_by ? (
                         <button 
                           onClick={() => handleSignOff(log.log_id)}
-                          className="mt-4 w-full py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[8px] font-black uppercase hover:bg-emerald-500 hover:text-white transition-all"
+                          className="mt-4 w-full py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[8px] font-semibold uppercase hover:bg-emerald-500 hover:text-slate-50 transition-all"
                         >
                           Verify & Sign-Off
                         </button>
                       ) : (
-                        <div className="mt-4 flex items-center gap-2 text-emerald-500 text-[8px] font-black uppercase opacity-60">
+                        <div className="mt-4 flex items-center gap-2 text-emerald-500 text-[8px] font-semibold uppercase opacity-60">
                           <ShieldCheck size={12} /> Clinically Validated by {log.verifier?.last_name ? `Dr. ${log.verifier.last_name}` : 'Practitioner'}
                         </div>
                       )}
@@ -514,33 +514,33 @@ export default function PatientDossier({
       <div className="bg-slate-900/40 border border-white/5 rounded-[40px] p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-8">
            <ArrowUpRight size={20} className="text-amber-500" />
-           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Clinical Referral Archive</h3>
+           <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.3em] tracking-tighter leading-tight">Clinical Referral Archive</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {!patient?.patient_referrals || patient.patient_referrals.length === 0 ? (
             <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] opacity-20">
-              <p className="text-[10px] font-black uppercase tracking-widest">No formal referrals archived for this node.</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">No formal referrals archived for this node.</p>
             </div>
           ) : (
             patient.patient_referrals.map((ref: any) => (
               <div key={ref.referral_id} className="p-8 bg-white/[0.02] border border-white/5 rounded-[32px] flex flex-col justify-between gap-6 hover:bg-white/[0.04] transition-all group">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                      ref.urgency_level === 'emergency' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 
-                      ref.urgency_level === 'urgent' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-sky-500 text-white'
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                      ref.urgency_level === 'emergency' ? 'bg-rose-500 text-slate-50 shadow-lg shadow-rose-500/20' : 
+                      ref.urgency_level === 'urgent' ? 'bg-amber-500 text-slate-50 shadow-lg shadow-amber-500/20' : 'bg-sky-500 text-slate-50'
                     }`}>
                       {ref.urgency_level}
                     </span>
-                    <p className="text-[9px] font-mono text-slate-500 font-bold">{new Date(ref.created_at).toLocaleDateString()}</p>
+                    <p className="text-[9px] font-mono text-slate-500 font-bold leading-relaxed">{new Date(ref.created_at).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-sky-500 uppercase tracking-widest mb-1">Target Facility</p>
-                    <p className="text-sm font-bold text-white">{ref.target_facility}</p>
+                    <p className="text-[10px] font-semibold text-sky-500 uppercase tracking-widest mb-1 leading-relaxed">Target Facility</p>
+                    <p className="text-sm font-bold text-slate-50 leading-relaxed">{ref.target_facility}</p>
                   </div>
                   <p className="text-sm text-slate-400 leading-relaxed italic">"{ref.reason_for_referral}"</p>
                 </div>
-                <button className="flex items-center justify-center gap-2 w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest group-hover:bg-white/10 transition-all">
+                <button className="flex items-center justify-center gap-2 w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-semibold uppercase tracking-widest group-hover:bg-white/10 transition-all">
                   <ArrowUpRight size={14} className="text-sky-500" /> View Referral Slip
                 </button>
               </div>

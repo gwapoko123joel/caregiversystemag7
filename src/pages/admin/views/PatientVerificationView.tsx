@@ -107,8 +107,8 @@ export default function PatientVerificationView() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-light tracking-[0.2em] uppercase text-white">Verification Queue</h1>
-          <p className="text-[10px] text-sky-500 uppercase tracking-widest mt-1">Pending Field Registrations</p>
+          <h1 className="text-2xl font-light tracking-[0.2em] uppercase text-slate-50 tracking-tighter leading-tight">Verification Queue</h1>
+          <p className="text-[10px] text-sky-500 uppercase tracking-widest mt-1 leading-relaxed">Pending Field Registrations</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -118,7 +118,7 @@ export default function PatientVerificationView() {
               placeholder="Search patients..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="bg-slate-900 border border-white/5 rounded-xl pl-12 pr-6 py-3 text-[10px] uppercase tracking-widest text-white placeholder:text-slate-700 focus:border-sky-500/50 outline-none w-64 transition-all"
+              className="bg-slate-900 border border-white/5 rounded-xl pl-12 pr-6 py-3 text-[10px] uppercase tracking-widest text-slate-50 placeholder:text-slate-700 focus:border-sky-500/50 outline-none w-64 transition-all"
             />
           </div>
         </div>
@@ -135,8 +135,8 @@ export default function PatientVerificationView() {
           <div className="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center text-slate-700 mb-6 border border-white/5 shadow-inner">
             <ClipboardList size={32} />
           </div>
-          <h3 className="text-lg font-light text-white uppercase tracking-widest mb-2">Queue Clear</h3>
-          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest max-w-xs">No pending patient registrations found</p>
+          <h3 className="text-lg font-light text-slate-50 uppercase mb-2 tracking-tighter leading-tight">Queue Clear</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest max-w-xs leading-relaxed">No pending patient registrations found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -169,14 +169,14 @@ export default function PatientVerificationView() {
                   <XCircle size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-light tracking-widest uppercase text-white">Reject Entry</h2>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Verification Denial</p>
+                  <h2 className="text-xl font-light uppercase text-slate-50 tracking-tighter leading-tight">Reject Entry</h2>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 leading-relaxed">Verification Denial</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-                  Reason for rejecting <span className="text-white">{selectedPatient?.first_name} {selectedPatient?.last_name}</span>:
+                  Reason for rejecting <span className="text-slate-50">{selectedPatient?.first_name} {selectedPatient?.last_name}</span>:
                 </p>
                 <textarea 
                   autoFocus
@@ -184,7 +184,7 @@ export default function PatientVerificationView() {
                   onChange={e => setRejectionReason(e.target.value)}
                   placeholder="e.g. Incomplete address, Duplicate record..."
                   rows={4}
-                  className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:border-red-500/50 outline-none transition-all resize-none font-light"
+                  className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-50 placeholder:text-slate-700 focus:border-red-500/50 outline-none transition-all resize-none font-light"
                 />
               </div>
 

@@ -48,7 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full"
         />
-        <p className="text-[10px] tracking-[0.25em] text-slate-500 uppercase">
+        <p className="text-[10px] tracking-[0.25em] text-slate-500 uppercase leading-relaxed">
           Verifying Access Credentials...
         </p>
       </div>

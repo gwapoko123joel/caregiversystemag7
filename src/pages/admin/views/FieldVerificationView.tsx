@@ -69,10 +69,10 @@ export default function FieldVerificationView() {
       
       {/* ── HEADER ── */}
       <div className="px-2">
-        <h2 className="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-3xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
           Field <span className="text-sky-500">Verification</span>
         </h2>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2 leading-relaxed">
           Clinical Onboarding Registry • Validation Queue
         </p>
       </div>
@@ -82,7 +82,7 @@ export default function FieldVerificationView() {
         {/* LEFT: THE QUEUE (4 Spans) */}
         <div className="lg:col-span-4 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] overflow-hidden flex flex-col shadow-2xl">
           <div className="p-6 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pending Requests ({pendingPatients.length})</h3>
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-tighter leading-tight">Pending Requests ({pendingPatients.length})</h3>
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           </div>
           
@@ -92,7 +92,7 @@ export default function FieldVerificationView() {
             ) : pendingPatients.length === 0 ? (
               <div className="text-center py-20 opacity-30">
                 <ShieldCheck size={40} className="mx-auto mb-4" />
-                <p className="text-[10px] font-black uppercase">Queue Clear</p>
+                <p className="text-[10px] font-semibold uppercase leading-relaxed">Queue Clear</p>
               </div>
             ) : (
               pendingPatients.map(p => (
@@ -105,8 +105,8 @@ export default function FieldVerificationView() {
                       : 'bg-white/[0.02] border-white/5 hover:border-white/10'
                   }`}
                 >
-                  <p className="text-sm font-black text-white uppercase tracking-tight">{p.first_name} {p.last_name}</p>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-tighter">Registered in {p.address || 'Bantayan'}</p>
+                  <p className="text-sm font-semibold text-slate-50 uppercase tracking-tight leading-relaxed">{p.first_name} {p.last_name}</p>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 tracking-tighter leading-relaxed">Registered in {p.address || 'Bantayan'}</p>
                 </button>
               ))
             )}
@@ -124,26 +124,26 @@ export default function FieldVerificationView() {
                   <User size={48} />
                 </div>
                 <div>
-                   <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em]">Awaiting Authorization</span>
-                   <h3 className="text-4xl font-black text-white uppercase tracking-tighter mt-3">{selectedPatient.first_name} {selectedPatient.last_name}</h3>
-                   <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic">PT-ID: {selectedPatient.patient_id?.toString().padStart(4, '0')}</p>
+                   <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-full text-[8px] font-semibold uppercase tracking-[0.2em]">Awaiting Authorization</span>
+                   <h3 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter mt-3 leading-tight">{selectedPatient.first_name} {selectedPatient.last_name}</h3>
+                   <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic leading-relaxed">PT-ID: {selectedPatient.patient_id?.toString().padStart(4, '0')}</p>
                 </div>
               </div>
 
               {/* Data Grid */}
               <div className="grid grid-cols-2 gap-4">
                  <div className="p-6 bg-slate-950/50 rounded-3xl border border-white/5">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Residence Catchment</p>
+                    <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3 leading-relaxed">Residence Catchment</p>
                     <div className="flex items-center gap-3">
                        <MapPin size={16} className="text-sky-500" />
-                       <p className="text-sm font-bold text-white uppercase">{selectedPatient.address || 'Not Provided'}</p>
+                       <p className="text-sm font-bold text-slate-50 uppercase leading-relaxed">{selectedPatient.address || 'Not Provided'}</p>
                     </div>
                  </div>
                  <div className="p-6 bg-slate-950/50 rounded-3xl border border-white/5">
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Clinical Context</p>
+                    <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3 leading-relaxed">Clinical Context</p>
                     <div className="flex items-center gap-3">
                        <ClipboardList size={16} className="text-rose-500" />
-                       <p className="text-sm font-bold text-white uppercase">{selectedPatient.medical_history || selectedPatient.medical_conditions || 'No Prior Conditions'}</p>
+                       <p className="text-sm font-bold text-slate-50 uppercase leading-relaxed">{selectedPatient.medical_history || selectedPatient.medical_conditions || 'No Prior Conditions'}</p>
                     </div>
                  </div>
               </div>
@@ -153,14 +153,14 @@ export default function FieldVerificationView() {
                  <button 
                    disabled={processing}
                    onClick={() => handleAction('active')}
-                   className="flex-[2] py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
+                   className="flex-[2] py-5 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-3xl text-[10px] font-semibold uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-3"
                  >
                     {processing ? <Loader2 className="animate-spin" /> : <><ShieldCheck size={18} /> Approve Subject Entry</>}
                  </button>
                  <button 
                    disabled={processing}
                    onClick={() => handleAction('rejected')}
-                   className="flex-1 py-5 bg-white/5 hover:bg-rose-600 border border-white/10 text-slate-500 hover:text-white rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] transition-all"
+                   className="flex-1 py-5 bg-white/5 hover:bg-rose-600 border border-white/10 text-slate-500 hover:text-slate-50 rounded-3xl text-[10px] font-semibold uppercase tracking-[0.3em] transition-all"
                  >
                     Reject Node
                  </button>
@@ -172,7 +172,7 @@ export default function FieldVerificationView() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-20 space-y-6">
                <Info size={80} strokeWidth={1} />
-               <p className="text-xs font-black uppercase tracking-[0.4em]">Select an entry for clinical verification</p>
+               <p className="text-xs font-semibold uppercase tracking-[0.4em] leading-relaxed">Select an entry for clinical verification</p>
             </div>
           )}
         </div>

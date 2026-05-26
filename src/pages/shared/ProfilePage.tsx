@@ -104,20 +104,20 @@ export default function ProfilePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
         <div className="flex items-center gap-6">
           {/* The Standard Node Icon */}
-          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-sky-500/20 flex-shrink-0">
+          <div className="w-14 h-14 bg-sky-500 rounded-2xl flex items-center justify-center text-slate-50 shadow-xl shadow-sky-500/20 flex-shrink-0">
              <User size={28} />
           </div>
 
           <div className="space-y-1">
             {/* Unified Typography: Heavy weight for clinical identity */}
-            <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-none">
+            <h2 className="text-3xl md:text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
               Operator <span className="text-sky-500">Profile Node</span>
             </h2>
             
             {/* Unified Subtext: Professional high-tracking protocol label */}
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.35em]">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.35em] leading-relaxed">
                 Identity Verification Protocol — Barangay Bantayan Network
               </p>
             </div>
@@ -127,8 +127,8 @@ export default function ProfilePage() {
         {/* Sync Status Telemetry */}
         <div className="hidden lg:flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
            <div className="text-right">
-              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">System Status</p>
-              <p className="text-[10px] font-mono font-bold text-sky-400 mt-1 uppercase">Synchronized</p>
+              <p className="text-[8px] font-semibold text-slate-500 uppercase tracking-widest leading-none">System Status</p>
+              <p className="text-[10px] font-mono font-bold text-sky-400 mt-1 uppercase leading-relaxed">Synchronized</p>
            </div>
            <div className="w-8 h-8 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-500">
               <RefreshCw size={14} className="animate-spin" />
@@ -163,8 +163,8 @@ export default function ProfilePage() {
                   disabled={uploading}
                   className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2"
                 >
-                  {uploading ? <Loader2 className="animate-spin text-white" /> : <Camera className="text-white" />}
-                  <span className="text-[8px] font-black text-white uppercase tracking-widest">Update Photo</span>
+                  {uploading ? <Loader2 className="animate-spin text-slate-50" /> : <Camera className="text-slate-50" />}
+                  <span className="text-[8px] font-semibold text-slate-50 uppercase tracking-widest">Update Photo</span>
                 </button>
               </div>
               <input ref={fileInputRef} type="file" className="hidden" onChange={handleUpload} accept="image/*" />
@@ -179,25 +179,25 @@ export default function ProfilePage() {
                     <input 
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
-                      className="w-full bg-slate-950/80 border-2 border-sky-500/50 rounded-2xl p-4 text-center text-white text-xl font-black uppercase outline-none shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all focus:border-sky-400"
+                      className="w-full bg-slate-950/80 border-2 border-sky-500/50 rounded-2xl p-4 text-center text-slate-50 text-xl font-semibold uppercase outline-none shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all focus:border-sky-400"
                       autoFocus
                       placeholder="Enter Full Name"
                     />
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 bg-[#020617] border border-sky-500/30 rounded-full">
-                       <p className="text-[8px] font-black text-sky-500 uppercase tracking-widest">Editing Name</p>
+                       <p className="text-[8px] font-semibold text-sky-500 uppercase tracking-widest leading-relaxed">Editing Name</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                      <button 
                        onClick={handleUpdateName} 
-                       className="py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                       className="py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                      >
                        <CheckCircle2 size={14} /> Commit
                      </button>
                      <button 
                        onClick={() => { setIsEditingName(false); setNewName(profile?.full_name || ''); }} 
-                       className="py-3.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+                       className="py-3.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-[10px] font-semibold uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
                      >
                        Abort
                      </button>
@@ -208,10 +208,10 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center gap-5 animate-in fade-in duration-700 w-full">
                   <div className="space-y-1 text-center">
                     {/* Refined Corporate Typography */}
-                    <h3 className="text-3xl font-bold text-white tracking-tight leading-tight">
+                    <h3 className="text-3xl font-bold text-slate-50 leading-tight tracking-tighter">
                       {formatName(profile?.full_name || '')}
                     </h3>
-                    <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.3em]">
+                    <p className="text-[10px] font-bold text-sky-500 uppercase tracking-[0.3em] leading-relaxed">
                       {profile?.role?.replace('_', ' ')}
                     </p>
                   </div>
@@ -328,23 +328,23 @@ export default function ProfilePage() {
             <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[32px] shadow-xl animate-in fade-in zoom-in duration-500">
               <div className="flex flex-col md:flex-row justify-between gap-6">
                 <div className="space-y-4 flex-1">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Clinical Affiliation</p>
+                  <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">Clinical Affiliation</p>
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-sky-500/10 rounded-xl text-sky-500">
                       <Hospital size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white uppercase">{(profile as any)?.primary_hospital || 'Public Health Center'}</p>
-                      <p className="text-[8px] text-slate-500 font-bold uppercase mt-1">Primary Operations Base</p>
+                      <p className="text-sm font-bold text-slate-50 uppercase leading-relaxed">{(profile as any)?.primary_hospital || 'Public Health Center'}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase mt-1 leading-relaxed">Primary Operations Base</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-4 flex-1">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Area of Expertise</p>
+                  <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">Area of Expertise</p>
                   <div className="flex flex-wrap gap-2">
                     {(profile as any)?.specializations?.map((spec: string) => (
-                      <span key={spec} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black text-slate-300 uppercase">
+                      <span key={spec} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-semibold text-slate-300 uppercase">
                         {spec}
                       </span>
                     )) || <span className="text-[10px] text-slate-700 italic">No Specializations Tagged</span>}
@@ -359,14 +359,14 @@ export default function ProfilePage() {
             <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-8 rounded-[32px] shadow-xl animate-in fade-in zoom-in duration-500">
                <div className="flex items-center gap-3 mb-4">
                   <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Field Assignment Node</h3>
+                  <h3 className="text-sm font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Field Assignment Node</h3>
                </div>
                <p className="text-xs text-slate-400 leading-relaxed mb-6">
-                 This node is authorized for field telemetry collection in <span className="text-white font-bold">Barangay Bantayan</span>. All captured data is synchronized in real-time with the central clinical hub.
+                 This node is authorized for field telemetry collection in <span className="text-slate-50 font-bold">Barangay Bantayan</span>. All captured data is synchronized in real-time with the central clinical hub.
                </p>
                <div className="flex items-center gap-2 text-emerald-500">
                   <ShieldCheck size={14} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Identity Verified by Admin</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest">Identity Verified by Admin</span>
                </div>
             </div>
           )}
@@ -378,8 +378,8 @@ export default function ProfilePage() {
                    <Activity size={20} className="animate-pulse" />
                 </div>
                 <div>
-                   <h4 className="text-xs font-black text-white uppercase tracking-wider">Node System Status</h4>
-                   <p className="text-[8px] text-emerald-500/60 font-bold uppercase mt-0.5">Secure Network Link established</p>
+                   <h4 className="text-xs font-semibold text-slate-50 uppercase tracking-wider">Node System Status</h4>
+                   <p className="text-[8px] text-emerald-500/60 font-bold uppercase mt-0.5 leading-relaxed">Secure Network Link established</p>
                 </div>
              </div>
              <CheckCircle2 size={24} className="text-emerald-500/20" />
@@ -392,7 +392,7 @@ export default function ProfilePage() {
 }
 
 // --- HELPER COMPONENT ---
-function DetailCard({ icon, label, value, sub, color = "text-white" }: any) {
+function DetailCard({ icon, label, value, sub, color = "text-slate-50" }: any) {
   return (
     <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[32px] flex flex-col justify-between hover:bg-slate-900/60 transition-all shadow-xl group min-h-[160px]">
       {/* Icon Node */}
@@ -402,7 +402,7 @@ function DetailCard({ icon, label, value, sub, color = "text-white" }: any) {
 
       {/* Data Content */}
       <div className="mt-4">
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1.5 opacity-70">
+        <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.2em] mb-1.5 opacity-70 leading-relaxed">
           {label}
         </p>
         
@@ -413,7 +413,7 @@ function DetailCard({ icon, label, value, sub, color = "text-white" }: any) {
         
         <div className="flex items-center gap-1.5 mt-2">
            <div className="w-1 h-1 rounded-full bg-sky-500/40" />
-           <p className="text-[8px] font-bold text-slate-600 uppercase tracking-tighter">{sub}</p>
+           <p className="text-[8px] font-bold text-slate-600 uppercase tracking-tighter leading-relaxed">{sub}</p>
         </div>
       </div>
     </div>
@@ -424,7 +424,7 @@ function DetailCard({ icon, label, value, sub, color = "text-white" }: any) {
 export function FormField({ label, icon: Icon, value, onChange, placeholder, type = "text" }: any) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+      <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest ml-1">
         {label}
       </label>
       <div className="relative group">
@@ -436,7 +436,7 @@ export function FormField({ label, icon: Icon, value, onChange, placeholder, typ
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
         />
       </div>
     </div>

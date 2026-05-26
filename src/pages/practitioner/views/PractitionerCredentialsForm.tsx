@@ -125,14 +125,14 @@ export default function PractitionerCredentialsForm() {
            <ShieldCheck size={48} className="animate-pulse" />
         </div>
         <div className="space-y-3">
-           <h3 className="text-4xl font-black text-white uppercase tracking-tighter">Protocol Activated</h3>
+           <h3 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">Protocol Activated</h3>
            <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed font-medium">
              Your practitioner credentials have been queued for secure verification. You will be notified once your node is authorized for full clinical intervention.
            </p>
         </div>
         <button 
           onClick={() => window.location.reload()}
-          className="px-12 py-5 bg-sky-500 text-white rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20"
+          className="px-12 py-5 bg-sky-500 text-slate-50 rounded-3xl text-[11px] font-semibold uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-500/20"
         >
           Return to Console
         </button>
@@ -147,12 +147,12 @@ export default function PractitionerCredentialsForm() {
       <div className="px-2">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-          <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Protocol: Initialization</span>
+          <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Protocol: Initialization</span>
         </div>
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
           Node <span className="text-sky-500">Onboarding</span>
         </h2>
-        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
           Initialize Secure Consultation Node & Verify Professional Credentials
         </p>
       </div>
@@ -163,7 +163,7 @@ export default function PractitionerCredentialsForm() {
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <IdCard className="text-sky-500" size={18} />
-             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Professional Licensing</h3>
+             <h3 className="text-[10px] font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Professional Licensing</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -201,7 +201,7 @@ export default function PractitionerCredentialsForm() {
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <PhoneForwarded className="text-emerald-500" size={18} />
-             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Consultation Pipeline</h3>
+             <h3 className="text-[10px] font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Consultation Pipeline</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -241,7 +241,7 @@ export default function PractitionerCredentialsForm() {
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[32px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <MapPin className="text-rose-500" size={18} />
-             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Affiliations & Specializations</h3>
+             <h3 className="text-[10px] font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Affiliations & Specializations</h3>
           </div>
 
           <div className="space-y-6">
@@ -254,7 +254,7 @@ export default function PractitionerCredentialsForm() {
             />
             
             <div>
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Clinical Specializations</label>
+              <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2 mb-3 block">Clinical Specializations</label>
               <div className="flex flex-wrap gap-2">
                  {SPECIALIZATIONS.map(spec => (
                    <span 
@@ -262,8 +262,8 @@ export default function PractitionerCredentialsForm() {
                      onClick={() => toggleSpecialization(spec)}
                      className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all cursor-pointer border ${
                        specializations.includes(spec) 
-                         ? 'bg-sky-500/10 border-sky-500/30 text-white' 
-                         : 'bg-white/5 border-white/5 text-slate-400 hover:border-sky-500/50 hover:text-white'
+                         ? 'bg-sky-500/10 border-sky-500/30 text-slate-50' 
+                         : 'bg-white/5 border-white/5 text-slate-400 hover:border-sky-500/50 hover:text-slate-50'
                      }`}
                    >
                      {spec}
@@ -278,7 +278,7 @@ export default function PractitionerCredentialsForm() {
         <button 
           type="submit"
           disabled={loading}
-          className="w-full py-6 bg-sky-500 hover:bg-sky-400 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-sm shadow-xl shadow-sky-500/20 transition-all active:scale-[0.98] group flex items-center justify-center gap-3"
+          className="w-full py-6 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-[2rem] font-semibold uppercase tracking-[0.3em] text-sm shadow-xl shadow-sky-500/20 transition-all active:scale-[0.98] group flex items-center justify-center gap-3"
         >
            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent animate-spin rounded-full" /> : <ShieldCheck size={20} className="group-hover:rotate-12 transition-transform" />}
            Authorize & Register Practitioner Node
@@ -293,12 +293,12 @@ export default function PractitionerCredentialsForm() {
                  <Check size={24} />
               </div>
               <div>
-                 <p className="text-[10px] font-black text-white uppercase tracking-widest">Node Status: {existingCreds.verification_status}</p>
-                 <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Authorized Node Signature — Verified {new Date(existingCreds.updated_at).toLocaleDateString()}</p>
+                 <p className="text-[10px] font-semibold text-slate-50 uppercase tracking-widest leading-relaxed">Node Status: {existingCreds.verification_status}</p>
+                 <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1 leading-relaxed">Authorized Node Signature — Verified {new Date(existingCreds.updated_at).toLocaleDateString()}</p>
               </div>
            </div>
            <div className="flex items-center gap-2 text-emerald-500">
-              <span className="text-[8px] font-black uppercase tracking-widest">Protocol Active</span>
+              <span className="text-[8px] font-semibold uppercase tracking-widest">Protocol Active</span>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
            </div>
         </div>
@@ -312,7 +312,7 @@ export default function PractitionerCredentialsForm() {
 function InputGroup({ label, placeholder, type = "text", icon, value, onChange, required }: any) {
   return (
     <div className="space-y-2">
-      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">{label}</label>
+      <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2">{label}</label>
       <div className="relative group">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors">
           {icon}
@@ -323,7 +323,7 @@ function InputGroup({ label, placeholder, type = "text", icon, value, onChange, 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
-          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700"
         />
       </div>
     </div>
@@ -340,7 +340,7 @@ function ToggleButton({ label, active, onClick }: any) {
       }`}
     >
       <div className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'}`} />
-      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-widest">{label}</span>
     </button>
   );
 }

@@ -65,7 +65,7 @@ export default function BottomNav() {
               to={item.path}
               className={`relative flex flex-col items-center justify-center gap-1.5 flex-1 h-[80%] my-auto rounded-2xl transition-all duration-300 border ${
                 isActive 
-                  ? 'border-sky-500/50 bg-sky-500/10 text-sky-500 font-black scale-105 shadow-[0_0_20px_rgba(14,165,233,0.1)]' 
+                  ? 'border-sky-500/50 bg-sky-500/10 text-sky-500 font-bold scale-105 shadow-[0_0_20px_rgba(14,165,233,0.1)]' 
                   : 'border-transparent text-sidebar-text-muted font-bold'
               } active:scale-90`}
             >

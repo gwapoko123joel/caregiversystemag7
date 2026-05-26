@@ -175,26 +175,26 @@ export default function SubmitReport() {
             <CheckCircle2 size={40} className="text-emerald-500" />
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-3">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-50 uppercase tracking-tighter mb-3 leading-tight">
             Telemetry Synchronized
           </h2>
           
-          <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6">
+          <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6 leading-relaxed">
             Status: Transmission Successful
           </p>
           
           <p className="text-sm text-slate-400 leading-relaxed mb-10 px-4">
-            Clinical data for <span className="text-white font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the medical practitioner network.
+            Clinical data for <span className="text-slate-50 font-bold">{patient.first_name} {patient.last_name}</span> has been securely broadcasted to the medical practitioner network.
           </p> 
 
           <div className="bg-slate-950/50 rounded-3xl p-5 border border-white/5 mb-10 grid grid-cols-2 gap-4">
              <div className="text-left border-r border-white/5 pr-4">
-                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Node Identifier</p>
-                <p className="text-[10px] font-mono font-bold text-slate-400">BANTAYAN-NODE-01</p>
+                <p className="text-[7px] font-semibold text-slate-600 uppercase tracking-widest mb-1 leading-relaxed">Node Identifier</p>
+                <p className="text-[10px] font-mono font-bold text-slate-400 leading-relaxed">BANTAYAN-NODE-01</p>
              </div>
              <div className="text-right pl-4">
-                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Sync Timestamp</p>
-                <p className="text-[10px] font-mono font-bold text-slate-400">
+                <p className="text-[7px] font-semibold text-slate-600 uppercase tracking-widest mb-1 leading-relaxed">Sync Timestamp</p>
+                <p className="text-[10px] font-mono font-bold text-slate-400 leading-relaxed">
                   {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </p>
              </div>
@@ -202,7 +202,7 @@ export default function SubmitReport() {
 
           <button
             onClick={() => navigate('/dashboard/caregiver/history')}
-            className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
+            className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
           >
             Return to Patient Registry <ArrowRight size={16} />
           </button>
@@ -218,13 +218,13 @@ export default function SubmitReport() {
         <div className="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mb-6">
           <UserSearch size={40} className="text-sky-500" />
         </div>
-        <h2 className="text-xl font-black text-text-main uppercase tracking-widest mb-2">No Patient Selected</h2>
-        <p className="text-sidebar-text-muted mb-8 text-sm">
+        <h2 className="text-xl font-semibold text-text-main uppercase mb-2 tracking-tighter leading-tight">No Patient Selected</h2>
+        <p className="text-sidebar-text-muted mb-8 text-sm leading-relaxed">
           To ensure medical accuracy, please select a patient from your roster before submitting a report.
         </p>
         <button
           onClick={() => navigate('/dashboard/caregiver/history')}
-          className="px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
+          className="px-8 py-4 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-2xl text-xs font-semibold uppercase tracking-widest transition-all"
         >
           Go to Patient Roster
         </button>

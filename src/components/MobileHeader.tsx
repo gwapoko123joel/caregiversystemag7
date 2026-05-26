@@ -31,16 +31,16 @@ export default function MobileHeader({ onLogoutClick }: MobileHeaderProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleMobile}
-          className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors active:scale-95 lg:hidden"
+          className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-slate-50 hover:bg-slate-800/50 transition-colors active:scale-95 lg:hidden"
           aria-label="Toggle Navigation Menu"
         >
           <Menu size={24} />
         </button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20">
-            <Heart size={16} className="text-white fill-white" />
+            <Heart size={16} className="text-slate-50 fill-white" />
           </div>
-          <span className="text-sm font-light tracking-[0.2em] text-white uppercase hidden sm:inline-block">BantayanCare</span>
+          <span className="text-sm font-light tracking-[0.2em] text-slate-50 uppercase hidden sm:inline-block">BantayanCare</span>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export default function MobileHeader({ onLogoutClick }: MobileHeaderProps) {
         {/* Simple Theme Toggle for Mobile Header */}
         <button 
           onClick={toggleTheme}
-          className="p-2 rounded-xl text-slate-400 hover:text-white transition-colors active:scale-95"
+          className="p-2 rounded-xl text-slate-400 hover:text-slate-50 transition-colors active:scale-95"
           title="Toggle Theme"
         >
           {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}

@@ -159,10 +159,10 @@ const GovernanceLoginPage = () => {
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-2xl font-black text-white uppercase tracking-tight">
+                <h1 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
                   System Governance
                 </h1>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 leading-relaxed">
                   Bantayan Administrative Node — Secure Access
                 </p>
               </div>
@@ -212,8 +212,8 @@ const GovernanceLoginPage = () => {
               >
                 <ServerCrash className="w-5 h-5 text-red-400" />
                 <div>
-                  <p className="text-sm font-bold text-red-400">Terminal Locked</p>
-                  <p className="text-[11px] text-red-300/70">
+                  <p className="text-sm font-bold text-red-400 leading-relaxed">Terminal Locked</p>
+                  <p className="text-[11px] text-red-300/70 leading-relaxed">
                     Too many failed attempts. Contact super admin to unlock.
                   </p>
                 </div>
@@ -256,14 +256,14 @@ const GovernanceLoginPage = () => {
                     autoComplete="off"
                   />
 
-                  <p className="text-[10px] text-slate-500 text-center">
+                  <p className="text-[10px] text-slate-500 text-center leading-relaxed">
                     Enter your assigned governance Access ID to proceed to authentication.
                   </p>
 
                   <button
                     type="submit"
                     disabled={loading || isLockedOut}
-                    className="w-full py-3.5 rounded-xl text-white text-sm font-bold 
+                    className="w-full py-3.5 rounded-xl text-slate-50 text-sm font-bold 
                                tracking-wider uppercase shadow-lg transition-all duration-300 
                                disabled:opacity-60 disabled:cursor-not-allowed
                                flex items-center justify-center gap-2
@@ -294,10 +294,10 @@ const GovernanceLoginPage = () => {
                                   bg-emerald-500/5">
                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
                     <div className="flex-1">
-                      <p className="text-[10px] tracking-wider text-emerald-400/70 uppercase">
+                      <p className="text-[10px] tracking-wider text-emerald-400/70 uppercase leading-relaxed">
                         Access ID Verified
                       </p>
-                      <p className="text-sm font-bold text-emerald-300 tracking-wider">
+                      <p className="text-sm font-bold text-emerald-300 tracking-wider leading-relaxed">
                         {accessId}
                       </p>
                     </div>
@@ -339,7 +339,7 @@ const GovernanceLoginPage = () => {
                   <button
                     type="submit"
                     disabled={loading || isLockedOut}
-                    className="w-full py-3.5 rounded-xl text-white text-sm font-bold 
+                    className="w-full py-3.5 rounded-xl text-slate-50 text-sm font-bold 
                                tracking-wider uppercase shadow-lg transition-all duration-300 
                                disabled:opacity-60 disabled:cursor-not-allowed
                                flex items-center justify-center gap-2

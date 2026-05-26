@@ -97,12 +97,12 @@ export default function PatientManagementView() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Registry: Global Population</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Registry: Global Population</span>
           </div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Patient <span className="text-sky-500">Roster</span>
           </h2>
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Global Health Network Registry • Management & Oversight
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function PatientManagementView() {
             <input 
               type="text"
               placeholder="Search global records..."
-              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all"
+              className="w-full sm:w-80 bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -132,7 +132,7 @@ export default function PatientManagementView() {
           </div>
         ) : filteredPatients.length === 0 ? (
           <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] opacity-30">
-            <p className="text-xs font-black uppercase tracking-widest">No matching population nodes found</p>
+            <p className="text-xs font-semibold uppercase tracking-widest leading-relaxed">No matching population nodes found</p>
           </div>
         ) : (
           filteredPatients.map((p) => (
@@ -145,7 +145,7 @@ export default function PatientManagementView() {
                 <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:scale-110 transition-transform duration-500">
                   <User size={24} />
                 </div>
-                <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                <div className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border ${
                   (p.status as string) === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
                   (p.status as string) === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
                   'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
@@ -156,13 +156,13 @@ export default function PatientManagementView() {
 
               {/* Middle Row: Patient Name & ID */}
               <div className="space-y-1 mb-6">
-                <h3 className="text-xl font-black text-white uppercase tracking-tight group-hover:text-sky-400 transition-colors">
+                <h3 className="text-xl font-semibold text-slate-50 uppercase group-hover:text-sky-400 transition-colors tracking-tighter leading-tight">
                   {p.first_name} {p.last_name}
                 </h3>
                 <div className="flex items-center gap-2">
                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">PT-ID: {p.patient_id.toString().padStart(4, '0')}</span>
                    <span className="w-1 h-1 rounded-full bg-slate-800" />
-                   <span className="text-[9px] font-black text-sky-500/70 uppercase">{calculateAge(p.date_of_birth)}</span>
+                   <span className="text-[9px] font-semibold text-sky-500/70 uppercase">{calculateAge(p.date_of_birth)}</span>
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export default function PatientManagementView() {
               <div className="flex items-center gap-2">
                  <button 
                   onClick={() => navigate(`/dashboard/admin/patient/${p.patient_id}`)}
-                  className="flex-1 py-3 bg-white/5 hover:bg-sky-500 border border-white/10 hover:border-sky-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-white/5 hover:bg-sky-500 border border-white/10 hover:border-sky-500 text-slate-50 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                  >
                    Clinical Dossier <ChevronRight size={14} />
                  </button>
@@ -216,20 +216,20 @@ export default function PatientManagementView() {
                   <ArrowRightLeft size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-light tracking-widest uppercase text-white">Reassign Caregiver</h2>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Network Realignment</p>
+                  <h2 className="text-xl font-light uppercase text-slate-50 tracking-tighter leading-tight">Reassign Caregiver</h2>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 leading-relaxed">Network Realignment</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-                  Transfer <span className="text-white">{selectedPatient?.first_name} {selectedPatient?.last_name}</span> to:
+                  Transfer <span className="text-slate-50">{selectedPatient?.first_name} {selectedPatient?.last_name}</span> to:
                 </p>
                 <div className="relative">
                   <select 
                     value={newCaregiverId}
                     onChange={e => setNewCaregiverId(e.target.value)}
-                    className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-white outline-none appearance-none cursor-pointer pr-12"
+                    className="w-full bg-slate-950 border border-white/10 rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-50 outline-none appearance-none cursor-pointer pr-12"
                   >
                     <option value="">Select Caregiver</option>
                     {caregivers.map(c => (

@@ -256,36 +256,36 @@ function PractitionerLayout() {
 
       {/* SOS EMERGENCY OVERLAY */}
       {activeSOS && (
-        <div className="fixed inset-0 z-[9999] bg-red-600/95 backdrop-blur-xl flex items-center justify-center p-6 text-white animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[9999] bg-red-600/95 backdrop-blur-xl flex items-center justify-center p-6 text-slate-50 animate-in fade-in zoom-in duration-300">
           <div className="max-w-md w-full text-center space-y-8">
             <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
               <ShieldAlert size={80} />
             </div>
             <div>
-              <h1 className="text-5xl font-black uppercase tracking-tighter">SOS ACTIVE</h1>
-              <p className="text-xl font-medium mt-2 opacity-80">Life-Threatening Emergency Detected</p>
+              <h1 className="text-5xl font-semibold uppercase tracking-tighter leading-tight">SOS ACTIVE</h1>
+              <p className="text-xl font-medium mt-2 opacity-80 leading-relaxed">Life-Threatening Emergency Detected</p>
             </div>
             
             <div className="bg-white/10 p-8 rounded-[40px] border border-white/20 shadow-2xl">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-60">Subject Identity</p>
-              <h2 className="text-3xl font-black uppercase">{activeSOS.patient?.first_name} {activeSOS.patient?.last_name}</h2>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-2 opacity-60 leading-relaxed">Subject Identity</p>
+              <h2 className="text-3xl font-semibold uppercase tracking-tighter leading-tight">{activeSOS.patient?.first_name} {activeSOS.patient?.last_name}</h2>
               <div className="mt-4 pt-4 border-t border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Last Known Location</p>
-                <p className="text-sm font-bold uppercase">{activeSOS.patient?.address || 'Location Not Specified'}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1 opacity-60 leading-relaxed">Last Known Location</p>
+                <p className="text-sm font-bold uppercase leading-relaxed">{activeSOS.patient?.address || 'Location Not Specified'}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <button 
                 onClick={() => handleSOSResponse(activeSOS.dispatch_id)}
-                className="w-full py-6 bg-white text-red-600 rounded-3xl font-black uppercase tracking-widest text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                className="w-full py-6 bg-white text-red-600 rounded-3xl font-semibold uppercase tracking-widest text-lg shadow-2xl hover:scale-105 active:scale-95 transition-all"
               >
                 I AM RESPONDING NOW
               </button>
               
               <button 
                 onClick={() => setActiveSOS(null)}
-                className="text-xs font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity"
+                className="text-xs font-semibold uppercase tracking-[0.2em] opacity-40 hover:opacity-100 transition-opacity"
               >
                 Dismiss Alert
               </button>
@@ -294,7 +294,7 @@ function PractitionerLayout() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row min-h-screen font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
+      <div className="flex flex-col md:flex-row min-h-screen font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-slate-50 pb-20 md:pb-0">
         <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
 
         <div className="flex-1 flex flex-col min-h-screen">
@@ -317,10 +317,10 @@ function PractitionerLayout() {
                 )}
                  <div>
                   <div>
-                    <h1 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3 leading-tight transition-all">
+                    <h1 className="text-2xl font-semibold text-slate-50 uppercase flex items-center gap-3 leading-tight transition-all tracking-tighter">
                        <Monitor size={20} className="text-sky-500" /> {getHeaderTitle()}
                     </h1>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 ml-9 transition-colors">Barangay Monitoring Network — Real-time Feed</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 ml-9 transition-colors leading-relaxed">Barangay Monitoring Network — Real-time Feed</p>
                   </div>
                  </div>
               </div>

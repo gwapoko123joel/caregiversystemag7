@@ -46,7 +46,7 @@ export default function PatientHistory() {
     return (
       <div className="flex flex-col items-center justify-center py-20 opacity-40">
          <Loader2 className="animate-spin text-sky-500 mb-4" size={32} />
-         <p className="text-[10px] font-black uppercase tracking-widest">Scanning clinical records...</p>
+         <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">Scanning clinical records...</p>
       </div>
     );
   }
@@ -59,12 +59,12 @@ export default function PatientHistory() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Registry: Patient Roster</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Registry: Patient Roster</span>
           </div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Managed <span className="text-sky-500">Records</span>
           </h2>
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Barangay Bantayan Health Network • {patients.length} Active Subjects
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function PatientHistory() {
             placeholder="Search by name or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 font-medium"
+            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 font-medium"
           />
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function PatientHistory() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredPatients.length === 0 ? (
           <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] opacity-30">
-            <p className="text-xs font-black uppercase tracking-widest">No patient records found in this sector</p>
+            <p className="text-xs font-semibold uppercase tracking-widest leading-relaxed">No patient records found in this sector</p>
           </div>
         ) : (
           filteredPatients.map((p) => (
@@ -100,10 +100,10 @@ export default function PatientHistory() {
               </div>
 
               <div className="flex justify-between items-start mb-6">
-                <div className="w-14 h-14 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all shadow-sm">
+                <div className="w-14 h-14 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-slate-50 transition-all shadow-sm">
                   <User size={24} />
                 </div>
-                <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                <div className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border ${
                   p.status === 'critical' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
                   p.status === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' :
                   'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
@@ -113,10 +113,10 @@ export default function PatientHistory() {
               </div>
 
               <div className="space-y-1 mb-6">
-                <h3 className="text-xl font-black text-white uppercase tracking-tight group-hover:text-sky-400 transition-colors">
+                <h3 className="text-xl font-semibold text-slate-50 uppercase group-hover:text-sky-400 transition-colors tracking-tighter leading-tight">
                   {p.first_name} {p.last_name}
                 </h3>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
                   PT-ID: {p.patient_id.toString().padStart(4, '0')}
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function PatientHistory() {
                   e.stopPropagation();
                   navigate('/dashboard/caregiver/report', { state: { patient: p } });
                 }}
-                className="mt-6 w-full py-3 bg-white/5 hover:bg-sky-500 border border-white/10 hover:border-sky-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/20 active:scale-95"
+                className="mt-6 w-full py-3 bg-white/5 hover:bg-sky-500 border border-white/10 hover:border-sky-500 text-slate-50 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/20 active:scale-95"
               >
                 <Activity size={14} /> Log Vitals
               </button>

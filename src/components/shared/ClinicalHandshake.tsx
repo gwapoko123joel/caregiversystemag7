@@ -25,12 +25,12 @@ export default function ClinicalHandshake({ title, message, subtext, onComplete,
           <CheckCircle2 size={40} className="text-emerald-500" />
         </div>
 
-        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">{title}</h2>
-        <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6">Status: Synchronized</p>
+        <h2 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter mb-2 leading-tight">{title}</h2>
+        <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6 leading-relaxed">Status: Synchronized</p>
         
         <p className="text-sm text-slate-400 mb-8 leading-relaxed">
           {message}
-          {subtext && <span className="block mt-2 text-white font-bold uppercase text-[10px]">{subtext}</span>}
+          {subtext && <span className="block mt-2 text-slate-50 font-bold uppercase text-[10px]">{subtext}</span>}
         </p>
 
         <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 mb-8 flex items-center justify-between text-[9px] font-mono text-slate-500">
@@ -43,7 +43,7 @@ export default function ClinicalHandshake({ title, message, subtext, onComplete,
 
         <button
           onClick={onComplete}
-          className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+          className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
         >
           {actionLabel} <ArrowRight size={14} />
         </button>

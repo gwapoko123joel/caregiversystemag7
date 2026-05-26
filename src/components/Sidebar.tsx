@@ -124,11 +124,11 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
         {/* ── LOGO SECTION (Reduced Padding) ── */}
         <div className="flex items-center gap-3 pt-8 pb-4 px-6 overflow-hidden">
           <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20 flex-shrink-0">
-            <Heart size={20} className="text-white" fill="white" />
+            <Heart size={20} className="text-slate-50" fill="white" />
           </div>
           
           {!(isCollapsed && isDesktop) && (
-            <span className="font-black text-white uppercase tracking-tighter text-xl whitespace-nowrap animate-in fade-in duration-300">
+            <span className="font-semibold text-slate-50 uppercase tracking-tighter text-xl whitespace-nowrap animate-in fade-in duration-300">
               Bantayan<span className="text-sky-500">Care</span>
             </span>
           )}
@@ -145,7 +145,7 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
                        transition-all duration-300 ease-in-out group`}
           >
             <div className={`transition-transform duration-500 ease-spring ${isCollapsed ? '' : 'rotate-180'}`}>
-              <ChevronRight size={18} className="text-white" />
+              <ChevronRight size={18} className="text-slate-50" />
             </div>
 
             {/* A tiny pulsing radar ring behind the button to make it extra noticeable */}
@@ -157,7 +157,7 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
         {!isDesktop && (
           <button
             onClick={() => setMobileHidden(true)}
-            className="absolute right-4 top-4 p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-500 hover:text-white lg:hidden"
+            className="absolute right-4 top-4 p-2 rounded-lg bg-slate-900 border border-white/5 text-slate-500 hover:text-slate-50 lg:hidden"
           >
             <X size={20} />
           </button>
@@ -172,7 +172,7 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
                 {/* Increased opacity for better visibility */}
                 <div className="w-1 h-3 bg-sky-500 rounded-full" />
                 
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] select-none">
+                <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-[0.2em] select-none">
                   Management <span className="text-sky-500 font-bold ml-0.5">Protocol</span>
                 </span>
                 
@@ -223,7 +223,7 @@ export default function Sidebar({ onLogoutClick }: SidebarProps) {
               
               {badgeCount > 0 && (
                 <div className={`absolute ${isCollapsed && isDesktop ? 'top-2 right-2' : 'relative'} px-2 py-0.5 rounded-full text-[10px] font-light ${
-                  isActive ? 'bg-sky-500 text-white' : 'node-urgent shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                  isActive ? 'bg-sky-500 text-slate-50' : 'node-urgent shadow-[0_0_10px_rgba(239,68,68,0.3)]'
                 }`}>
                   {badgeCount > 99 ? '99+' : badgeCount}
                 </div>

@@ -239,7 +239,7 @@ function CaregiverLayout() {
         onConfirm={handleConfirmLogout}
       />
 
-      <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-white pb-20 md:pb-0">
+      <div className="flex flex-col md:flex-row min-h-screen bg-primary font-sans text-text-main transition-colors duration-300 selection:bg-sky-500 selection:text-slate-50 pb-20 md:pb-0">
         <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
 
         <div className="flex-1 flex flex-col min-h-screen">
@@ -264,7 +264,7 @@ function CaregiverLayout() {
                   <Activity size={20} className="text-sky-500" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-light tracking-tight uppercase  text-text-main transition-colors leading-tight">
+                  <h1 className="text-2xl font-light uppercase text-text-main transition-colors leading-tight tracking-tighter">
                     {getHeaderTitle()}
                   </h1>
                   <div className="flex items-center gap-2 mt-1">
@@ -277,7 +277,7 @@ function CaregiverLayout() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate('/dashboard/caregiver/call')}
-                  className="px-6 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.2)] flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
+                  className="px-6 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-slate-50 hover:border-rose-500 font-semibold text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(244,63,94,0.2)] flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
                 >
                   <Phone size={14} className="fill-current" /> Call Support
                 </button>

@@ -46,12 +46,12 @@ export function AdminProfileSection({ formData, setFormData }: Props) {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className={`w-4 h-4 ${
-                    formData.admin_level === level.value ? 'text-cyan-300' : 'text-white/40'
+                    formData.admin_level === level.value ? 'text-cyan-300' : 'text-slate-50/40'
                   }`} strokeWidth={1.5} />
                   <span className={`text-xs font-light tracking-wider uppercase
                                   ${formData.admin_level === level.value 
                                     ? 'text-cyan-300' 
-                                    : 'text-white/60'}`}>
+                                    : 'text-slate-50/60'}`}>
                     {level.label}
                   </span>
                 </div>
@@ -60,7 +60,7 @@ export function AdminProfileSection({ formData, setFormData }: Props) {
           </div>
           
           {formData.admin_level && (
-            <p className="text-xs font-light text-white/50 mt-3">
+            <p className="text-xs font-light text-slate-50/50 mt-3 leading-relaxed">
               {adminLevelDescriptions[formData.admin_level]}
             </p>
           )}
@@ -111,14 +111,14 @@ export function AdminProfileSection({ formData, setFormData }: Props) {
               <Shield className="w-6 h-6 text-cyan-300" strokeWidth={1.5} />
             </div>
             <div>
-              <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-1">
+              <p className="text-xs font-light tracking-wider uppercase text-cyan-300/80 mb-1 leading-relaxed">
                 Active Authority
               </p>
-              <p className="text-sm font-light text-white">
+              <p className="text-sm font-light text-slate-50 leading-relaxed">
                 {adminLevels.find(l => l.value === formData.admin_level)?.label}
               </p>
               {formData.jurisdiction && (
-                <p className="text-xs font-light text-white/50 mt-1">
+                <p className="text-xs font-light text-slate-50/50 mt-1 leading-relaxed">
                   Jurisdiction: {formData.jurisdiction}
                 </p>
               )}

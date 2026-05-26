@@ -110,10 +110,10 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Patient <span className="text-sky-500">Onboarding</span>
           </h2>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-2 leading-relaxed">
             Field Registration & Personnel Profiling Protocol
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <div className="w-1.5 h-6 bg-sky-500 rounded-full" />
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Personal Identity</h3>
+             <h3 className="text-xs font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Personal Identity</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -153,12 +153,12 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
               onChange={(val) => setField('dob', val)}
             />
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">Biological Sex</label>
+              <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2">Biological Sex</label>
               <div className="relative">
                 <select 
                   value={formData.gender}
                   onChange={(e) => setField('gender', e.target.value)}
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:border-sky-500/50 transition-all outline-none appearance-none font-medium [color-scheme:dark]"
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 px-5 text-sm text-slate-50 focus:border-sky-500/50 transition-all outline-none appearance-none font-medium [color-scheme:dark]"
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -176,7 +176,7 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Contact & Location</h3>
+             <h3 className="text-xs font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Contact & Location</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -223,17 +223,17 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
         <div className="bg-slate-900/60 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-8">
              <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
-             <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Clinical Context</h3>
+             <h3 className="text-xs font-semibold text-slate-50 uppercase tracking-[0.2em] tracking-tighter leading-tight">Clinical Context</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">Blood Type</label>
+              <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2">Blood Type</label>
               <div className="relative">
                 <select 
                   value={formData.bloodType}
                   onChange={(e) => setField('bloodType', e.target.value)}
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:border-sky-500/50 transition-all outline-none appearance-none font-medium [color-scheme:dark]"
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 px-5 text-sm text-slate-50 focus:border-sky-500/50 transition-all outline-none appearance-none font-medium [color-scheme:dark]"
                 >
                   <option value="">Unknown</option>
                   <option value="A+">A+</option>
@@ -261,14 +261,14 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
           </div>
 
           <div className="space-y-2">
-            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">Known Medical History / Conditions</label>
+            <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2">Known Medical History / Conditions</label>
             <div className="relative group">
               <textarea 
                 placeholder="e.g. Hypertension, Diabetes Type 2, Asthma..."
                 value={formData.medicalHistory}
                 onChange={(e) => setField('medicalHistory', e.target.value)}
                 rows={4}
-                className="w-full bg-slate-950/50 border border-white/10 rounded-[32px] p-6 text-sm text-white focus:border-sky-500/50 transition-all outline-none resize-none placeholder:text-slate-700 font-medium"
+                className="w-full bg-slate-950/50 border border-white/10 rounded-[32px] p-6 text-sm text-slate-50 focus:border-sky-500/50 transition-all outline-none resize-none placeholder:text-slate-700 font-medium"
               />
             </div>
           </div>
@@ -279,14 +279,14 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
            <button 
              type="button" 
              onClick={onBack}
-             className="w-full md:w-1/3 py-5 bg-white/5 border border-white/10 text-slate-400 rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:text-white transition-all"
+             className="w-full md:w-1/3 py-5 bg-white/5 border border-white/10 text-slate-400 rounded-[2rem] text-[10px] font-semibold uppercase tracking-widest hover:text-slate-50 transition-all"
            >
              Cancel Entry
            </button>
            <button 
              type="submit"
              disabled={submitting}
-             className="w-full md:w-2/3 py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
+             className="w-full md:w-2/3 py-5 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-[2rem] text-[10px] font-semibold uppercase tracking-[0.3em] transition-all shadow-xl shadow-sky-500/20 active:scale-[0.98] flex items-center justify-center gap-3"
            >
              {submitting ? <Loader2 className="animate-spin" /> : <><HeartPulse size={18} /> Synchronize Patient to Network</>}
            </button>
@@ -304,23 +304,23 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
               <ShieldCheck size={40} className="text-emerald-500" />
             </div>
 
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Subject Enrolled</h2>
-            <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-8">Status: Node Synchronized</p>
+            <h2 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter mb-2 leading-tight">Subject Enrolled</h2>
+            <p className="text-emerald-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-8 leading-relaxed">Status: Node Synchronized</p>
             
             <div className="space-y-4 mb-10">
               <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-500 uppercase">Registry ID</span>
-                <span className="text-xs font-mono font-black text-white">PT-{newPatientId}</span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase">Registry ID</span>
+                <span className="text-xs font-mono font-bold text-slate-50">PT-{newPatientId}</span>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">
                 The subject has been successfully provisioned into the 
-                <span className="text-white font-bold uppercase"> Bantayan Care Network</span>.
+                <span className="text-slate-50 font-bold uppercase"> Bantayan Care Network</span>.
               </p>
             </div>
 
             <button
               onClick={() => onBack()}
-              className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3"
+              className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3"
             >
               Return to Dashboard <ArrowRight size={16} />
             </button>
@@ -345,7 +345,7 @@ interface InputFieldProps {
 function InputField({ label, placeholder, icon, type = "text", value, onChange, required }: InputFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">
+      <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest ml-2">
         {label} {required && <span className="text-rose-500">*</span>}
       </label>
       <div className="relative group">
@@ -358,7 +358,7 @@ function InputField({ label, placeholder, icon, type = "text", value, onChange, 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-14 pr-5 text-sm text-white focus:border-sky-500/50 transition-all outline-none placeholder:text-slate-700 font-medium [color-scheme:dark]"
+          className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 pl-14 pr-5 text-sm text-slate-50 focus:border-sky-500/50 transition-all outline-none placeholder:text-slate-700 font-medium [color-scheme:dark]"
         />
       </div>
     </div>

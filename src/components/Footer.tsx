@@ -40,9 +40,9 @@ const Footer: React.FC = () => {
           <div className="md:col-span-4 space-y-6">
             <div className="flex items-center gap-3 group/logo">
               <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-sky-500/40 transition-all">
-                <Heart size={20} className="text-white fill-white" />
+                <Heart size={20} className="text-slate-50 fill-white" />
               </div>
-              <span className="font-black tracking-tight text-xl text-text-main uppercase transition-colors">
+              <span className="font-semibold tracking-tight text-xl text-text-main uppercase transition-colors">
                 Bantayan<span className="text-sky-500">Care</span>
               </span>
             </div>
@@ -57,7 +57,7 @@ const Footer: React.FC = () => {
 
           {/* Column 2: Social Connectivity */}
           <div className="md:col-span-3 space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-text-main">Connect With Us</h3>
+            <h3 className="text-xs font-semibold uppercase text-text-main tracking-tighter leading-tight">Connect With Us</h3>
             <div className="flex flex-wrap gap-4">
               {[
                 { icon: FacebookIcon, label: 'Facebook', url: 'https://facebook.com/bantayancare' },
@@ -78,7 +78,7 @@ const Footer: React.FC = () => {
               ))}
             </div>
             <div className="space-y-4 pt-4">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-sidebar-text-muted">Resources</h4>
+               <h4 className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-text-muted">Resources</h4>
                <ul className="space-y-2">
                  <li><a href="#" className="text-sm font-semibold text-sidebar-text-muted hover:text-text-main transition-colors">Privacy Policy</a></li>
                  <li><a href="#" className="text-sm font-semibold text-sidebar-text-muted hover:text-text-main transition-colors">Terms of Service</a></li>
@@ -90,8 +90,8 @@ const Footer: React.FC = () => {
           {/* Column 3: Feedback Mechanism */}
           <div className="md:col-span-5 space-y-6">
             <div className="p-6 rounded-2xl bg-card border border-card-border shadow-harmonized ring-1 ring-white/5">
-              <h3 className="text-xs font-black uppercase tracking-widest text-text-main mb-4">User Voice</h3>
-              <p className="text-xs text-sidebar-text-muted mb-4 font-medium uppercase tracking-tight">Your feedback drives our automation.</p>
+              <h3 className="text-xs font-semibold uppercase text-text-main mb-4 tracking-tighter leading-tight">User Voice</h3>
+              <p className="text-xs text-sidebar-text-muted mb-4 font-medium uppercase tracking-tight leading-relaxed">Your feedback drives our automation.</p>
               
               <form onSubmit={handleSubmitFeedback} className="space-y-4">
                 <textarea 
@@ -104,7 +104,7 @@ const Footer: React.FC = () => {
                 <button 
                   type="submit"
                   disabled={isSubmitting || !feedback.trim()}
-                  className="w-full py-3 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+                  className="w-full py-3 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-50 font-semibold uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
                 >
                   {isSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -122,17 +122,17 @@ const Footer: React.FC = () => {
 
         {/* Legal Row */}
         <div className="mt-16 pt-8 border-t border-card-border/50 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-[10px] font-black uppercase tracking-widest text-sidebar-text-muted">
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-text-muted">
             © 2026 BantayanCare. All rights reserved.
           </div>
           
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-               <span className="text-[8px] font-black uppercase tracking-widest text-sidebar-text-muted">Systems Operational</span>
+               <span className="text-[8px] font-semibold uppercase tracking-widest text-sidebar-text-muted">Systems Operational</span>
             </div>
             <div className="h-4 w-[1px] bg-card-border hidden md:block" />
-            <div className="text-[8px] font-black uppercase tracking-widest text-sidebar-text-muted">
+            <div className="text-[8px] font-semibold uppercase tracking-widest text-sidebar-text-muted">
               Built with ♥ for Barangay Bantayan
             </div>
           </div>

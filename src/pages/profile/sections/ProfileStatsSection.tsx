@@ -160,8 +160,8 @@ function StatCardComponent({ stat }: { stat: StatCard }) {
           <Icon className={`w-4 h-4 ${colors.icon}`} strokeWidth={1.5} />
         </div>
       </div>
-      <p className="text-2xl font-light text-white mb-1">{stat.value}</p>
-      <p className="text-[10px] font-light tracking-[0.15em] uppercase text-white/50">
+      <p className="text-2xl font-light text-slate-50 mb-1 leading-relaxed">{stat.value}</p>
+      <p className="text-[10px] font-light tracking-[0.15em] uppercase text-slate-50/50 leading-relaxed">
         {stat.label}
       </p>
     </div>

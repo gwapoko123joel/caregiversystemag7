@@ -27,7 +27,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
             {/* Close Button */}
             <button 
               onClick={onClose}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-slate-500 hover:text-white transition-all"
+              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/5 text-slate-500 hover:text-slate-50 transition-all"
             >
               <X size={20} />
             </button>
@@ -39,11 +39,11 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
             </div>
 
             {/* Typography */}
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
+            <h2 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter mb-3 leading-tight">
               Terminate <span className="text-rose-500">Session?</span>
             </h2>
             
-            <p className="text-rose-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6">
+            <p className="text-rose-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-6 leading-relaxed">
               Protocol: System Exit
             </p>
 
@@ -51,7 +51,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
                <div className="flex items-start gap-3 text-left">
                   <AlertTriangle className="text-amber-500 shrink-0" size={18} />
                   <p className="text-sm text-slate-400 leading-relaxed">
-                    Are you sure you want to end this secure session? Any <span className="text-white font-bold">unsaved clinical data</span> will be purged from this local node.
+                    Are you sure you want to end this secure session? Any <span className="text-slate-50 font-bold">unsaved clinical data</span> will be purged from this local node.
                   </p>
                </div>
             </div>
@@ -60,13 +60,13 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={onClose}
-                className="py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+                className="py-4 bg-white/5 hover:bg-white/10 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all border border-white/10"
               >
                 Cancel
               </button>
               <button 
                 onClick={onConfirm}
-                className="py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-900/20 active:scale-95 flex items-center justify-center gap-2"
+                className="py-4 bg-rose-600 hover:bg-rose-500 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-rose-900/20 active:scale-95 flex items-center justify-center gap-2"
               >
                 <ShieldCheck size={14} /> Confirm Exit
               </button>
@@ -74,7 +74,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
 
             <div className="mt-8 flex items-center justify-center gap-2 opacity-30">
                <div className="w-1 h-1 rounded-full bg-slate-500" />
-               <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Encrypted Handoff Secure</p>
+               <p className="text-[8px] font-semibold text-slate-500 uppercase tracking-widest leading-relaxed">Encrypted Handoff Secure</p>
                <div className="w-1 h-1 rounded-full bg-slate-500" />
             </div>
           </motion.div>

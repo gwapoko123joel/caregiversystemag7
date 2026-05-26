@@ -94,17 +94,17 @@ export default function HistoryView({ logs }: HistoryViewProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20">
-             <ClipboardList size={24} className="text-white" />
+             <ClipboardList size={24} className="text-slate-50" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-light text-text-main uppercase tracking-tight  leading-tight">Report History</h1>
-            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-[0.2em] mt-0.5 opacity-70">View all your submitted patient reports</p>
+            <h1 className="text-xl md:text-2xl font-light text-text-main uppercase leading-tight tracking-tighter">Report History</h1>
+            <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-[0.2em] mt-0.5 opacity-70 leading-relaxed">View all your submitted patient reports</p>
           </div>
         </div>
         
         <Link 
           to="/dashboard/caregiver/report"
-          className="flex items-center gap-2 px-6 py-3 bg-sky-500 text-white rounded-xl text-[10px] font-light uppercase tracking-widest hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-sky-500 text-slate-50 rounded-xl text-[10px] font-light uppercase tracking-widest hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 active:scale-95"
         >
           <Plus size={14} /> New Report
         </Link>
@@ -165,7 +165,7 @@ export default function HistoryView({ logs }: HistoryViewProps) {
               onClick={() => setFilter(f.id as ConditionFilter)}
               className={`px-5 py-2.5 rounded-full text-[9px] font-light uppercase tracking-widest transition-all border ${
                 filter === f.id 
-                  ? 'bg-sky-500 text-white border-sky-500 shadow-lg shadow-sky-500/20' 
+                  ? 'bg-sky-500 text-slate-50 border-sky-500 shadow-lg shadow-sky-500/20' 
                   : 'bg-card text-sidebar-text-muted border-card-border hover:border-sidebar-text-muted/30'
               }`}
             >
@@ -183,7 +183,7 @@ export default function HistoryView({ logs }: HistoryViewProps) {
                 <ClipboardList size={40} />
              </div>
              <div className="space-y-2">
-                <h3 className="text-lg font-light text-text-main uppercase ">No records found</h3>
+                <h3 className="text-lg font-light text-text-main uppercase tracking-tighter leading-tight">No records found</h3>
                 <p className="text-[10px] font-bold text-sidebar-text-muted uppercase tracking-widest max-w-xs leading-relaxed">
                   {search || filter !== 'all' 
                     ? "Try adjusting your search or filters to find what you're looking for." 
@@ -193,7 +193,7 @@ export default function HistoryView({ logs }: HistoryViewProps) {
              {(!search && filter === 'all') && (
                <Link 
                  to="/dashboard/caregiver/report"
-                 className="px-8 py-4 bg-sky-500 text-white rounded-2xl text-xs font-light uppercase tracking-widest shadow-xl shadow-sky-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                 className="px-8 py-4 bg-sky-500 text-slate-50 rounded-2xl text-xs font-light uppercase tracking-widest shadow-xl shadow-sky-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
                >
                  Submit First Report <ArrowRight size={16} />
                </Link>
@@ -231,7 +231,7 @@ export default function HistoryView({ logs }: HistoryViewProps) {
                               {log.physical_status === 'stable' ? 'Stable Condition' :
                                log.physical_status === 'warning' ? 'Needs Attention' : 'Critical Update'}
                             </p>
-                            <p className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1">
+                            <p className="text-[9px] font-bold text-sidebar-text-muted uppercase tracking-widest mt-1 leading-relaxed">
                               ID: #{log.log_id.toString().slice(-4)}
                             </p>
                           </div>
@@ -240,7 +240,7 @@ export default function HistoryView({ logs }: HistoryViewProps) {
                           <p className="text-lg font-light text-text-main  leading-none font-mono">
                             {new Date(log.recorded_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
-                          <p className="text-[8px] font-light text-sidebar-text-muted uppercase tracking-widest mt-1 opacity-50">Local Node Time</p>
+                          <p className="text-[8px] font-light text-sidebar-text-muted uppercase tracking-widest mt-1 opacity-50 leading-relaxed">Local Node Time</p>
                         </div>
                       </div>
 
@@ -254,9 +254,9 @@ export default function HistoryView({ logs }: HistoryViewProps) {
                           <div key={v.label} className="space-y-1">
                             <div className="flex items-center gap-1 opacity-50">
                               <v.icon size={10} className={`text-${v.color}-500`} />
-                              <span className="text-[8px] font-black uppercase tracking-widest">{v.label}</span>
+                              <span className="text-[8px] font-semibold uppercase tracking-widest">{v.label}</span>
                             </div>
-                            <p className="text-xs font-black text-text-main font-mono">{v.val || '—'}</p>
+                            <p className="text-xs font-bold text-text-main font-mono leading-relaxed">{v.val || '—'}</p>
                           </div>
                         ))}
                       </div>

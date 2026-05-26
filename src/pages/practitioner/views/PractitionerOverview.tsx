@@ -201,25 +201,25 @@ export default function PractitionerOverview({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          {/* Session Handover Box */}
          <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 p-6 rounded-[32px] shadow-2xl flex flex-col justify-center">
-            <h3 className="text-[10px] font-black text-sky-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <h3 className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 tracking-tighter leading-tight">
                <MessageSquare size={14} /> Session Handover
             </h3>
             {previousHandover ? (
                <div className="space-y-2">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-relaxed">
                      Handover from Practitioner Node: {previousHandover.caregivers?.full_name}
                   </p>
                   <div className="p-4 bg-sky-500/5 border-l-2 border-sky-500 rounded-r-2xl">
-                     <p className="text-[11px] text-white italic">"{previousHandover.handover_note}"</p>
+                     <p className="text-[11px] text-slate-50 italic leading-relaxed">"{previousHandover.handover_note}"</p>
                   </div>
-                  <p className="text-[8px] font-mono text-slate-600 uppercase mt-2">
+                  <p className="text-[8px] font-mono text-slate-600 uppercase mt-2 leading-relaxed">
                      Terminated: {new Date(previousHandover.end_time).toLocaleTimeString()}
                   </p>
                </div>
             ) : (
                <div className="py-6 text-center opacity-20 flex flex-col items-center gap-3">
                    <ShieldCheck size={24} />
-                   <p className="text-[9px] font-black uppercase tracking-widest">No Previous Handover Found</p>
+                   <p className="text-[9px] font-semibold uppercase tracking-widest leading-relaxed">No Previous Handover Found</p>
                </div>
             )}
          </div>
@@ -232,7 +232,7 @@ export default function PractitionerOverview({
           }`} />
 
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+            <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2 tracking-tighter leading-tight">
                <Clock size={14} /> Clinical Session Management
             </h3>
             {currentShift && (
@@ -245,14 +245,14 @@ export default function PractitionerOverview({
           </div>
 
           {!currentShift ? (
-            <button onClick={handleSessionStart} className="relative z-10 w-full py-5 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95">
+            <button onClick={handleSessionStart} className="relative z-10 w-full py-5 bg-sky-600 hover:bg-sky-500 text-slate-50 rounded-2xl font-semibold uppercase tracking-widest transition-all shadow-lg shadow-sky-500/20 active:scale-95">
               Initialize Clinical Session
             </button>
           ) : (
             <div className="space-y-4 relative z-10">
               <div className="p-5 bg-slate-950/60 rounded-2xl border border-white/5 flex items-center justify-between shadow-inner">
-                 <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Session Duration</p>
-                 <p className={`text-3xl font-mono font-black tracking-tight ${
+                 <p className="text-[8px] text-slate-500 uppercase font-semibold tracking-widest leading-relaxed">Session Duration</p>
+                 <p className={`text-3xl font-mono font-bold tracking-tight ${
                    currentShift.status === 'active' ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]'
                  }`}>
                    {(() => {
@@ -271,7 +271,7 @@ export default function PractitionerOverview({
                 <button 
                   onClick={() => handleBreak('break')} 
                   disabled={currentShift.status === 'lunch'}
-                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                  className={`py-3 rounded-xl font-bold uppercase text-[9px] transition-colors active:scale-95 border ${
                     currentShift.status === 'break' 
                       ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
                       : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
@@ -283,7 +283,7 @@ export default function PractitionerOverview({
                 <button 
                   onClick={() => handleBreak('lunch')} 
                   disabled={currentShift.status === 'break'}
-                  className={`py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border ${
+                  className={`py-3 rounded-xl font-bold uppercase text-[9px] transition-colors active:scale-95 border ${
                     currentShift.status === 'lunch' 
                       ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' 
                       : 'bg-amber-500/5 border-amber-500/10 text-amber-600 hover:bg-amber-500/10'
@@ -292,20 +292,20 @@ export default function PractitionerOverview({
                   {currentShift.status === 'lunch' ? 'End Lunch' : 'Start Lunch'}
                 </button>
 
-                <button onClick={handleSessionEnd} className="py-3 rounded-xl font-black uppercase text-[9px] transition-colors active:scale-95 border bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500">
+                <button onClick={handleSessionEnd} className="py-3 rounded-xl font-semibold uppercase text-[9px] transition-colors active:scale-95 border bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20 text-rose-500">
                   Terminate Session
                 </button>
               </div>
 
               <div className="pt-4 border-t border-white/5 mt-4">
-                <h4 className="text-[8px] font-black uppercase text-slate-500 mb-3 tracking-widest">Session Activity Ledger</h4>
+                <h4 className="text-[8px] font-semibold uppercase text-slate-500 mb-3 tracking-widest">Session Activity Ledger</h4>
                 <div className="relative pl-3 space-y-3 border-l border-sky-500/20">
                   {/* Start Milestone */}
                   <div className="relative">
                     <div className="absolute -left-[17px] top-1 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                     <div className="flex justify-between items-center">
-                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Node Initialization</p>
-                       <p className="text-[10px] font-mono text-sky-400">{formatTime(currentShift.start_time)}</p>
+                       <p className="text-[8px] font-semibold uppercase text-slate-400 tracking-widest leading-relaxed">Node Initialization</p>
+                       <p className="text-[10px] font-mono text-sky-400 leading-relaxed">{formatTime(currentShift.start_time)}</p>
                     </div>
                   </div>
                   
@@ -313,7 +313,7 @@ export default function PractitionerOverview({
                   <div className="relative">
                     <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.break_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
                     <div className="flex justify-between items-center">
-                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Clinical Break</p>
+                       <p className="text-[8px] font-semibold uppercase text-slate-400 tracking-widest leading-relaxed">Clinical Break</p>
                        <p className={`text-[10px] font-mono ${currentShift.break_start ? 'text-amber-400' : 'text-slate-600'}`}>
                          {formatTime(currentShift.break_start)} {currentShift.break_end ? `- ${formatTime(currentShift.break_end)}` : (currentShift.status === 'break' ? '- ACTIVE' : '')}
                        </p>
@@ -324,7 +324,7 @@ export default function PractitionerOverview({
                   <div className="relative">
                     <div className={`absolute -left-[17px] top-1 w-2 h-2 rounded-full ${currentShift.lunch_start ? 'bg-amber-500' : 'bg-slate-700'}`} />
                     <div className="flex justify-between items-center">
-                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Meal Intermission</p>
+                       <p className="text-[8px] font-semibold uppercase text-slate-400 tracking-widest leading-relaxed">Meal Intermission</p>
                        <p className={`text-[10px] font-mono ${currentShift.lunch_start ? 'text-amber-400' : 'text-slate-600'}`}>
                          {formatTime(currentShift.lunch_start)} {currentShift.lunch_end ? `- ${formatTime(currentShift.lunch_end)}` : (currentShift.status === 'lunch' ? '- ACTIVE' : '')}
                        </p>
@@ -341,9 +341,9 @@ export default function PractitionerOverview({
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-6 px-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_#10b981]" />
-          <h3 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Live Personnel Nodes</h3>
+          <h3 className="text-[11px] font-semibold text-slate-50 uppercase tracking-[0.3em] tracking-tighter leading-tight">Live Personnel Nodes</h3>
           <div className="h-px flex-1 bg-white/10" />
-          <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
             {activeBHWs.length} Online
           </span>
         </div>
@@ -352,7 +352,7 @@ export default function PractitionerOverview({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {activeBHWs.length === 0 ? (
             <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] bg-slate-900/20">
-              <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Scanning for active field signals...</p>
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-widest leading-relaxed">Scanning for active field signals...</p>
             </div>
           ) : (
             activeBHWs.map((bhw) => (
@@ -366,21 +366,21 @@ export default function PractitionerOverview({
                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
                 </div>
 
-                <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all">
+                <div className="w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-slate-50 transition-all">
                   <User size={24} />
                 </div>
 
                 <div>
-                  <p className="text-sm font-black text-white uppercase tracking-tight leading-none group-hover:text-sky-400 transition-colors">
+                  <p className="text-sm font-semibold text-slate-50 uppercase tracking-tight leading-none group-hover:text-sky-400 transition-colors">
                     {bhw.full_name}
                   </p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase mt-2 tracking-widest">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mt-2 tracking-widest leading-relaxed">
                     Node: {bhw.unique_access_id}
                   </p>
                 </div>
 
                 <div className="w-full pt-4 border-t border-white/5 flex items-center justify-between">
-                   <span className="text-[8px] font-black text-slate-600 uppercase">Field Operations</span>
+                   <span className="text-[8px] font-semibold text-slate-600 uppercase">Field Operations</span>
                    <ChevronRight size={14} className="text-slate-700 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </button>
@@ -397,19 +397,19 @@ export default function PractitionerOverview({
               </div>
               <div className="flex-1 space-y-4 w-full">
                  <div className="text-center md:text-left">
-                    <h3 className="text-lg md:text-2xl font-light text-sky-500 uppercase tracking-[0.1em] leading-none">Critical Emergency Detected</h3>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">{criticalAlerts.length} nodes reporting breaches</p>
+                    <h3 className="text-lg md:text-2xl font-light text-sky-500 uppercase tracking-[0.1em] tracking-tighter leading-tight">Critical Emergency Detected</h3>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">{criticalAlerts.length} nodes reporting breaches</p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {criticalAlerts.slice(0, 4).map(a => (
                       <div key={a.id} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-white/5 group/alert hover:border-sky-500/30 transition-all shadow-sm">
                          <div>
-                            <div className="text-xs font-light text-white uppercase">{a.patient_name}</div>
+                            <div className="text-xs font-light text-slate-50 uppercase">{a.patient_name}</div>
                             <div className="text-[10px] font-bold text-sky-500/60 uppercase tracking-tighter mt-1">{a.vitals}</div>
                          </div>
                          <button 
                            onClick={() => initiateCall(undefined, a.patient_name)} 
-                           className="p-3 md:p-2.5 bg-sky-500 rounded-xl text-white active:scale-95 transition-all shadow-lg"
+                           className="p-3 md:p-2.5 bg-sky-500 rounded-xl text-slate-50 active:scale-95 transition-all shadow-lg"
                          >
                             <Phone size={14} className="fill-white" />
                          </button>
@@ -425,29 +425,29 @@ export default function PractitionerOverview({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/dashboard/practitioner/feed" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-sky-500/30">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Network Roster</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">Network Roster</p>
             <Users className="text-sky-500 group-hover:scale-110 transition-transform" size={20} />
           </div>
-          <h3 className="text-4xl font-black text-white">{stats.totalPatients}</h3>
-          <p className="text-[9px] text-slate-500 font-bold uppercase mt-2">Active Synchronized Nodes</p>
+          <h3 className="text-4xl font-bold text-slate-50 tracking-tighter leading-tight">{stats.totalPatients}</h3>
+          <p className="text-[9px] text-slate-500 font-bold uppercase mt-2 leading-relaxed">Active Synchronized Nodes</p>
         </Link>
 
         <Link to="/dashboard/practitioner/alerts" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-amber-500/30">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Pending Response</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">Pending Response</p>
             <Zap className="text-amber-500 group-hover:animate-pulse" size={20} />
           </div>
-          <h3 className="text-4xl font-black text-white">{stats.pendingAlerts}</h3>
-          <p className="text-[9px] text-amber-500/70 font-bold uppercase mt-2">Awaiting Practitioner Action</p>
+          <h3 className="text-4xl font-bold text-slate-50 tracking-tighter leading-tight">{stats.pendingAlerts}</h3>
+          <p className="text-[9px] text-amber-500/70 font-bold uppercase mt-2 leading-relaxed">Awaiting Practitioner Action</p>
         </Link>
 
         <Link to="/dashboard/practitioner/history" className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 shadow-2xl group transition-all hover:border-emerald-500/30">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Telemetry Flow</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.2em] leading-relaxed">Telemetry Flow</p>
             <TrendingUp className="text-emerald-500" size={20} />
           </div>
-          <h3 className="text-4xl font-black text-white">{stats.totalLogs}</h3>
-          <p className="text-[9px] text-emerald-500/70 font-bold uppercase mt-2">Total System Handshakes</p>
+          <h3 className="text-4xl font-bold text-slate-50 tracking-tighter leading-tight">{stats.totalLogs}</h3>
+          <p className="text-[9px] text-emerald-500/70 font-bold uppercase mt-2 leading-relaxed">Total System Handshakes</p>
         </Link>
       </div>
 
@@ -459,8 +459,8 @@ export default function PractitionerOverview({
         </div>
         
         <div className="max-w-2xl relative z-10">
-          <p className="text-sky-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">Operational Readiness</p>
-          <h2 className="text-5xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-6">
+          <p className="text-sky-500 font-semibold text-[10px] uppercase tracking-[0.4em] mb-4 leading-relaxed">Operational Readiness</p>
+          <h2 className="text-5xl font-semibold text-slate-50 uppercase tracking-tighter leading-[0.9] mb-6 leading-tight">
             Barangay Bantayan <br /> Monitoring Hub
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed mb-10 max-w-lg">
@@ -469,10 +469,10 @@ export default function PractitionerOverview({
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/dashboard/practitioner/feed" className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 text-center">
+            <Link to="/dashboard/practitioner/feed" className="px-10 py-5 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 text-center">
               Access Live Feed
             </Link>
-            <Link to="/dashboard/practitioner/alerts" className="px-10 py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 text-center">
+            <Link to="/dashboard/practitioner/alerts" className="px-10 py-5 bg-white/5 hover:bg-white/10 text-slate-50 border border-white/10 rounded-2xl text-[10px] font-semibold uppercase tracking-widest transition-all active:scale-95 text-center">
               Open Alert Center
             </Link>
           </div>
@@ -506,30 +506,30 @@ export default function PractitionerOverview({
                   <User size={40} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tight">{selectedNode.full_name}</h3>
-                  <p className="text-sky-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Authorized Field Node • {selectedNode.unique_access_id}</p>
+                  <h3 className="text-2xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">{selectedNode.full_name}</h3>
+                  <p className="text-sky-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1 leading-relaxed">Authorized Field Node • {selectedNode.unique_access_id}</p>
                 </div>
               </div>
 
               <div className="space-y-4 mb-8">
                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                    <p className="text-[9px] font-black text-slate-500 uppercase mb-1">Current Assignment</p>
-                    <p className="text-sm text-white font-medium">Monitoring Barangay Bantayan - Sector A</p>
+                    <p className="text-[9px] font-semibold text-slate-500 uppercase mb-1 leading-relaxed">Current Assignment</p>
+                    <p className="text-sm text-slate-50 font-medium leading-relaxed">Monitoring Barangay Bantayan - Sector A</p>
                  </div>
                  
                  <div className="grid grid-cols-2 gap-4">
-                    <a href={`tel:${selectedNode.phone_number}`} className="p-4 bg-sky-500 hover:bg-sky-400 text-white rounded-2xl flex flex-col items-center gap-2 transition-all group">
+                    <a href={`tel:${selectedNode.phone_number}`} className="p-4 bg-sky-500 hover:bg-sky-400 text-slate-50 rounded-2xl flex flex-col items-center gap-2 transition-all group">
                        <Phone size={20} className="group-hover:rotate-12 transition-transform" />
-                       <span className="text-[9px] font-black uppercase">Voice Consultation</span>
+                       <span className="text-[9px] font-semibold uppercase">Voice Consultation</span>
                     </a>
-                    <button onClick={() => setSelectedNode(null)} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl flex flex-col items-center gap-2 transition-all">
+                    <button onClick={() => setSelectedNode(null)} className="p-4 bg-white/5 hover:bg-white/10 text-slate-50 rounded-2xl flex flex-col items-center gap-2 transition-all">
                        <XCircle size={20} />
-                       <span className="text-[9px] font-black uppercase">Close Intel</span>
+                       <span className="text-[9px] font-semibold uppercase">Close Intel</span>
                     </button>
                  </div>
               </div>
 
-              <p className="text-[8px] text-center text-slate-600 font-bold uppercase tracking-widest">
+              <p className="text-[8px] text-center text-slate-600 font-bold uppercase tracking-widest leading-relaxed">
                 Node Identity Verified via BantayanCare Security Protocol
               </p>
             </motion.div>

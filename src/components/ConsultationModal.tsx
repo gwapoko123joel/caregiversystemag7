@@ -74,28 +74,28 @@ export default function ConsultationModal({
                  </div>
                  
                  <div className="space-y-2">
-                    <h3 className="text-3xl font-light text-white uppercase tracking-widest">Active Consultation</h3>
-                    <p className="text-[10px] font-bold text-brand-cyan uppercase tracking-[0.3em]">Secure Cellular Node: GSM-STABLE</p>
+                    <h3 className="text-3xl font-light text-slate-50 uppercase tracking-tighter leading-tight">Active Consultation</h3>
+                    <p className="text-[10px] font-bold text-brand-cyan uppercase tracking-[0.3em] leading-relaxed">Secure Cellular Node: GSM-STABLE</p>
                  </div>
               </div>
 
               <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/5">
                  <div className="text-left space-y-1">
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Practitioner</p>
-                    <p className="text-sm font-bold text-white uppercase ">{practitionerName}</p>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Practitioner</p>
+                    <p className="text-sm font-bold text-slate-50 uppercase  leading-relaxed">{practitionerName}</p>
                  </div>
                  <div className="text-right space-y-1">
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Subject</p>
-                    <p className="text-sm font-bold text-white uppercase ">{patientName}</p>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Subject</p>
+                    <p className="text-sm font-bold text-slate-50 uppercase  leading-relaxed">{patientName}</p>
                  </div>
               </div>
 
               <div className="space-y-4">
                  <div className="flex items-center justify-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse" />
-                    <span className="text-4xl font-light text-white tracking-[0.2em] font-mono">{formatTime(seconds)}</span>
+                    <span className="text-4xl font-light text-slate-50 tracking-[0.2em] font-mono">{formatTime(seconds)}</span>
                  </div>
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Session duration (Live Audit Active)</p>
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Session duration (Live Audit Active)</p>
               </div>
 
               <button 
@@ -103,7 +103,7 @@ export default function ConsultationModal({
                   onEndCall();
                   onClose();
                 }}
-                className="w-full py-5 bg-red-500 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                className="w-full py-5 bg-red-500 text-slate-50 rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
               >
                  <PhoneOff size={20} /> Terminate Secure Line
               </button>

@@ -67,7 +67,7 @@ export function EmptyState({
         <Icon size={32} className="text-slate-400 dark:text-slate-600 relative z-10" />
       </div>
       
-      <h3 className="text-lg font-black text-text-main uppercase tracking-tight mb-2 tracking-widest">{title}</h3>
+      <h3 className="text-lg font-semibold text-text-main uppercase mb-2 tracking-tighter leading-tight">{title}</h3>
       <p className="text-sm font-medium text-sidebar-text-muted mb-8 max-w-[280px] leading-relaxed">
         {message}
       </p>
@@ -75,7 +75,7 @@ export function EmptyState({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center gap-2 px-6 py-3 bg-card border border-card-border rounded-xl text-[10px] font-black uppercase tracking-widest text-text-main hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
+          className="flex items-center gap-2 px-6 py-3 bg-card border border-card-border rounded-xl text-[10px] font-semibold uppercase tracking-widest text-text-main hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-95 shadow-sm"
         >
           <RefreshCw size={14} className="text-sky-500" />
           Retry Node Sync

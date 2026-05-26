@@ -100,12 +100,12 @@ export default function AvailableDoctorsView() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Directory: Clinical Personnel</span>
+            <span className="text-[10px] font-semibold text-sky-500 uppercase tracking-[0.4em]">Directory: Clinical Personnel</span>
           </div>
-          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-semibold text-slate-50 uppercase tracking-tighter leading-tight">
             Find <span className="text-sky-500">Available Doctor</span>
           </h2>
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2 leading-relaxed">
             Direct Consultation Pipeline • Barangay Bantayan Network
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function AvailableDoctorsView() {
             placeholder="Search name or specialty..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 font-medium"
+            className="w-full bg-slate-900/60 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-slate-50 outline-none focus:border-sky-500/50 transition-all placeholder:text-slate-700 font-medium"
           />
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function AvailableDoctorsView() {
           <button
             key={filter.id}
             onClick={() => setActiveFilter(filter.id)}
-            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+            className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${
               activeFilter === filter.id 
                 ? 'bg-sky-500/10 border-sky-500/50 text-sky-400 shadow-lg shadow-sky-500/5' 
                 : 'bg-slate-900/40 border-white/5 text-slate-500 hover:text-slate-300'
@@ -144,12 +144,12 @@ export default function AvailableDoctorsView() {
         {loading ? (
           <div className="col-span-full py-20 flex flex-col items-center gap-4 opacity-40">
              <Loader2 className="animate-spin text-sky-500" size={32} />
-             <p className="text-[10px] font-black uppercase tracking-widest">Scanning network nodes...</p>
+             <p className="text-[10px] font-semibold uppercase tracking-widest leading-relaxed">Scanning network nodes...</p>
           </div>
         ) : filteredDoctors.length === 0 ? (
           <div className="col-span-full bg-slate-900/20 border-2 border-dashed border-white/5 rounded-[40px] py-20 text-center">
              <AlertCircle size={48} className="mx-auto text-slate-700 mb-4" />
-             <p className="text-sm font-black text-slate-500 uppercase tracking-widest">No active practitioners found</p>
+             <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest leading-relaxed">No active practitioners found</p>
           </div>
         ) : (
           filteredDoctors.map(doctor => (
@@ -194,15 +194,15 @@ function DoctorCard({ doctor, onCall, onSMS }: any) {
           </div>
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-${status.color}-500/10 border border-${status.color}-500/20`}>
              <div className={`w-1.5 h-1.5 rounded-full bg-${status.color}-500 ${doctor.availability_status === 'available' ? 'animate-pulse' : ''}`} />
-             <span className={`text-[8px] font-black uppercase text-${status.color}-500 tracking-widest`}>{status.label}</span>
+             <span className={`text-[8px] font-bold uppercase text-${status.color}-500 tracking-widest`}>{status.label}</span>
           </div>
         </div>
 
-        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">{doctor.full_name}</h3>
+        <h3 className="text-xl font-semibold text-slate-50 uppercase mb-1 tracking-tighter leading-tight">{doctor.full_name}</h3>
         <p className={`text-[10px] font-bold text-sky-500 uppercase tracking-widest ${doctor.status_message ? 'mb-2' : 'mb-6'}`}>PRC License: {doctor.prc_license_number}</p>
         
         {doctor.status_message && (
-          <p className="text-[10px] text-slate-400 italic mb-6 flex items-center gap-1">
+          <p className="text-[10px] text-slate-400 italic mb-6 flex items-center gap-1 leading-relaxed">
             <Info size={10} className="text-sky-500" />
             "{doctor.status_message}"
           </p>
@@ -224,7 +224,7 @@ function DoctorCard({ doctor, onCall, onSMS }: any) {
         <button 
           onClick={() => onCall(doctor)}
           disabled={!doctor.accepts_calls}
-          className={`flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${
+          className={`flex items-center justify-center gap-2 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg ${
             doctor.accepts_calls 
               ? 'bg-sky-500 text-slate-950 hover:scale-105 active:scale-95 shadow-sky-500/20' 
               : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
@@ -234,7 +234,7 @@ function DoctorCard({ doctor, onCall, onSMS }: any) {
         </button>
         <button 
           onClick={() => onSMS(doctor)}
-          className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+          className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 text-slate-50 rounded-2xl text-[10px] font-semibold uppercase tracking-widest hover:bg-white/10 transition-all"
         >
           <MessageSquare size={14} /> Message
         </button>
