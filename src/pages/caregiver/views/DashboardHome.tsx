@@ -87,30 +87,20 @@ export default function DashboardHome({ assignedPatients, recentLogs }: any) {
 
     const { data } = await supabase
       .from('personnel_shifts')
-      .select(`
-        shift_id,
-        handover_note,
-        end_time,
-        user_id,
-        user:caregivers!user_id (full_name, role)
-      `)
+      .select('*, user:caregivers!user_id(full_name, role)')
       .eq('status', 'completed')
-      .eq('user.role', profile?.role || 'caregiver') 
-      // ── CRITICAL FIX: EXCLUDE CURRENT USER ──
-      .neq('user_id', user.id) 
-      // ───────────────────────────────────────
+      .neq('user_id', user.id) // <--- CRITICAL: Exclude self
       .order('end_time', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
-    if (data) {
+    // Post-fetch check:
+    if (data?.[0]?.user?.role === profile?.role) {
       const dismissedId = localStorage.getItem('dismissed_handover_id');
-      if (dismissedId !== data.shift_id) {
-        setHandoverData(data);
+      if (dismissedId !== data[0].shift_id) {
+        setHandoverData(data[0]);
       }
     } else {
-      // If the only handover is our own, data will be null
-      setHandoverData(null); 
+      setHandoverData(null);
     }
   };
 

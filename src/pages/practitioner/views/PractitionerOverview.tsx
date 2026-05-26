@@ -35,7 +35,7 @@ export default function PractitionerOverview({
   criticalAlerts,
   initiateCall
 }: PractitionerOverviewProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activeBHWs, setActiveBHWs] = useState<any[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
@@ -78,16 +78,20 @@ export default function PractitionerOverview({
     }
 
     // Fetch previous handover
-    const { data: prev } = await supabase
+    const { data } = await supabase
       .from('personnel_shifts')
-      .select('handover_note, end_time, caregivers!inner(full_name, role)')
+      .select('*, user:caregivers!user_id(full_name, role)')
       .eq('status', 'completed')
-      .eq('caregivers.role', 'medical_practitioner')
-      .not('handover_note', 'is', null)
+      .neq('user_id', user.id) // <--- CRITICAL: Exclude self
       .order('end_time', { ascending: false })
-      .limit(1)
-      .single();
-    if (prev) setPreviousHandover(prev);
+      .limit(1);
+
+    // Post-fetch check:
+    if (data?.[0]?.user?.role === profile?.role) {
+       setPreviousHandover(data[0]);
+    } else {
+       setPreviousHandover(null);
+    }
   };
 
   useEffect(() => {
@@ -207,7 +211,7 @@ export default function PractitionerOverview({
             {previousHandover ? (
                <div className="space-y-2">
                   <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest leading-relaxed">
-                     Handover from Practitioner Node: {previousHandover.caregivers?.full_name}
+                     Handover from Practitioner Node: {previousHandover.user?.full_name}
                   </p>
                   <div className="p-4 bg-sky-500/5 border-l-2 border-sky-500 rounded-r-2xl">
                      <p className="text-[11px] text-slate-50 italic leading-relaxed">"{previousHandover.handover_note}"</p>
