@@ -12,7 +12,8 @@ import {
   Activity,
   Loader2,
   FileText,
-  Printer
+  Printer,
+  ShieldAlert
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAuth } from '../../../hooks/useAuth'
@@ -314,6 +315,34 @@ export default function PatientDossier({
         
         {/* LEFT: VISUAL HEALTH & CONTEXT (6 Spans) */}
         <div className="lg:col-span-6 space-y-8">
+          {/* ── NEW: EMERGENCY QUICK-SCAN ── */}
+          <div className="bg-slate-950/50 rounded-3xl p-6 border border-rose-500/20 mb-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-4 text-rose-500">
+              <ShieldAlert size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Emergency Metadata</span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Blood Type</span>
+                <span className="text-sm font-black text-white">{patient.blood_type || 'Unknown'}</span>
+              </div>
+              
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Known Allergies</span>
+                <p className={`text-xs font-bold uppercase ${patient.allergies ? 'text-rose-400' : 'text-slate-400'}`}>
+                  {patient.allergies || 'No known allergies'}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-white/5 space-y-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Emergency Contact</span>
+                <p className="text-xs font-bold text-white uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
+                <p className="text-[10px] font-mono text-sky-500">{patient.emergency_contact_phone || 'None'}</p>
+              </div>
+            </div>
+          </div>
+
           {/* PHOTO INVENTORY */}
           <div className="bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-[40px] p-8 shadow-2xl">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
-import { Activity, Map, Users } from 'lucide-react'
+import { Activity, Map, Users, Download } from 'lucide-react'
 
 export default function HealthAnalytics() {
   const [healthData, setHealthData] = useState<any[]>([])
@@ -13,21 +13,55 @@ export default function HealthAnalytics() {
     fetchHealthProfile()
   }, [])
 
+  const exportToCSV = () => {
+    // 1. Define Headers
+    const headers = ["Purok", "Patient Count", "Hypertension", "Diabetes", "Emergencies"];
+    
+    // 2. Format Data
+    const rows = healthData.map(p => [
+      p.location, 
+      p.patient_count, 
+      p.hypertension_cases, 
+      p.diabetes_cases, 
+      p.active_emergencies
+    ]);
+  
+    // 3. Combine into one string
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+  
+    // 4. Create the download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Bantayan_Health_Report_${new Date().toLocaleDateString()}.csv`);
+    link.click();
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
       
       {/* ── HEADER: POPULATION INTELLIGENCE ── */}
-      <div className="px-2">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-          <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Analytics: Population Health</span>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
+            <span className="text-[10px] font-black text-sky-500 uppercase tracking-[0.4em]">Analytics: Population Health</span>
+          </div>
+          <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
+            Health <span className="text-sky-500">Profile</span>
+          </h2>
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
+            Barangay Bantayan Coordination Map • Dumaguete City Node
+          </p>
         </div>
-        <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
-          Health <span className="text-sky-500">Profile</span>
-        </h2>
-        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest mt-2">
-          Barangay Bantayan Coordination Map • Dumaguete City Node
-        </p>
+        
+        <button 
+          onClick={exportToCSV}
+          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-2 shrink-0"
+        >
+          <Download size={16} /> Generate Monthly Report
+        </button>
       </div>
 
       {/* ── SECTION 1: TOP HUD ── */}

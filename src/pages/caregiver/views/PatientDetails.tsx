@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   ArrowLeft, User, Activity, Calendar, 
   MapPin, Clock, AlertCircle,
-  Loader2, ShieldCheck, TrendingUp, TrendingDown, Minus
+  Loader2, ShieldCheck, TrendingUp, TrendingDown, Minus, ShieldAlert
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { calculateAge } from '../../../utils/medical'
@@ -116,6 +116,34 @@ export default function PatientDetails({ patient, onBack }: PatientDetailsProps)
                  <ProfileDetail label="Date of Birth" value={patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString() : 'N/A'} icon={<Calendar size={12}/>} />
                  <ProfileDetail label="Current Age" value={calculateAge(patient.date_of_birth)} icon={<Activity size={12}/>} color="text-sky-400" />
                  <ProfileDetail label="Home Address" value={patient.address} icon={<MapPin size={12}/>} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── NEW: EMERGENCY QUICK-SCAN ── */}
+          <div className="bg-slate-950/50 rounded-3xl p-6 border border-rose-500/20 mb-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-4 text-rose-500">
+              <ShieldAlert size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Emergency Metadata</span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Blood Type</span>
+                <span className="text-sm font-black text-white">{patient.blood_type || 'Unknown'}</span>
+              </div>
+              
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Known Allergies</span>
+                <p className={`text-xs font-bold uppercase ${patient.allergies ? 'text-rose-400' : 'text-slate-400'}`}>
+                  {patient.allergies || 'No known allergies'}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-white/5 space-y-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase">Emergency Contact</span>
+                <p className="text-xs font-bold text-white uppercase leading-none">{patient.emergency_contact_name || 'N/A'}</p>
+                <p className="text-[10px] font-mono text-sky-500">{patient.emergency_contact_phone || 'None'}</p>
               </div>
             </div>
           </div>

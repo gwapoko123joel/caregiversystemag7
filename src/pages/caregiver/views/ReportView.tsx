@@ -3,7 +3,7 @@ import {
   FileText, CheckCircle2, AlertCircle, Activity, 
   Heart, Thermometer, Zap, X, Send, 
   Plus, AlertTriangle, UserSearch, ArrowLeft,
-  Loader2
+  Loader2, ShieldAlert
 } from 'lucide-react'
 
 interface ReportViewProps {
@@ -109,6 +109,39 @@ export default function ReportView({
             <VitalInput label="Heart Rate" unit="BPM" icon={<Heart size={18}/>} placeholder="72" value={form.heart_rate} onChange={(v: string) => setField('heart_rate', v)} />
             <VitalInput label="Temperature" unit="°C" icon={<Thermometer size={18}/>} placeholder="36.5" value={form.temperature} onChange={(v: string) => setField('temperature', v)} />
             <VitalInput label="O₂ Saturation" unit="%" icon={<Zap size={18}/>} placeholder="98" value={form.oxygen_saturation} onChange={(v: string) => setField('oxygen_saturation', v)} />
+            
+            {/* ── NEW: ALLERGIC REACTION CHECK ── */}
+            <div className="md:col-span-2 mt-4">
+              <div className={`p-6 rounded-[28px] border-2 transition-all flex items-center justify-between ${
+                form.allergic_reaction_detected 
+                  ? 'bg-rose-500/10 border-rose-500/30' 
+                  : 'bg-slate-950/50 border-white/5'
+              }`}>
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    form.allergic_reaction_detected ? 'bg-rose-500 text-white animate-pulse' : 'bg-white/5 text-slate-500'
+                  }`}>
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-black text-white uppercase tracking-tight">Acute Allergic Reaction?</p>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Check for rashes, swelling, or itching</p>
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => setField('allergic_reaction_detected', !form.allergic_reaction_detected)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    form.allergic_reaction_detected ? 'bg-rose-500' : 'bg-slate-700'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    form.allergic_reaction_detected ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

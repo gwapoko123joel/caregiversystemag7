@@ -20,7 +20,8 @@ export default function SubmitReport() {
     temperature: '',
     oxygen_saturation: '',
     physical_status: 'stable' as 'stable' | 'warning' | 'critical',
-    notes: ''
+    notes: '',
+    allergic_reaction_detected: false
   })
 
   // 3. Status States
@@ -112,17 +113,21 @@ export default function SubmitReport() {
       const sys = parseInt(form.blood_pressure.split('/')[0])
       const o2 = parseInt(form.oxygen_saturation)
 
-      const isCritical = sys > 160 || o2 < 90 || form.physical_status === 'critical'
+      const isCritical = sys > 160 || o2 < 90 || form.physical_status === 'critical' || form.allergic_reaction_detected
       const isWarning = sys > 140 || o2 < 95 || form.physical_status === 'warning'
 
       if (isCritical || isWarning) {
+        const description = form.allergic_reaction_detected 
+          ? `POTENTIAL ANAPHYLAXIS/ALLERGY DETECTED | BP: ${form.blood_pressure}`
+          : `Telemetry Breach: BP ${form.blood_pressure} | O2 ${form.oxygen_saturation}%`;
+
         const { error: alertError } = await supabase
           .from('alerts')
           .insert({
             patient_id: Number(patient.patient_id), 
             log_id: Number(logData.log_id),
             severity: isCritical ? 'critical' : 'warning',
-            description: `Emergency: BP ${form.blood_pressure} | O2 ${form.oxygen_saturation}%`,
+            description: description,
             is_resolved: false
           })
 

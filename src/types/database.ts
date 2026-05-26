@@ -189,6 +189,10 @@ export interface Patient {
   medical_history: string | null;
   emergency_contact: string | null;
   photo_url: string | null;
+  blood_type?: string | null;
+  allergies?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
 
   // Registration workflow
   registration_status: RegistrationStatus;

@@ -3,7 +3,7 @@ import {
   User, Calendar, Phone, MapPin, 
   ArrowLeft, ArrowRight, HeartPulse, 
   ShieldCheck, Loader2,
-  ChevronRight
+  ChevronRight, ShieldAlert
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
@@ -16,6 +16,10 @@ interface FormData {
   contact: string;
   address: string;
   medicalHistory: string;
+  bloodType: string;
+  allergies: string;
+  emergencyName: string;
+  emergencyPhone: string;
 }
 
 export default function PatientOnboardingForm({ onBack }: { onBack: () => void }) {
@@ -32,7 +36,11 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
     gender: 'prefer_not_to_say',
     contact: '',
     address: '',
-    medicalHistory: ''
+    medicalHistory: '',
+    bloodType: '',
+    allergies: '',
+    emergencyName: '',
+    emergencyPhone: ''
   });
 
   const setField = (key: keyof FormData, val: string) => setFormData(prev => ({ ...prev, [key]: val }));
@@ -44,18 +52,24 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
 
     try {
       // 1. Insert the new patient into the database
-      const { data: newPatient, error: pError } = await supabase.from('patients').insert({
-        first_name: formData.firstName.trim(),
-        last_name: formData.lastName.trim(),
-        date_of_birth: formData.dob || null,
-        gender: formData.gender,
-        phone_number: formData.contact.trim(), // Correct field name is phone_number
-        address: formData.address.trim(),
-        medical_conditions: formData.medicalHistory.trim(), // Correct field name is medical_conditions
-        status: 'pending',
-        registration_status: 'pending_verification',
-        registered_by: user.id
-      }).select().single();
+      const { data: newPatient, error: pError } = await supabase
+        .from('patients')
+        .insert({
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          date_of_birth: formData.dob || null,
+          gender: formData.gender,
+          contact_number: formData.contact.trim(),
+          address: formData.address.trim(),
+          medical_history: formData.medicalHistory.trim(),
+          blood_type: formData.bloodType,
+          allergies: formData.allergies.trim(),
+          emergency_contact_name: formData.emergencyName.trim(),
+          emergency_contact_phone: formData.emergencyPhone.trim(),
+          status: 'pending' 
+        })
+        .select()
+        .single();
 
       if (pError) throw pError;
 
@@ -66,15 +80,12 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
           patient_id: newPatient.patient_id
         });
 
-        // 3. Log the activity for the audit trail
+        // This will now show up in your System Audit Log!
         await supabase.from('activity_logs').insert({
           user_id: user.id,
           user_type: 'caregiver',
           action: 'REGISTER_PATIENT',
-          details: { 
-            patient_id: newPatient.patient_id, 
-            patient_name: `${formData.firstName} ${formData.lastName}` 
-          }
+          details: { patient_name: `${formData.firstName} ${formData.lastName}` }
         });
       }
 
@@ -187,6 +198,24 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
                 onChange={(val) => setField('address', val)}
               />
             </div>
+            <div className="md:col-span-1">
+              <InputField 
+                label="Emergency Contact Person" 
+                placeholder="Full Name" 
+                icon={<User size={16}/>} 
+                value={formData.emergencyName}
+                onChange={(val) => setField('emergencyName', val)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <InputField 
+                label="Emergency Contact Phone" 
+                placeholder="09XX XXX XXXX" 
+                icon={<Phone size={16}/>} 
+                value={formData.emergencyPhone}
+                onChange={(val) => setField('emergencyPhone', val)}
+              />
+            </div>
           </div>
         </div>
 
@@ -195,6 +224,40 @@ export default function PatientOnboardingForm({ onBack }: { onBack: () => void }
           <div className="flex items-center gap-3 mb-8">
              <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
              <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Clinical Context</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2">Blood Type</label>
+              <div className="relative">
+                <select 
+                  value={formData.bloodType}
+                  onChange={(e) => setField('bloodType', e.target.value)}
+                  className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-4 px-5 text-sm text-white focus:border-sky-500/50 transition-all outline-none appearance-none font-medium [color-scheme:dark]"
+                >
+                  <option value="">Unknown</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <ChevronRight size={16} className="rotate-90" />
+                </div>
+              </div>
+            </div>
+            
+            <InputField 
+              label="Known Allergies" 
+              placeholder="e.g. Penicillin, Peanuts" 
+              icon={<ShieldAlert size={16}/>} 
+              value={formData.allergies}
+              onChange={(val) => setField('allergies', val)}
+            />
           </div>
 
           <div className="space-y-2">
