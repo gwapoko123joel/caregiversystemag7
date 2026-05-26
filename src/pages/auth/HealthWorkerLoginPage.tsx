@@ -184,6 +184,15 @@ const HealthWorkerLoginPage = () => {
                 {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
             </div>
+            <div className="flex justify-end mt-1 px-1">
+              <button 
+                type="button"
+                onClick={() => alert("SECURITY PROTOCOL: Please contact your Barangay Administrator to initiate a Manual Node Reset.")}
+                className="text-[9px] font-black text-sky-500/50 hover:text-sky-400 uppercase tracking-widest transition-all"
+              >
+                Forgot Passkey?
+              </button>
+            </div>
           </div>
 
           <button 

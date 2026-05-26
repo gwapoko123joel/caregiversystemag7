@@ -17,7 +17,6 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   const [elapsedTime, setElapsedTime] = useState('00:00:00');
   const [elapsedMs, setElapsedMs] = useState(0);
   const [handoverData, setHandoverData] = useState<any>(null);
-  const [showHandover, setShowHandover] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -94,17 +93,28 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   };
 
   const fetchLastHandover = async () => {
-    const { data: prev } = await supabase
+    const { data } = await supabase
       .from('personnel_shifts')
-      .select('user_id, handover_note, end_time, caregivers!inner(full_name, role)')
+      .select(`
+        shift_id,
+        handover_note,
+        end_time,
+        user_id,
+        user:caregivers!user_id (full_name, role)
+      `)
       .eq('status', 'completed')
-      .eq('caregivers.role', 'caregiver')
-      .not('handover_note', 'is', null)
+      .eq('user.role', 'caregiver') 
       .order('end_time', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (prev) {
-      setHandoverData(prev);
+
+    if (data) {
+      // CHECK LOCAL STORAGE: Have we already dismissed THIS specific shift note?
+      const dismissedId = localStorage.getItem('dismissed_handover_id');
+      
+      if (dismissedId !== data.shift_id) {
+        setHandoverData(data);
+      }
     }
   };
 
@@ -272,7 +282,7 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
       
       {/* ── INCOMING HANDOVER BRIEFING ── */}
       {handoverData && (
-        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-[32px] p-6 shadow-xl animate-in slide-in-from-top duration-1000 relative overflow-hidden group">
+        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-[32px] p-6 shadow-xl animate-in fade-out duration-300">
           <div className="flex items-start gap-4 relative z-10">
             <div className="w-10 h-10 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/30">
               <ClipboardList size={20} />
@@ -281,7 +291,7 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
             <div className="flex-1">
               <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2">Incoming Handover Briefing</p>
               <p className="text-sm text-white font-medium italic">"{handoverData.handover_note}"</p>
-              <p className="text-[9px] font-bold text-slate-500 uppercase mt-4">Prepared by: {handoverData.caregivers?.full_name}</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase mt-4">Prepared by: {handoverData.user?.full_name || 'Previous Shift'}</p>
               
               {/* ── NEW: THE SYNCHRONIZATION ACTION ── */}
               <div className="mt-6 flex gap-3">
@@ -303,7 +313,18 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
                  >
                    Synchronize Subject Roster
                  </button>
-                 <button onClick={() => setHandoverData(null)} className="px-4 py-2 bg-white/5 text-slate-500 rounded-xl text-[9px] font-black uppercase hover:text-white">Dismiss</button>
+                 <button 
+                   onClick={() => {
+                     // 1. Save this specific shift_id to long-term memory
+                     localStorage.setItem('dismissed_handover_id', handoverData.shift_id);
+                     
+                     // 2. Hide it from current view
+                     setHandoverData(null);
+                   }} 
+                   className="px-4 py-2 bg-white/5 text-slate-500 rounded-xl text-[9px] font-black uppercase hover:text-white transition-all"
+                 >
+                   Dismiss
+                 </button>
               </div>
             </div>
           </div>

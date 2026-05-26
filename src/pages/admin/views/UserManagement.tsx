@@ -188,6 +188,28 @@ export default function UserManagement() {
     }
   }
 
+  async function handleMasterReset(userId: string, name: string) {
+    const newTempPassword = Math.random().toString(36).slice(-8); // Generates a random 8-character string
+    
+    if (!confirm(`INITIATE SECURITY RESET?\n\nThis will set a temporary passkey for ${name}.\n\nNew Passkey: ${newTempPassword}\n\nPlease copy this and provide it to the personnel.`)) return;
+  
+    // In a real Supabase setup, you'd use a service role, 
+    // but for your demo, we can log the request or use the Supabase Auth Admin API.
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      password: newTempPassword
+    });
+  
+    if (!error) {
+      await supabase.from('activity_logs').insert({
+        action: 'MASTER_PASSWORD_RESET',
+        details: { target: name, reset_by: 'ADMIN' }
+      });
+      alert("CREDENTIALS SYNCHRONIZED: The user can now log in with the temporary passkey.");
+    } else {
+      alert("RESET FAILED: Ensure you have 'Service Role' permissions configured in Supabase.");
+    }
+  }
+
   const filteredUsers = (users as any[]).filter(u =>
     u.full_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchUser.toLowerCase()) ||
@@ -356,6 +378,15 @@ export default function UserManagement() {
                     <ShieldAlert size={12} /> Revoke Access
                   </button>
                 )}
+
+                {/* Master Passkey Reset Button */}
+                <button 
+                  onClick={() => handleMasterReset(u.id, u.full_name)}
+                  className="p-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 rounded-xl border border-amber-500/20 transition-all active:scale-95"
+                  title="Master Passkey Reset"
+                >
+                  <RefreshCw size={14} />
+                </button>
 
                 {/* Settings / More Button */}
                 <button className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-500 rounded-xl transition-all">
