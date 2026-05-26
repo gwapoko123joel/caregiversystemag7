@@ -96,7 +96,7 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
   const fetchLastHandover = async () => {
     const { data: prev } = await supabase
       .from('personnel_shifts')
-      .select('handover_note, end_time, caregivers!inner(full_name, role)')
+      .select('user_id, handover_note, end_time, caregivers!inner(full_name, role)')
       .eq('status', 'completed')
       .eq('caregivers.role', 'caregiver')
       .not('handover_note', 'is', null)
@@ -271,33 +271,42 @@ export default function DashboardHome({ assignedPatients, userProfile, recentLog
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 pb-12 px-4 md:px-0">
       
       {/* ── INCOMING HANDOVER BRIEFING ── */}
-      {handoverData && showHandover && (
-        <div className="bg-amber-500/10 border border-amber-500/20 p-6 rounded-[32px] relative shadow-lg animate-in slide-in-from-top duration-700">
-           <button 
-             onClick={() => setShowHandover(false)}
-             className="absolute top-6 right-6 p-2 bg-amber-500/10 text-amber-500 rounded-full hover:bg-amber-500 hover:text-white transition-all active:scale-95"
-           >
-             <X size={16} />
-           </button>
-           <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 shrink-0 border border-amber-500/30">
-                 <MessageSquare size={24} />
+      {handoverData && (
+        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-[32px] p-6 shadow-xl animate-in slide-in-from-top duration-1000 relative overflow-hidden group">
+          <div className="flex items-start gap-4 relative z-10">
+            <div className="w-10 h-10 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/30">
+              <ClipboardList size={20} />
+            </div>
+            
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2">Incoming Handover Briefing</p>
+              <p className="text-sm text-white font-medium italic">"{handoverData.handover_note}"</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase mt-4">Prepared by: {handoverData.caregivers?.full_name}</p>
+              
+              {/* ── NEW: THE SYNCHRONIZATION ACTION ── */}
+              <div className="mt-6 flex gap-3">
+                 <button 
+                   onClick={async () => {
+                     if (!user) return;
+                     const { error } = await supabase.rpc('sync_caregiver_roster', { 
+                       from_id: handoverData.user_id, 
+                       to_id: user.id 
+                     });
+                     if (!error) {
+                       alert("ROSTER SYNCHRONIZED: You now have clinical access to this sector's patients.");
+                       window.location.reload(); // Refresh to show the patients in the list
+                     } else {
+                       alert("Sync failed: " + error.message);
+                     }
+                   }}
+                   className="px-4 py-2 bg-amber-500 text-slate-950 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all shadow-lg active:scale-95"
+                 >
+                   Synchronize Subject Roster
+                 </button>
+                 <button onClick={() => setHandoverData(null)} className="px-4 py-2 bg-white/5 text-slate-500 rounded-xl text-[9px] font-black uppercase hover:text-white">Dismiss</button>
               </div>
-              <div className="flex-1 pr-12">
-                 <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-amber-500 text-white text-[7px] font-black px-2 py-0.5 rounded tracking-widest uppercase">Field Briefing</span>
-                    <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest">Incoming Shift Handover</h4>
-                 </div>
-                 <p className="text-sm text-amber-100/90 font-medium italic leading-relaxed mb-3">
-                   "{handoverData.handover_note}"
-                 </p>
-                 <div className="flex items-center gap-4 text-[9px] font-black text-amber-500/60 uppercase tracking-widest">
-                    <span>— {handoverData.caregivers?.full_name}</span>
-                    <span>•</span>
-                    <span className="font-mono">{new Date(handoverData.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                 </div>
-              </div>
-           </div>
+            </div>
+          </div>
         </div>
       )}
 
