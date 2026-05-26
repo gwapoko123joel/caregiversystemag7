@@ -49,22 +49,49 @@ export async function healthWorkerLogin(accessId: string, email: string, passwor
     }
 
     // Step 5: Authenticate with Supabase Auth
+    let authUser = null;
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
 
     if (authError) {
+      // 5B. If standard auth fails, check the Admin-Issued Temp Key
+      const { data: tempCheck } = await supabase
+        .from('caregivers')
+        .select('*')
+        .eq('email', email.trim().toLowerCase())
+        .eq('temp_passkey', password)
+        .eq('unique_access_id', accessId.trim().toUpperCase())
+        .maybeSingle();
+
+      if (tempCheck) {
+        // SUCCESS via Admin Bypass!
+        authUser = tempCheck;
+        
+        // For the demo, we just let them in by returning success
+        return {
+          success: true,
+          user: authUser,
+          role: tempCheck.role,
+          accessId: tempCheck.unique_access_id,
+          fullName: tempCheck.full_name,
+          redirectTo: tempCheck.role === 'medical_practitioner' ? '/dashboard/practitioner' : '/dashboard/caregiver',
+          isTemp: true
+        };
+      }
+
       return {
         success: false,
-        error: 'Authentication failed. Please check your password.',
+        error: 'Invalid credentials or unauthorized node.',
         code: 'AUTH_FAILED',
       };
     }
 
+    authUser = authData.user;
+
     // Step 6: Verify the auth user UID matches the caregivers record ID
-    // In caregivers, id IS the auth UID — no separate user_id column needed
-    if (userRecord.id !== authData.user.id) {
+    if (userRecord.id !== authUser.id) {
       // Sign them back out — UID mismatch is a security concern
       await supabase.auth.signOut();
       return {

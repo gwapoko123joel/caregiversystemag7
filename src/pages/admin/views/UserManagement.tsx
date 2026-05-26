@@ -192,24 +192,25 @@ export default function UserManagement() {
   }
 
   async function handleMasterReset(userId: string, name: string) {
-    const newTempPassword = Math.random().toString(36).slice(-8); // Generates a random 8-character string
+    const newTempPassword = Math.random().toString(36).slice(-8); // Random 8 chars
     
-    if (!confirm(`INITIATE SECURITY RESET?\n\nThis will set a temporary passkey for ${name}.\n\nNew Passkey: ${newTempPassword}\n\nPlease copy this and provide it to the personnel.`)) return;
-  
-    // In a real Supabase setup, you'd use a service role, 
-    // but for your demo, we can log the request or use the Supabase Auth Admin API.
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      password: newTempPassword
-    });
-  
+    if (!confirm(`INITIATE SECURITY RESET?\n\nThis will set a temporary passkey for ${name}.\n\nNew Passkey: ${newTempPassword}\n\nPlease provide this to the personnel.`)) return;
+
+    // We update the 'temp_passkey' column in our custom table
+    const { error } = await supabase
+      .from('caregivers')
+      .update({ temp_passkey: newTempPassword })
+      .eq('id', userId);
+
     if (!error) {
       await supabase.from('activity_logs').insert({
         action: 'MASTER_PASSWORD_RESET',
-        details: { target: name, reset_by: 'ADMIN' }
+        details: { target: name, reset_status: 'TEMP_KEY_ISSUED' }
       });
-      alert("CREDENTIALS SYNCHRONIZED: The user can now log in with the temporary passkey.");
+      alert(`SUCCESS: Temporary Passkey Issued.\nKey: ${newTempPassword}`);
+      loadUsers();
     } else {
-      alert("RESET FAILED: Ensure you have 'Service Role' permissions configured in Supabase.");
+      alert("Reset failed: " + error.message);
     }
   }
 

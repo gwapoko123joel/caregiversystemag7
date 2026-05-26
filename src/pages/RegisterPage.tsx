@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Eye, EyeOff, User,
+  Eye, EyeOff, User, Lock,
   AlertCircle, Loader2, ShieldCheck, CheckCircle2,
   ArrowRight, Stethoscope, ArrowLeft, Key, UserPlus
 } from 'lucide-react'
@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [verifiedInfo, setVerifiedInfo] = useState<any>(null)
 
   // ── LOGIC: AUTO-DETECT ROLE ──
@@ -293,14 +294,60 @@ export default function RegisterPage() {
              </div>
              <Input label="Network Email" type="email" value={email} onChange={setEmail} placeholder="name@bantayan.care" />
              
-             <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 relative">
-                  <Input label="Passkey" type={showPassword ? "text" : "password"} value={password} onChange={setPassword} placeholder="••••••••" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[26px] text-slate-600 hover:text-sky-500 transition-colors">
-                    {showPassword ? <Eye size={12} /> : <EyeOff size={12} />}
-                  </button>
-                </div>
-                <Input label="Confirm" type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="••••••••" />
+             {/* ── PASSKEY & CONFIRM ── */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               
+               {/* Passkey Field */}
+               <div className="space-y-1.5">
+                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Passkey</label>
+                 <div className="relative group">
+                   {/* Lock Icon (Left) */}
+                   <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+                   
+                   <input 
+                     type={showPassword ? 'text' : 'password'}
+                     value={password}
+                     onChange={(e) => setPassword(e.target.value)}
+                     placeholder="••••••••"
+                     className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-10 pr-12 text-sm text-white outline-none focus:border-sky-500/50 transition-all font-medium"
+                   />
+                   
+                   {/* Eye Toggle (Right) */}
+                   <button 
+                     type="button"
+                     onClick={() => setShowPassword(!showPassword)}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-600 hover:text-sky-400 transition-all active:scale-90"
+                   >
+                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                   </button>
+                 </div>
+               </div>
+             
+               {/* Confirm Field */}
+               <div className="space-y-1.5">
+                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirm</label>
+                 <div className="relative group">
+                   {/* Lock Icon (Left) */}
+                   <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-sky-500 transition-colors" />
+                   
+                   <input 
+                     type={showConfirmPassword ? 'text' : 'password'}
+                     value={confirmPassword} 
+                     onChange={(e) => setConfirmPassword(e.target.value)}
+                     placeholder="••••••••"
+                     className="w-full bg-slate-950/50 border border-white/10 rounded-xl py-3.5 pl-10 pr-12 text-sm text-white outline-none focus:border-sky-500/50 transition-all font-medium"
+                   />
+                   
+                   {/* Eye Toggle (Right) */}
+                   <button 
+                     type="button"
+                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-600 hover:text-sky-400 transition-all active:scale-90"
+                   >
+                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                   </button>
+                 </div>
+               </div>
              </div>
 
              <Input 
