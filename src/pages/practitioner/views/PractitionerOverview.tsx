@@ -88,7 +88,7 @@ export default function PractitionerOverview({
 
     // Post-fetch check:
     if (data?.[0]?.user?.role === profile?.role) {
-       setPreviousHandover(data[0]);
+       setPreviousHandover(data?.[0]);
     } else {
        setPreviousHandover(null);
     }
